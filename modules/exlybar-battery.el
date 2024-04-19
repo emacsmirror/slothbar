@@ -40,6 +40,8 @@
 (require 'exlybar-module)
 (require 'exlybar-module-helpers)
 
+(require 'f)
+
 (defgroup exlybar-battery nil
   "An Exlybar battery module."
   :group 'exlybar)
