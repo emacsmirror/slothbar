@@ -38,6 +38,8 @@
 (require 'exlybar-module)
 (require 'exlybar-module-helpers)
 
+(require 'f)
+
 (defgroup exlybar-volume nil
   "An Exlybar volume module."
   :group 'exlybar)
@@ -79,16 +81,18 @@ See `exlybar-zone-color'"
 
 (defun exlybar-volume-format-format (m)
   "This is the default format-fn that is applied to format."
-  (format-spec (exlybar-module-format m)
-               (exlybar-volume--format-fn-spec (volume-get)) t))
+  (let ((default-directory (f-full "~")))
+    (format-spec (exlybar-module-format m)
+		 (exlybar-volume--format-fn-spec (volume-get)) t)))
 
 (defun exlybar-volume--format-spec (pct)
   "Build the `format-spec' spec used to generate module text given PCT."
   `((?i . ,(string (exlybar-choose-icon pct exlybar-volume-icons)))))
 
 (defun exlybar-volume--do-update (m)
-  "Poll the battery status and check whether to update M's text."
-  (let* ((pct (volume-get))
+  "Query the volume backend and check whether to update M's text."
+  (let* ((default-directory (f-full "~"))
+	 (pct (volume-get))
          (status (exlybar-volume--format-spec pct))
          (txt (number-to-string pct)))
     (unless (equal txt (exlybar-volume-text m))
