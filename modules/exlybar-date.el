@@ -82,6 +82,7 @@ See `exlybar-zone-color'"
   :type 'string
   :group 'exlybar-date)
 
+;;;###autoload (autoload 'exlybar-date-create "exlybar-date")
 (cl-defstruct (exlybar-date
                (:include exlybar-module (name "date") (icon ?)
                          (format (concat "^2^[^f1%i^] ^["

@@ -60,6 +60,7 @@ See `exlybar-zone-color'"
   :type 'list
   :group 'exlybar-volume)
 
+;;;###autoload (autoload 'exlybar-volume-create "exlybar-volume")
 (cl-defstruct (exlybar-volume
                (:include exlybar-module (name "volume") (icon ?)
                          (format "^8^f2^[^f1%i^]%p")

@@ -49,6 +49,7 @@
   (height 0 :type 'natnum)
   (visible nil :type 'boolean))
 
+;;;###autoload (autoload 'exlybar-tray-create "exlybar-tray")
 (cl-defstruct (exlybar-tray
                (:include exlybar-module
                          (name "tray")

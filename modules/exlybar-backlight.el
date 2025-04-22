@@ -53,6 +53,7 @@ See `exlybar-zone-color'"
   :type 'list
   :group 'exlybar-backlight)
 
+;;;###autoload (autoload 'exlybar-backlight-create "exlybar-backlight")
 (cl-defstruct (exlybar-backlight
                (:include exlybar-module (name "backlight") (icon ?)
                          (format "^8^f2^[^f1%i^]%p")
