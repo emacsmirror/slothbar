@@ -248,56 +248,46 @@ installation.
 * Usage
 ** Layout and display with modules
 #+begin_src emacs-lisp
-  ;;; this demonstrates display for all modules provided so far
-  (require 'exlybar)
+   ;;; this demonstrates display for all modules provided so far
+   (require 'exlybar)
 
-  (require 'exlybar-backlight)
-  (require 'exlybar-battery)
-  (require 'exlybar-date)
-  (require 'exlybar-tray)
-  (require 'exlybar-volume)
-  (require 'exlybar-wifi)
+   (require 'exlybar-module-requires)
 
-  ;;; layout everything to the right
+   ;;; layout everything to the right
 
-  (defvar my/date (exlybar-date-create))
-  (push my/date exlybar-modules)
+   (push 'exlybar-date-create exlybar-modules)
 
-  (defvar my/battery (exlybar-battery-create))
-  (push my/battery exlybar-modules)
+   (push 'exlybar-battery-create exlybar-modules)
 
-  (defvar my/backlight (exlybar-backlight-create))
-  (push my/backlight exlybar-modules)
+   (push 'exlybar-backlight-create exlybar-modules)
 
-  (defvar my/tray (exlybar-tray-create))
-  (push my/tray exlybar-modules)
+   (push 'exlybar-tray-create exlybar-modules)
 
-  (defvar my/volume (exlybar-volume-create))
-  (push my/volume exlybar-modules)
+   (push 'exlybar-volume-create exlybar-modules)
 
-  (defvar my/wifi (exlybar-wifi-create))
-  (push my/wifi exlybar-modules)
+   (push 'exlybar-wifi-create exlybar-modules)
 
-  (exlybar)
+   (exlybar)
 
-  ;;; re-layout everything current displayed to the left
+   ;;; re-layout everything current displayed to the left
 
-  (push :left exlybar-modules)
+   (push :left exlybar-modules)
 
-  ;;; re-layout everything in the center
+   ;;; re-layout everything in the center
 
-  (setq exlybar-modules (cdr exlybar-modules))
-  (push :center exlybar-modules)
+   (setq exlybar-modules (cdr exlybar-modules))
+   (push :center exlybar-modules)
 
-  ;;; layout tray, wifi, and battery to the left and volume, backlight, and date
-  ;;; to the right
+   ;;; layout tray, wifi, and battery to the left and volume, backlight, and date
+   ;;; to the right
 
-  (setq exlybar-modules
-	`(:left ,my/tray ,my/wifi ,my/battery :right ,my/volume ,my/backlight ,my/date))
+   (setq exlybar-modules
+         (:left exlybar-tray-create exlybar-wifi-create exlybar-battery-create
+                :right exlybar-volume-create exlybar-battery-create exlybar-date-create))
 
-  ;;; exit (exit doesn’t modify layout for next time)
+   ;;; exit (exit doesn’t modify layout for next time)
 
-  (exlybar-exit)
+   (exlybar-exit)
 
 #+end_src
 
@@ -307,11 +297,7 @@ installation.
 
   (require 'exlybar)
 
-  (require 'exlybar-backlight)
-  (require 'exlybar-battery)
-  (require 'exlybar-date)
-  (require 'exlybar-volume)
-  (require 'exlybar-wifi)
+  (require 'exlybar-module-requires)
 
   ;;; assume one of the layouts demonstrated above
 
@@ -347,21 +333,10 @@ installation.
   (use-package exlybar
     :defer t
     :config
-    (require 'exlybar-tray)
-    (require 'exlybar-date)
-    (require 'exlybar-wifi)
-    (require 'exlybar-backlight)
-    (require 'exlybar-volume)
-    (require 'exlybar-battery)
-    (setq my/exly-tray (exlybar-tray-create)
-          my/exly-date (exlybar-date-create)
-          my/exly-wifi (exlybar-wifi-create)
-          my/exly-volume (exlybar-volume-create)
-          my/exly-backlight (exlybar-backlight-create)
-          my/exly-battery (exlybar-battery-create))
-    (setq exlybar-modules (list :left my/exly-tray my/exly-date
-                                :right my/exly-wifi my/exly-volume
-                                my/exly-backlight my/exly-battery)))
+    (require 'exlybar-module-requires)
+    (setq exlybar-modules (list :left 'exlybar-tray-create 'exlybar-date-create
+                                :right 'exlybar-wifi-create 'exlybar-volume-create
+                                'exlybar-backlight-create 'exlybar-battery-create)))
 
   ;;; then M-x: exlybar
   ;;; To exit:
