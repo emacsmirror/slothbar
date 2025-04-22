@@ -46,8 +46,9 @@ Defaults to the width obtained from `display-pixel-width'"
 
 (defcustom exlybar-modules nil
   "List of exlybar modules with optional layout instructions."
-  :type 'list
-  :group 'exlybar)
+  :type '(restricted-sexp :match-alternatives (':left ':right ':center exlybar-module-p))
+  :group 'exlybar
+  :require 'exlybar)
 
 (defcustom exlybar-before-init-hook nil
   "Functions to run when before exlybar is initialized."
