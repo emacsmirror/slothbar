@@ -60,6 +60,14 @@ See `exlybar-zone-color'"
   :type 'list
   :group 'exlybar-volume)
 
+;;;###autoload (autoload 'exlybar-volume-create "exlybar-volume")
+(cl-defstruct (exlybar-volume
+               (:include exlybar-module (name "volume") (icon ?)
+                         (format "^8^f2^[^f1%i^]%p")
+                         (format-fn 'exlybar-volume-format-format))
+               (:constructor exlybar-volume-create)
+               (:copier nil)))
+
 (defvar exlybar-volume--update-timer nil
   "A variable to hold the update timer.")
 

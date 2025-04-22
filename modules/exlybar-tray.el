@@ -49,6 +49,17 @@
   (height 0 :type 'natnum)
   (visible nil :type 'boolean))
 
+;;;###autoload (autoload 'exlybar-tray-create "exlybar-tray")
+(cl-defstruct (exlybar-tray
+               (:include exlybar-module
+                         (name "tray")
+                         (format nil)
+                         (lpad 4)
+                         (rpad 4))
+               (:constructor exlybar-tray-create)
+               (:copier nil))
+  "A system tray module.")
+
 ;;; we need this extension to handle client message
 (defclass xcb:systemtray:-ClientMessage
   (xcb:icccm:--ClientMessage xcb:ClientMessage)

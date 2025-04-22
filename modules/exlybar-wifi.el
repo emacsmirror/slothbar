@@ -98,6 +98,15 @@ This should be deprecated in favor of something better."
                            (cadr))))
       qual)))
 
+;;; let's just try a simple display of link quality and ssid
+;;;###autoload (autoload 'exlybar-wifi-create "exlybar-wifi")
+(cl-defstruct (exlybar-wifi
+               (:include exlybar-module (name "wifi") (icon ?)
+                         (format "^6^[^f1%i^]^[^2|^]%e^[^2|^]%p")
+                         (format-fn 'exlybar-wifi-format-format))
+               (:constructor exlybar-wifi-create)
+               (:copier nil)))
+
 (defun exlybar-wifi--format-fn-spec (zone-color)
   "Build the `format-spec' spec used by the format-fn."
   `((?p . ,(format "^[%s%%p^]" zone-color))))
