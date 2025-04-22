@@ -120,20 +120,23 @@ The color is decided based on battery percentage. See `exlybar-zone-color'."))
 
 (defun exlybar-battery--do-update (m)
   "Poll the battery status and check whether to update M's text."
-  (let* ((default-directory (f-full "~")) ; ensure status checks don't remote
-         (status (funcall battery-status-function))
-         (txt (format-spec (exlybar-module-format m) status t)))
-    (if status
-        (progn
-          (when (exlybar-module-cache m)
-            (map-put! (exlybar-module-cache m) 'status status))
-          (unless (equal txt (exlybar-module-text m))
-            (setf (exlybar-module-format-spec m)
-                  (exlybar-battery--format-spec status)
-                  (exlybar-module-text m) txt
-                  (exlybar-module-needs-refresh? m) t)))
-      (exlybar--log-info "exlybar-battery: nil status from %s"
-                         battery-status-function))))
+  (condition-case err
+      (let* ((default-directory (f-full "~")) ; ensure status checks don't remote
+             (status (funcall battery-status-function))
+             (txt (format-spec (exlybar-module-format m) status t)))
+        (if status
+            (progn
+              (when (exlybar-module-cache m)
+                (map-put! (exlybar-module-cache m) 'status status))
+              (unless (equal txt (exlybar-module-text m))
+                (setf (exlybar-module-format-spec m)
+                      (exlybar-battery--format-spec status)
+                      (exlybar-module-text m) txt
+                      (exlybar-module-needs-refresh? m) t)))
+          (exlybar--log-info "exlybar-battery: nil status from %s"
+                             battery-status-function)))
+    (t
+     (message "error in battery update timer %s" (error-message-string err)))))
 
 (cl-defmethod exlybar-module-init :before ((m exlybar-battery))
   "Set the M's icon and update the text."
