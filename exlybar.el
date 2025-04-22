@@ -43,16 +43,6 @@
 (require 'exlybar-common)
 (require 'exlybar-log)
 
-;; ensure modules if present
-(defconst exlybar--modules-directory
-  (when load-file-name
-    (file-name-concat (file-name-directory load-file-name) "modules")))
-
-(with-eval-after-load "exlybar"
-  (when (and exlybar--modules-directory (file-directory-p exlybar--modules-directory))
-    (unless (seq-contains-p load-path exlybar--modules-directory)
-      (add-to-list 'load-path exlybar--modules-directory))))
-
 (defgroup exlybar nil
   "Exlybar is a status bar that displays as a dock window in X."
   :group 'display)
