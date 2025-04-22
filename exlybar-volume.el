@@ -125,7 +125,7 @@ See `exlybar-zone-color'"
                          (equal "volume"
                                 (when (exlybar-module-p m)
                                   (exlybar-module-name m))))
-                       exlybar-modules)))
+                       exlybar--modules)))
       (when m
         (exlybar-volume--do-update m)
         (exlybar-refresh-modules)))))

@@ -116,7 +116,7 @@ See `exlybar-zone-color'"
                          (equal "backlight"
                                 (when (exlybar-module-p m)
                                   (exlybar-module-name m))))
-                       exlybar-modules)))
+                       exlybar--modules)))
       (when m
         (exlybar-backlight--do-update m)
         (exlybar-refresh-modules)))))

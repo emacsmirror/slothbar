@@ -45,8 +45,15 @@ Defaults to the width obtained from `display-pixel-width'"
   :group 'exlybar)
 
 (defcustom exlybar-modules nil
-  "List of exlybar modules with optional layout instructions."
-  :type 'list
+  "List of exlybar module constructor names with optional layout
+instructions.
+
+E.g.: (:left
+       exlybar-tray-create exlybar-date-create
+       :right
+       exlybar-wifi-create exlybar-volume-create
+       exlybar-backlight-create exlybar-battery-create)"
+  :type '(repeat symbol)
   :group 'exlybar
   :require 'exlybar-module-requires)
 
@@ -71,6 +78,9 @@ Defaults to the width obtained from `display-pixel-width'"
   :group 'exlybar)
 
 (defvar exlybar--connection)
+
+(defvar exlybar--modules nil
+  "List of exlybar modules with optional layout instructions.")
 
 (defun exlybar--color->pixel (color)
   "Convert COLOR to PIXEL (index in TrueColor colormap)."

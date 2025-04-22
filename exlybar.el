@@ -176,7 +176,7 @@ NEW-EXTENTS the new layout extents"
   "Ask the modules to refresh and see whether the layout has changed.
 MODULES optional modules to refresh and compare with prev-extents"
   (when exlybar--geometry-changed?
-    (dolist (m exlybar-modules)
+    (dolist (m exlybar--modules)
       (when (exlybar-module-p m)
         (setf (exlybar-module-needs-refresh? m) t
               (exlybar-module-cache m) (make-hash-table :test 'equal))))
@@ -185,14 +185,14 @@ MODULES optional modules to refresh and compare with prev-extents"
   ;; refresh modules to update to latest dimensions
   (let ((prev-extents
          (exlybar-layout-extents
-          (exlybar-layout-coordinate (exlybar-layout exlybar-modules) 0 0)))
-        (exlybar-modules (or modules exlybar-modules)))
+          (exlybar-layout-coordinate (exlybar-layout exlybar--modules) 0 0)))
+        (exlybar--modules (or modules exlybar--modules)))
     ;; (message "prev extents %s" prev-extents)
-    (dolist (m exlybar-modules)
+    (dolist (m exlybar--modules)
       (when (exlybar-module-p m)
         (exlybar-module-refresh m)))
     (let* ((new-layout
-            (exlybar-layout-coordinate (exlybar-layout exlybar-modules) 0 0))
+            (exlybar-layout-coordinate (exlybar-layout exlybar--modules) 0 0))
            (new-extents (exlybar-layout-extents new-layout)))
       ;; (message "prev extents %s new extents %s" prev-extents new-extents)
       (when (not (equal prev-extents new-extents))
@@ -202,13 +202,13 @@ MODULES optional modules to refresh and compare with prev-extents"
   (xcb:flush exlybar--connection))
 
 (defun exlybar--watch-modules (sym nval oper where)
-  "Watcher for `exlybar-modules' to refresh modules with NVAL."
+  "Watcher for `exlybar--modules' to refresh modules with NVAL."
   (ignore sym)
   (when (and exlybar--enabled (not where) (eq 'set oper))
     ;; exit modules that have been removed
-    (dolist (m exlybar-modules)
+    (dolist (m exlybar--modules)
       (when (exlybar-module-p m)
-        (unless (seq-contains nval m #'eq)
+        (unless (seq-contains-p nval m #'eq)
           (exlybar-module-exit m))))
     ;; check for uninitialized modules
     (dolist (m nval)
@@ -217,7 +217,7 @@ MODULES optional modules to refresh and compare with prev-extents"
           (exlybar-module-init m))))
     (exlybar-refresh-modules nval)))
 
-(add-variable-watcher 'exlybar-modules #'exlybar--watch-modules)
+(add-variable-watcher 'exlybar--modules #'exlybar--watch-modules)
 
 (defvar exlybar--module-refresh-timer nil)
 (defun exlybar--start-module-refresh-timer ()
@@ -245,6 +245,21 @@ DATA the event data"
     (run-at-time 0 nil #'exlybar-refresh-modules)))
 
 (add-variable-watcher 'exlybar-height #'exlybar--watch-height)
+
+(defun exlybar--construct-modules ()
+  "Construct modules from layout given in `exlybar-modules'."
+    (setq exlybar--modules
+          (mapcar (lambda (val)
+                    (if (functionp val)
+                        (funcall val)
+                      val))
+                  exlybar-modules)))
+
+(defun exlybar--watch-exlybar-modules (sym nval oper where)
+  "Watcher for `exlybar-modules' to (re)construct modules when preferences
+change."
+  (when (and (not where) (eq 'set oper))
+    (run-at-time 0 nil #'exlybar--construct-modules)))
 
 ;;;###autoload
 (defun exlybar ()
@@ -338,7 +353,9 @@ Initialize the connection, window, graphics context, and modules."
                                            (exlybar--find-foreground-color))))))
       (exlybar--log-debug* "exlybar init create gc errors: %s" egc))
     ;; initialize modules
-    (dolist (m exlybar-modules)
+    (exlybar--construct-modules)
+    (add-variable-watcher 'exlybar-modules #'exlybar--watch-exlybar-modules)
+    (dolist (m exlybar--modules)
       (when (exlybar-module-p m)
         (exlybar-module-init m)))
     (xcb:flush exlybar--connection)
@@ -371,9 +388,10 @@ Initialize the connection, window, graphics context, and modules."
     (cancel-timer exlybar--module-refresh-timer)
     (setq exlybar--module-refresh-timer nil))
   (setq exlybar--enabled nil)
-  (dolist (m exlybar-modules)
+  (dolist (m exlybar--modules)
     (when (exlybar-module-p m)
       (exlybar-module-exit m)))
+  (remove-variable-watcher 'exlybar-modules #'exlybar--watch-exlybar-modules)
   (when exlybar--connection
     (when exlybar--window
       (xcb:+request exlybar--connection
