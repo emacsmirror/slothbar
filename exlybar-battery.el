@@ -69,7 +69,6 @@ See `exlybar-zone-color'"
   :type 'list
   :group 'exlybar-battery)
 
-;;;###autoload (autoload 'exlybar-battery-create "exlybar-battery")
 (cl-defstruct (exlybar-battery
                (:include exlybar-module (name "battery")
                          (format

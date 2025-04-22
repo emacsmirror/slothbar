@@ -99,7 +99,6 @@ This should be deprecated in favor of something better."
       qual)))
 
 ;;; let's just try a simple display of link quality and ssid
-;;;###autoload (autoload 'exlybar-wifi-create "exlybar-wifi")
 (cl-defstruct (exlybar-wifi
                (:include exlybar-module (name "wifi") (icon ?)
                          (format "^6^[^f1%i^]^[^2|^]%e^[^2|^]%p")
