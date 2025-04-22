@@ -82,16 +82,6 @@ See `exlybar-zone-color'"
   :type 'string
   :group 'exlybar-date)
 
-;;;###autoload (autoload 'exlybar-date-create "exlybar-date")
-(cl-defstruct (exlybar-date
-               (:include exlybar-module (name "date") (icon ?)
-                         (format (concat "^2^[^f1%i^] ^["
-                                         exlybar-date-color-winter
-                                         "%ζ%a, %h %e.^] %l:%M %#p %Z"))
-                         (format-fn 'exlybar-date-format-format))
-               (:constructor exlybar-date-create)
-               (:copier nil)))
-
 (defun exlybar-date--zone-color ()
   "Decide the seasonal zone color using solar equinox/solstice calculations."
   (let* ((winter-solstice (exlybar-date--equinox/solstice-day 3))

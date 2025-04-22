@@ -68,6 +68,74 @@
   (xcb nil :type 'list)
   (needs-refresh? nil :type 'boolean))
 
+;;; Constructors for modules under ./modules
+;;; This is to generate autoloads
+
+;;;###autoload (autoload 'exlybar-backlight-create "exlybar-module-types")
+(cl-defstruct (exlybar-backlight
+               (:include exlybar-module (name "backlight") (icon ?)
+                         (format "^8^f2^[^f1%i^]%p")
+                         (format-fn 'exlybar-backlight-format-format))
+               (:constructor exlybar-backlight-create)
+               (:copier nil)))
+
+;;;###autoload (autoload 'exlybar-battery-create "exlybar-module-types")
+(cl-defstruct (exlybar-battery
+               (:include exlybar-module (name "battery")
+                         (format
+                          "^6^[^f1%i^] %b%p%% ^[^2|^] %t ^[^2|^] %r"
+                          :documentation
+                          "%i is for the battery icon.
+For the rest, see `battery-status-function'. Note that for %r,
+some versions of battery-status-function include the trailing W
+and some do not. `battery-linux-sysfs' where available appears
+more precise than e.g. `battery-upower'.")
+                         (format-fn
+                          'exlybar-battery-format-format
+                          :documentation
+                          "Pre-format %i in format to use zone colors.
+The color is decided based on battery percentage. See `exlybar-zone-color'."))
+               (:constructor exlybar-battery-create)
+               (:copier nil)))
+
+;;;###autoload (autoload 'exlybar-date-create "exlybar-module-types")
+(cl-defstruct (exlybar-date
+               (:include exlybar-module (name "date") (icon ?)
+                         (format (concat "^2^[^f1%i^] ^["
+                                         exlybar-date-color-winter
+                                         "%ζ%a, %h %e.^] %l:%M %#p %Z"))
+                         (format-fn 'exlybar-date-format-format))
+               (:constructor exlybar-date-create)
+               (:copier nil)))
+
+;;;###autoload (autoload 'exlybar-tray-create "exlybar-module-types")
+(cl-defstruct (exlybar-tray
+               (:include exlybar-module
+                         (name "tray")
+                         (format nil)
+                         (lpad 4)
+                         (rpad 4))
+               (:constructor exlybar-tray-create)
+               (:copier nil))
+  "A system tray module.")
+
+;;;###autoload (autoload 'exlybar-volume-create "exlybar-module-types")
+(cl-defstruct (exlybar-volume
+               (:include exlybar-module (name "volume") (icon ?)
+                         (format "^8^f2^[^f1%i^]%p")
+                         (format-fn 'exlybar-volume-format-format))
+               (:constructor exlybar-volume-create)
+               (:copier nil)))
+
+;;; let's just try a simple display of link quality and ssid
+;;;###autoload (autoload 'exlybar-wifi-create "exlybar-module-types")
+(cl-defstruct (exlybar-wifi
+               (:include exlybar-module (name "wifi") (icon ?)
+                         (format "^6^[^f1%i^]^[^2|^]%e^[^2|^]%p")
+                         (format-fn 'exlybar-wifi-format-format))
+               (:constructor exlybar-wifi-create)
+               (:copier nil)))
+
 (provide 'exlybar-module-types)
 
 ;;; exlybar-module-types.el ends here
