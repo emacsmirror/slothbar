@@ -58,6 +58,19 @@
 (defsubst exlybar-enabled-p ()
   "Return t if exlybar is enabled."
   exlybar--enabled)
+
+(defun exlybar--find-display-geometry (&optional display)
+  (let* ((all-attrs (display-monitor-attributes-list))
+	 (display-attrs
+	  (or (seq-some
+	       (lambda (l) (when (equal (alist-get 'name l) display) l)) all-attrs)
+	      (car all-attrs)))
+	 (geom (alist-get 'geometry display-attrs)))
+    `((x-offset . ,(car geom))
+      (y-offset . ,(cadr geom))
+      (width . ,(caddr geom))
+      (height . ,(cadddr geom)))))
+
 (defun exlybar--refresh ()
   "Refresh the bar."
   (xcb:+request exlybar--connection
@@ -67,42 +80,48 @@
                  (make-instance 'xcb:ConfigureWindow
                                 :window exlybar--window
                                 :value-mask (logior xcb:ConfigWindow:X
+						    xcb:ConfigWindow:Y
                                                     xcb:ConfigWindow:Width
                                                     xcb:ConfigWindow:Height)
-                                :x 0
+                                :x exlybar-offset-x
+                                :y exlybar-offset-y
                                 :width exlybar-width
                                 :height exlybar-height))))
     (exlybar--log-debug* "exlybar-refresh: configure window errors: %s" ecw))
+  (xcb:+request exlybar--connection
+      (make-instance 'xcb:MapWindow
+                     :window exlybar--window))
+  (xcb:flush exlybar--connection)
   ;; configure struts
   (xcb:+request exlybar--connection
       (make-instance 'xcb:ewmh:set-_NET_WM_STRUT
                      :window exlybar--window
-                     :left 0
+                     :left exlybar-offset-x
                      :right 0
-                     :top exlybar-height
+                     :top (+ exlybar-offset-y exlybar-height)
                      :bottom 0))
   (xcb:+request exlybar--connection
       (make-instance 'xcb:ewmh:set-_NET_WM_STRUT_PARTIAL
                      :window exlybar--window
-                     :left 0
+                     :left exlybar-offset-x
                      :right 0
-                     :top exlybar-height
+                     :top (+ exlybar-offset-y exlybar-height)
                      :bottom 0
                      :left-start-y 0
                      :left-end-y 0
                      :right-start-y 0
                      :right-end-y 0
-                     :top-start-x 0
-                     :top-end-x exlybar-width
+                     :top-start-x exlybar-offset-x
+                     :top-end-x (1- (+ exlybar-offset-x exlybar-width))
                      :bottom-start-x 0
                      :bottom-end-x 0))
-  (xcb:+request exlybar--connection
-      (make-instance 'xcb:MapWindow
-                     :window exlybar--window))
+  ;; (xcb:+request exlybar--connection
+  ;;     (make-instance 'xcb:MapWindow
+  ;;                    :window exlybar--window))
   (xcb:flush exlybar--connection))
 
 (defun exlybar--on-DestroyNotify (data _synthetic)
-  "DestroyNotify.
+  "DestroyNotify
 DATA the event data"
   (exlybar--log-trace* "received destroynotify %s" data))
 
@@ -230,7 +249,11 @@ MODULES optional modules to refresh and compare with prev-extents"
 DATA the event data"
   (exlybar--log-debug* "exlybar received expose %s" data)
   (ignore data)
-  (unless (or (not exlybar--enabled) exlybar--module-refresh-timer)
+  (when exlybar--enabled
+    (when exlybar--module-refresh-timer
+      (exlybar--log-debug* "exlybar restarting module refresh timer")
+      (cancel-timer exlybar--module-refresh-timer)
+      (setq exlybar--module-refresh-timer nil))
     (exlybar--start-module-refresh-timer))
   (when (and exlybar--enabled exlybar--geometry-changed?)
     (setq exlybar--geometry-changed? nil)
@@ -270,6 +293,14 @@ Initialize the connection, window, graphics context, and modules."
   (cl-assert (not exlybar--connection))
   (cl-assert (not exlybar--window))
   (exlybar--log-enable-logging)
+  (let ((geom (exlybar--find-display-geometry exlybar-preferred-display)))
+    (setq exlybar-offset-x (alist-get 'x-offset geom)
+	  exlybar-offset-y (if exlybar-is-bottom
+                               (- (+ (alist-get 'y-offset geom)
+                                     (alist-get 'height geom))
+                                  exlybar-height)
+                             (alist-get 'y-offset geom))
+	  exlybar-width (alist-get 'width geom)))
   (setq exlybar-font-px-size (exlybar-font--precompute-px-sizes exlybar-height exlybar-font-map))
   (setq exlybar--connection (xcb:connect))
   ;; apparently ewmh initializes icccm automatically
@@ -282,7 +313,7 @@ Initialize the connection, window, graphics context, and modules."
   (let ((id (xcb:generate-id exlybar--connection))
         (background-pixel (exlybar--color->pixel
                            (exlybar--find-background-color)))
-        (y 0)
+        (y exlybar-offset-y)
         parent depth)
     (setq exlybar--window id)
     (exlybar--log-debug* "Exlybar window id: %s" exlybar--window)
@@ -298,7 +329,7 @@ Initialize the connection, window, graphics context, and modules."
                        :wid id
                        :parent parent
                        :override-redirect 1
-                       :x 0
+                       :x exlybar-offset-x
                        :y y
                        :width 1
                        :height exlybar-height

@@ -44,6 +44,33 @@ Defaults to the width obtained from `display-pixel-width'"
   :type 'integer
   :group 'exlybar)
 
+(defcustom exlybar-offset-x 0
+  "Bar display x offset in pixels."
+  :type 'integer
+  :group 'exlybar)
+
+(defcustom exlybar-offset-y 0
+  "Bar display y offset in pixels."
+  :type 'integer
+  :group 'exlybar)
+
+(defcustom exlybar-preferred-display "eDP-1"
+  "If multiple displays are connected:
+
+- nil indicates to automatically choose one. If the exlybar-randr
+  extension is enabled, this will be the primary display
+ - string should be the display name as reported by
+  `(display-monitor-attributes-list)`"
+  :type '(choice (const :tag "auto" nil)
+		 string)
+  :group 'exlybar)
+
+(defcustom exlybar-is-bottom nil
+  "True if exlybar is positioned at the bottom of the display, false
+  otherwise."
+  :type 'boolean
+  :group 'exlybar)
+
 (defcustom exlybar-modules nil
   "List of exlybar module constructor names with optional layout
 instructions.
