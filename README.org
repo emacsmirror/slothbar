@@ -16,8 +16,6 @@ Current version: *0.23.0*
 Note: *At present this requires Emacs 28.0*
 If you would like it to work on Emacs 27, please let me know.
 
-Note: *This probably doesn’t work well with multiple screens at the moment.*
-
 * Contents                                                              :TOC:
 - [[#synopsis-of-work-in-progress][Synopsis of work in progress]]
   - [[#now-supported][Now supported]]
@@ -57,11 +55,12 @@ Note: *This probably doesn’t work well with multiple screens at the moment.*
 
 + Act as the system tray (as of version 0.22.0)
 
++ Configuration for multiple screens/randr (currently may display on a
+  preferred display in a multi screen configuration)
+
++ Dock on screen tops or bottoms
+
 * Not currently supported (but planned)
-+ Configuration for multiple screens/randr (this is the first priority at
-  present)
-+ Dock somewhere other than the screen top (this should be trivial to implement
-  but is as yet untested)
 + Help to locate/suggest/select compatible fonts to try
 + Easy and meaningful integration with screen readers
 + Multiple bars and gaps like in Polybar
@@ -282,8 +281,8 @@ installation.
    ;;; to the right
 
    (setq exlybar-modules
-         (:left exlybar-tray-create exlybar-wifi-create exlybar-battery-create
-                :right exlybar-volume-create exlybar-battery-create exlybar-date-create))
+         '(:left exlybar-tray-create exlybar-wifi-create exlybar-battery-create
+                 :right exlybar-volume-create exlybar-battery-create exlybar-date-create))
 
    ;;; exit (exit doesn’t modify layout for next time)
 
@@ -382,4 +381,4 @@ and limitations.
 licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0
 International License.]]
 
-Copyright (C) 2023 Jo Gay <jo.gay@mailfence.com>
+Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
