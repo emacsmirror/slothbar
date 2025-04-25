@@ -42,6 +42,13 @@
   :type 'hook
   :group 'exlybar-randr)
 
+;;;###autoload
+(define-minor-mode exlybar-randr-mode
+  "Toggle exlybar randr support."
+  :global t
+  :group 'exlybar-randr
+  (exlybar--global-minor-mode-body randr))
+
 (defvar exlybar-randr--last-timestamp 0 "Used for debouncing events.")
 
 (defvar exlybar-randr--prev-screen-change-seqnum nil
@@ -103,9 +110,6 @@ This is adapted from the EXWM RandR module."
           (t
            (error "[exlybar] The server only support RandR version up to %d.%d"
                   major-version minor-version)))
-    ;; External monitor(s) may already be connected.
-    (run-hooks 'exlybar-randr-screen-change-hook)
-    (exlybar-randr--refresh)
     ;; Listen for `ScreenChangeNotify' to notify external tools to
     ;; configure RandR and `CrtcChangeNotify/OutputChangeNotify' to
     ;; refresh the workspace layout.
@@ -129,7 +133,6 @@ This is adapted from the EXWM RandR module."
   (setq exlybar-randr--last-timestamp 0
         exlybar-randr--prev-screen-change-seqnum nil
         exlybar-randr--compatibility-mode nil))
-(add-hook 'exlybar-after-exit-hook #'exlybar-randr--exit)
 
 (defun exlybar-randr--refresh ()
   "Refresh exlybar according to the updated RandR info."

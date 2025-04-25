@@ -137,6 +137,26 @@ E.g.: (:left
                       (xcb:get-setup exlybar--connection) 'roots))
                 'root)))
 
+(defmacro exlybar--global-minor-mode-body (name &optional init exit)
+  "Global minor mode body for mode with NAME.
+The INIT and EXIT functions are added to `exlybar-after-init-hook' and
+`exlybar-before-exit-hook' respectively.  If an X connection exists, the mode is
+immediately enabled or disabled."
+  (declare (indent 1) (debug t))
+  (let* ((mode (intern (format "exlybar-%s-mode" name)))
+         (init (or init (intern (format "exlybar-%s--init" name))))
+         (exit (or exit (intern (format "exlybar-%s--exit" name)))))
+    `(progn
+       (cond
+        (,mode
+         (add-hook 'exlybar-after-init-hook #',init)
+         (add-hook 'exlybar-before-exit-hook #',exit)
+         (when exlybar--connection (,init)))
+        (t
+         (remove-hook 'exlybar-after-init-hook #',init)
+         (remove-hook 'exlybar-before-exit-hook #',exit)
+         (when exlybar--connection (,exit)))))))
+
 (provide 'exlybar-common)
 
 ;;; exlybar-common.el ends here
