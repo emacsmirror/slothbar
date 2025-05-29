@@ -61,12 +61,15 @@
   (lpad 14 :type 'fixed)
   (rpad 14 :type 'fixed)
   (colors (exlybar-module-rgb-create) :type 'exlybar-module-rgb)
-  (icon nil :type 'character)
+  (icon nil :type '(or character alist)
+        :documentation "Either a single character or an alist as expected by
+`exlybar-choose-icon'.")
   (animation nil :type 'function)
   (cache nil :type 'alist)
   (width exlybar-module-min-width :type 'fixed)
   (xcb nil :type 'list)
-  (needs-refresh? nil :type 'boolean))
+  (needs-refresh? nil :type 'boolean)
+  (update-timer nil :type 'timer))
 
 (provide 'exlybar-module-types)
 

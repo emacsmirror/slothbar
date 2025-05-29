@@ -273,9 +273,14 @@ DATA the event data"
   "Construct modules from layout given in `exlybar-modules'."
     (setq exlybar--modules
           (mapcar (lambda (val)
-                    (if (functionp val)
-                        (funcall val)
-                      val))
+                    (cond
+                     ((or (keywordp val) (exlybar-module-p val))
+                      val)
+                     ((functionp val)
+                      (funcall val))
+                     ((and (listp val) (functionp (car val)))
+                      (apply (car val) (cdr val)))
+                     (t (error "Unsupported type in exlybar-modules: %s" val))))
                   exlybar-modules)))
 
 (defun exlybar--watch-exlybar-modules (sym nval oper where)

@@ -49,11 +49,6 @@
   :type 'integer
   :group 'exlybar-volume)
 
-(defcustom exlybar-volume-icons '((33 . ?) (67 . ?) (110 . ?))
-  "Icons for exlybar-volume. See `exlybar-choose-icon' for how it is used."
-  :type 'alist
-  :group 'exlybar-volume)
-
 (defcustom exlybar-volume-color-zones '(20 50 80)
   "Volume percentages indicating progress color changes.
 See `exlybar-zone-color'"
@@ -61,14 +56,14 @@ See `exlybar-zone-color'"
   :group 'exlybar-volume)
 
 (cl-defstruct (exlybar-volume
-               (:include exlybar-module (name "volume") (icon ?)
+               (:include exlybar-module (name "volume") (icon '((33 . ?) (67 . ?) (110 . ?)))
                          (format "^8^f2^[^f1%i^]%p")
                          (format-fn 'exlybar-volume-format-format))
                (:constructor exlybar-volume-create)
-               (:copier nil)))
-
-(defvar exlybar-volume--update-timer nil
-  "A variable to hold the update timer.")
+               (:copier nil))
+  (channel nil :type 'string
+           :documentation "Channel name corresponding to `volume-channels'. When nil, it will be
+`volume-default-channel'."))
 
 (defun exlybar-volume-current-progress (pct)
   "Build a progress bar corresponding to the current PCT."
@@ -83,17 +78,24 @@ See `exlybar-zone-color'"
   "This is the default format-fn that is applied to format."
   (let ((default-directory (f-full "~")))
     (format-spec (exlybar-module-format m)
-		 (exlybar-volume--format-fn-spec (volume-get)) t)))
+		 (exlybar-volume--format-fn-spec (exlybar-volume--get-status m)) t)))
 
-(defun exlybar-volume--format-spec (pct)
+(defun exlybar-volume--get-status (m)
+  "Return volume status for the given module M."
+  (let* ((channel (exlybar-volume-channel m))
+         (volume-amixer-current-channel (or channel (volume-default-channel)))
+         (volume-osascript-current-channel channel))
+    (volume-get)))
+
+(defun exlybar-volume--format-spec (m pct)
   "Build the `format-spec' spec used to generate module text given PCT."
-  `((?i . ,(string (exlybar-choose-icon pct exlybar-volume-icons)))))
+  `((?i . ,(string (exlybar-choose-icon pct (exlybar-module-icon m))))))
 
 (defun exlybar-volume--do-update (m)
   "Query the volume backend and check whether to update M's text."
   (let* ((default-directory (f-full "~"))
-	 (pct (volume-get))
-         (status (exlybar-volume--format-spec pct))
+	 (pct (exlybar-volume--get-status m))
+         (status (exlybar-volume--format-spec m pct))
          (txt (number-to-string pct)))
     (unless (equal txt (exlybar-volume-text m))
       (setf (exlybar-module-format-spec m) status
@@ -106,29 +108,30 @@ See `exlybar-zone-color'"
 
 (cl-defmethod exlybar-module-init :after ((m exlybar-volume))
   "Run the update timer."
-  (unless exlybar-volume--update-timer
-    (setq exlybar-volume--update-timer
+  (unless (exlybar-module-update-timer m)
+    (setf (exlybar-module-update-timer m)
           (run-at-time nil 10 #'exlybar-volume--do-update m))))
 
 (cl-defmethod exlybar-module-exit :before ((m exlybar-volume))
   "Cancel the update timer."
   (ignore m)
-  (when exlybar-volume--update-timer
-    (cancel-timer exlybar-volume--update-timer))
-  (setq exlybar-volume--update-timer nil))
+  (when (exlybar-module-update-timer m)
+    (cancel-timer (exlybar-module-update-timer m)))
+  (setf (exlybar-module-update-timer m) nil))
 
 (defadvice volume-update
     (after exlybar-volume-after-volume-update activate)
   "Refresh the module if the volume is adjusted in Emacs."
   (when (exlybar-enabled-p)
-    (let ((m (seq-find (lambda (m)
-                         (equal "volume"
-                                (when (exlybar-module-p m)
-                                  (exlybar-module-name m))))
+    (let ((ms (seq-filter (lambda (m)
+                            (equal "volume"
+                                   (when (exlybar-module-p m)
+                                     (exlybar-module-name m))))
                        exlybar--modules)))
-      (when m
-        (exlybar-volume--do-update m)
-        (exlybar-refresh-modules)))))
+      (seq-do (lambda (m)
+                (exlybar-volume--do-update m)
+                (exlybar-refresh-modules))
+              ms))))
 
 (provide 'exlybar-volume)
 ;;; exlybar-volume.el ends here
