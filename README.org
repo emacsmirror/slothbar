@@ -247,46 +247,53 @@ installation.
 * Usage
 ** Layout and display with modules
 #+begin_src emacs-lisp
-   ;;; this demonstrates display for all modules provided so far
-   (require 'exlybar)
+  ;;; this demonstrates display for all modules provided so far
+  (require 'exlybar)
 
-   (require 'exlybar-module-requires)
+  ;; note: if you customize exlybar-modules, exlybar-module-requires
+  ;; will be required automatically
+  (require 'exlybar-module-requires)
 
-   ;;; layout everything to the right
+  ;;; layout everything to the right
 
-   (push 'exlybar-date-create exlybar-modules)
+  (push 'exlybar-date-create exlybar-modules)
 
-   (push 'exlybar-battery-create exlybar-modules)
+  (push 'exlybar-battery-create exlybar-modules)
 
-   (push 'exlybar-backlight-create exlybar-modules)
+  (push 'exlybar-backlight-create exlybar-modules)
 
-   (push 'exlybar-tray-create exlybar-modules)
+  (push 'exlybar-tray-create exlybar-modules)
 
-   (push 'exlybar-volume-create exlybar-modules)
+  (push 'exlybar-volume-create exlybar-modules)
 
-   (push 'exlybar-wifi-create exlybar-modules)
+  ;; microphone volume
+  (push '(exlybar-volume-create :icon ((1 . ?) (110 . ?))
+                                :channel "Capture")
+        exlybar-modules)
 
-   (exlybar)
+  (push 'exlybar-wifi-create exlybar-modules)
 
-   ;;; re-layout everything current displayed to the left
+  (exlybar)
 
-   (push :left exlybar-modules)
+  ;;; re-layout everything current displayed to the left
 
-   ;;; re-layout everything in the center
+  (push :left exlybar-modules)
 
-   (setq exlybar-modules (cdr exlybar-modules))
-   (push :center exlybar-modules)
+  ;;; re-layout everything in the center
 
-   ;;; layout tray, wifi, and battery to the left and volume, backlight, and date
-   ;;; to the right
+  (setq exlybar-modules (cdr exlybar-modules))
+  (push :center exlybar-modules)
 
-   (setq exlybar-modules
-         '(:left exlybar-tray-create exlybar-wifi-create exlybar-battery-create
-                 :right exlybar-volume-create exlybar-battery-create exlybar-date-create))
+  ;;; layout tray, wifi, and battery to the left and volume, backlight, and date
+  ;;; to the right
 
-   ;;; exit (exit doesn’t modify layout for next time)
+  (setq exlybar-modules
+        '(:left exlybar-tray-create exlybar-wifi-create exlybar-battery-create
+                :right exlybar-volume-create exlybar-battery-create exlybar-date-create))
 
-   (exlybar-exit)
+  ;;; exit (exit doesn’t modify layout for next time)
+
+  (exlybar-exit)
 
 #+end_src
 
