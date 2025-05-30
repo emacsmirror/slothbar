@@ -91,7 +91,7 @@ See `exlybar-zone-color'"
   "Build the `format-spec' spec used to generate module text given PCT."
   `((?i . ,(string (exlybar-choose-icon pct (exlybar-module-icon m))))))
 
-(defun exlybar-volume--do-update (m)
+(cl-defmethod exlybar-module-update-status ((m exlybar-volume))
   "Query the volume backend and check whether to update M's text."
   (let* ((default-directory (f-full "~"))
 	 (pct (exlybar-volume--get-status m))
@@ -104,20 +104,7 @@ See `exlybar-zone-color'"
 
 (cl-defmethod exlybar-module-init :before ((m exlybar-volume))
   "Set the M's icon and update the text."
-  (exlybar-volume--do-update m))
-
-(cl-defmethod exlybar-module-init :after ((m exlybar-volume))
-  "Run the update timer."
-  (unless (exlybar-module-update-timer m)
-    (setf (exlybar-module-update-timer m)
-          (run-at-time nil 10 #'exlybar-volume--do-update m))))
-
-(cl-defmethod exlybar-module-exit :before ((m exlybar-volume))
-  "Cancel the update timer."
-  (ignore m)
-  (when (exlybar-module-update-timer m)
-    (cancel-timer (exlybar-module-update-timer m)))
-  (setf (exlybar-module-update-timer m) nil))
+  (exlybar-module-update-status m))
 
 (defadvice volume-update
     (after exlybar-volume-after-volume-update activate)
@@ -129,7 +116,7 @@ See `exlybar-zone-color'"
                                      (exlybar-module-name m))))
                        exlybar--modules)))
       (seq-do (lambda (m)
-                (exlybar-volume--do-update m)
+                (exlybar-module-update-status m)
                 (exlybar-refresh-modules))
               ms))))
 

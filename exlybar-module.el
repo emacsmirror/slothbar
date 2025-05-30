@@ -184,7 +184,11 @@ This default primary method uses a result from fontsloth-layout to set
   (exlybar-module-layout m))
 
 (cl-defmethod exlybar-module-init :after ((m exlybar-module))
-  "After init draw module M's text."
+  "After init start module M's update timer and draw its text."
+  (when (cl-find-method #'exlybar-module-update-status '() `(,(cl-type-of m)))
+    (unless (exlybar-module-update-timer m)
+      (setf (exlybar-module-update-timer m)
+            (run-at-time nil 10 #'exlybar-module-update-status m))))
   (when (exlybar-module-format m)
     (exlybar-module--draw-text m)))
 
@@ -221,6 +225,15 @@ This default primary method redraws the text if it has changed."
 (cl-defgeneric exlybar-module-reposition ((m exlybar-module) x y)
   "Tell module M about its layout X and Y."
   (ignore m) (ignore x) (ignore y))
+
+(cl-defgeneric exlybar-module-update-status ((m exlybar-module))
+  "Refresh any backend status information required by module M.")
+
+(cl-defmethod exlybar-module-exit :before ((m exlybar-module))
+  "Cancel the update timer."
+  (when (exlybar-module-update-timer m)
+    (cancel-timer (exlybar-module-update-timer m)))
+  (setf (exlybar-module-update-timer m) nil))
 
 (cl-defgeneric exlybar-module-exit ((m exlybar-module))
   "Tear down module M."
