@@ -4,7 +4,7 @@
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;;      Fran Ley <fran.ley@mailfence.com>
-;; Version: 0.25.0
+;; Version: 0.25.1
 ;; Package-Requires: ((cl-lib "0.5") (emacs "27.1"))
 ;; Keywords: window-manager, status-bar, exwm
 
