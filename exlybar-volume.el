@@ -106,19 +106,21 @@ See `exlybar-zone-color'"
   "Set the M's icon and update the text."
   (exlybar-module-update-status m))
 
-(defadvice volume-update
-    (after exlybar-volume-after-volume-update activate)
+(defun exlybar-volume--refresh-advice (&rest _)
   "Refresh the module if the volume is adjusted in Emacs."
   (when (exlybar-enabled-p)
     (let ((ms (seq-filter (lambda (m)
                             (equal "volume"
                                    (when (exlybar-module-p m)
                                      (exlybar-module-name m))))
-                       exlybar--modules)))
+                          exlybar--modules)))
       (seq-do (lambda (m)
                 (exlybar-module-update-status m)
                 (exlybar-refresh-modules))
               ms))))
+
+(advice-add 'volume-update :after 'exlybar-volume--refresh-advice)
+(advice-add 'volume-set :after 'exlybar-volume--refresh-advice)
 
 (provide 'exlybar-volume)
 ;;; exlybar-volume.el ends here
