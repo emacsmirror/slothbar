@@ -80,7 +80,10 @@ E.g.: (:left
        :right
        exlybar-wifi-create exlybar-volume-create
        exlybar-backlight-create exlybar-battery-create)"
-  :type '(repeat symbol)
+  :type '(repeat (choice (radio :tag "Layout instruction keyword" :value :left
+                                (const :left) (const :right) (const :center))
+                         (function :tag "Module constructor or lambda"
+                                   :value exlybar-date-create)))
   :group 'exlybar
   :require 'exlybar-module-requires)
 
