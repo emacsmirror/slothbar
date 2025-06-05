@@ -306,7 +306,9 @@ Initialize the connection, window, graphics context, and modules."
                                   exlybar-height)
                              (alist-get 'y-offset geom))
 	  exlybar-width (alist-get 'width geom)))
-  (setq exlybar-font-px-size (exlybar-font--precompute-px-sizes exlybar-height exlybar-font-map))
+  (setq exlybar-font-px-size
+        (exlybar-font--precompute-px-sizes
+         exlybar-height exlybar-font--color-code-map))
   (setq exlybar--connection (xcb:connect))
   ;; apparently ewmh initializes icccm automatically
   (xcb:ewmh:init exlybar--connection)
