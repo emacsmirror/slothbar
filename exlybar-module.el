@@ -34,6 +34,7 @@
 (require 'cl-lib)
 (require 'cl-generic)
 (require 'fontsloth-layout)
+(require 'map)
 (require 'xcb-render)
 
 (require 'exlybar-color)
@@ -79,14 +80,16 @@ and a cache. The xcb ids are stored in the module xcb alist."
   "Load glyphs from TEXT-LAYOUT into GS unless found in CACHE."
   (dolist (pos text-layout)
     (when (fontsloth-layout-glyph-position-p pos)
-      (let* ((key (fontsloth-layout-glyph-position-key pos))
-             (font-idx
-              (fontsloth-layout-glyph-position-user-data pos))
-             (font (fontsloth-load-font (exlybar-font-find font-idx))))
-        (unless (map-elt cache key)
+      (pcase-let* (((cl-struct
+                     fontsloth-layout-glyph-position
+                     key (parent char-code) (user-data font-idx)) pos)
+                   (cache-key (map-elt cache char-code)))
+        (unless (equal cache-key key)
           (exlybar-render-load-glyph
-           exlybar--connection gs font pos)
-          (map-put! cache key t))))))
+           exlybar--connection gs
+           (fontsloth-load-font (exlybar-font-find font-idx))
+           pos)
+          (map-put! cache char-code key))))))
 
 (defun exlybar-module--draw-text (m)
   "Draw module M's text into its pixmap.
@@ -124,6 +127,8 @@ FIDX is the index into `exlybar-color-map-fg'."
     (fontsloth-layout-append
      l `(,font) (fontsloth-layout-text-style-create
                  :text text :px px :font-index 0
+                 ;; placing the font object directly in user-data would make
+                 ;; pretty-printing exlybar-modules too costly
                  :user-data fidx))
     (fontsloth-layout-finalize l)
     l))

@@ -65,7 +65,7 @@
         :documentation "Either a single character or an alist as expected by
 `exlybar-choose-icon'.")
   (animation nil :type 'function)
-  (cache nil :type 'alist)
+  (cache nil :type 'hash-table)
   (width exlybar-module-min-width :type 'fixed)
   (xcb nil :type 'list)
   (needs-refresh? nil :type 'boolean)
