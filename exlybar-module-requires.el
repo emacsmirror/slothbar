@@ -36,6 +36,7 @@
 (require 'exlybar-volume)
 (require 'exlybar-tray)
 (require 'exlybar-wifi)
+(require 'exlybar-workspaces)
 
 (provide 'exlybar-module-requires)
 ;;; exlybar-module-requires.el ends here
