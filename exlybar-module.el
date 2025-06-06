@@ -258,6 +258,26 @@ This default primary method redraws the text if it has changed."
         (exlybar-module-text m) nil
         (exlybar-module-xcb m) nil))
 
+(defsubst exlybar-module-find-by-name (module-name)
+  "Find all instances of modules with names equivalent to MODULE-NAME."
+  (cl-remove-if-not
+   (lambda (m)
+     (equal module-name
+            (when (exlybar-module-p m)
+              (exlybar-module-name m))))
+   exlybar--modules))
+
+(defun exlybar-module-refresh-all-by-name (module-name)
+  "Refresh all instances of modules with names equivalent to MODULE-NAME.
+
+This is intended for refreshing modules on user actions known to change
+status."
+  (when (exlybar-enabled-p)
+    (let ((ms (exlybar-module-find-by-name module-name)))
+      (dolist (m ms)
+        (exlybar-module-update-status m))
+      (exlybar-refresh-modules))))
+
 (provide 'exlybar-module)
 
 ;;; exlybar-module.el ends here

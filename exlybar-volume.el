@@ -107,17 +107,8 @@ See `exlybar-zone-color'"
   (exlybar-module-update-status m))
 
 (defun exlybar-volume--refresh-advice (&rest _)
-  "Refresh the module if the volume is adjusted in Emacs."
-  (when (exlybar-enabled-p)
-    (let ((ms (seq-filter (lambda (m)
-                            (equal "volume"
-                                   (when (exlybar-module-p m)
-                                     (exlybar-module-name m))))
-                          exlybar--modules)))
-      (seq-do (lambda (m)
-                (exlybar-module-update-status m)
-                (exlybar-refresh-modules))
-              ms))))
+  "Refresh any module instances if the volume is adjusted in Emacs."
+  (exlybar-module-refresh-all-by-name "volume"))
 
 (advice-add 'volume-update :after 'exlybar-volume--refresh-advice)
 (advice-add 'volume-set :after 'exlybar-volume--refresh-advice)
