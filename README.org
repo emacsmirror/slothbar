@@ -11,7 +11,7 @@ It is currently pre version 1.0 and the API is not yet stable.
 
 Like Exwm, it relies on xcb via xelb to communicate with an Xorg server.
 
-Current version: *0.26.0*
+Current version: *0.27.0*
 
 Note: *At present this requires Emacs 28.0*
 If you would like it to work on Emacs 27, please let me know.
@@ -60,8 +60,9 @@ If you would like it to work on Emacs 27, please let me know.
 
 + Dock on screen tops or bottoms
 
++ Help to locate/suggest/select compatible fonts to try (as of 0.26.0)
+
 * Not currently supported (but planned)
-+ Help to locate/suggest/select compatible fonts to try
 + Easy and meaningful integration with screen readers
 + Multiple bars and gaps like in Polybar
 + Configurable transparency
@@ -199,8 +200,7 @@ see [[*Usage][Usage]] below.
 
   ;; note this uses a MELPA recipe, so the usual MELPA options also apply
   (quelpa '(exlybar :fetcher github :repo "jollm/exlybar"
-                    :branch "focal"
-                    :files (:defaults "modules/*.el")))
+                    :branch "focal"))
 #+END_SRC
 
 ** Install with use-package
@@ -213,14 +213,12 @@ use-package.
   ;; if quelpa use-package is installed, this should install exlybar
   (use-package exlybar
     :quelpa ((exlybar :fetcher github :repo "jollm/exlybar"
-                      :branch "focal"
-                      :files (:defaults "modules/*.el"))))
+                      :branch "focal")))
 
   ;; if you want to auto-check for upgrades
   (use-package exlybar
     :quelpa ((exlybar :fetcher github :repo "jollm/exlybar"
-                      :branch "focal"
-                      :files (:defaults "modules/*.el")) :upgrade t))
+                      :branch "focal") :upgrade t))
 #+END_SRC
 
 ** Update to latest git commit
@@ -258,6 +256,8 @@ installation.
 
   (push 'exlybar-date-create exlybar-modules)
 
+  (push 'exlybar-workspaces-create exlybar-modules)
+
   (push 'exlybar-battery-create exlybar-modules)
 
   (push 'exlybar-backlight-create exlybar-modules)
@@ -284,12 +284,15 @@ installation.
   (setq exlybar-modules (cdr exlybar-modules))
   (push :center exlybar-modules)
 
-  ;;; layout tray, wifi, and battery to the left and volume, backlight, and date
-  ;;; to the right
-
+  ;;; layout tray, date, and workspaces to the left, and wifi, volume,
+  ;;; backlight, and battery to the right
   (setq exlybar-modules
-        '(:left exlybar-tray-create exlybar-wifi-create exlybar-battery-create
-                :right exlybar-volume-create exlybar-battery-create exlybar-date-create))
+        '(:left
+          exlybar-tray-create exlybar-date-create
+          exlybar-workspaces-create
+          :right
+          exlybar-wifi-create exlybar-volume-create
+          exlybar-backlight-create exlybar-battery-create))
 
   ;;; exit (exit doesn’t modify layout for next time)
 
@@ -341,6 +344,7 @@ installation.
     :config
     (require 'exlybar-module-requires)
     (setq exlybar-modules (list :left 'exlybar-tray-create 'exlybar-date-create
+                                'exlybar-workspaces-create
                                 :right 'exlybar-wifi-create 'exlybar-volume-create
                                 'exlybar-backlight-create 'exlybar-battery-create)))
 
@@ -373,8 +377,6 @@ This project is heavily inspired by daviwil’s [[https://systemcrafters.cc/][Sy
 Emacs and Exwm as well as [[https://github.com/ch11ng/exwm][Exwm]] itself along with numerous others whom I will
 attempt to list as the project develops further.  See also attributions for
 fontsloth.
-
-Thanks to Fran Ley for helping to maintain this project.
 
 * Contact
 I’m currently poselyqualityles on librera chat. Feel free to interact as I’d
