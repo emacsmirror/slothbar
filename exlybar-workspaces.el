@@ -206,7 +206,7 @@ functions to update module status on changes, otherwise remove."
 
 (defun exlybar-workspaces-setup-defaults-exwm ()
   "Configure exlybar-workspaces to display EXWM workspaces."
-  (when exwm--connection
+  (when (and (boundp 'exwm--connection) exwm--connection)
     (when (and exlybar-workspaces-exwm-shorten-names
                (locate-library "shorten"))
       (require 'shorten))
