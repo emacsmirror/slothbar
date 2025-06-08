@@ -86,35 +86,58 @@
                                 :x exlybar-offset-x
                                 :y exlybar-offset-y
                                 :width exlybar-width
-                                :height exlybar-height))))
+                                :height (+ exlybar-height exlybar-margin-y)))))
     (exlybar--log-debug* "exlybar-refresh: configure window errors: %s" ecw))
   (xcb:+request exlybar--connection
       (make-instance 'xcb:MapWindow
                      :window exlybar--window))
   (xcb:flush exlybar--connection)
   ;; configure struts
-  (xcb:+request exlybar--connection
-      (make-instance 'xcb:ewmh:set-_NET_WM_STRUT
-                     :window exlybar--window
-                     :left exlybar-offset-x
-                     :right 0
-                     :top (+ exlybar-offset-y exlybar-height)
-                     :bottom 0))
-  (xcb:+request exlybar--connection
-      (make-instance 'xcb:ewmh:set-_NET_WM_STRUT_PARTIAL
-                     :window exlybar--window
-                     :left exlybar-offset-x
-                     :right 0
-                     :top (+ exlybar-offset-y exlybar-height)
-                     :bottom 0
-                     :left-start-y 0
-                     :left-end-y 0
-                     :right-start-y 0
-                     :right-end-y 0
-                     :top-start-x exlybar-offset-x
-                     :top-end-x (1- (+ exlybar-offset-x exlybar-width))
-                     :bottom-start-x 0
-                     :bottom-end-x 0))
+  (pcase-let* (((eieio (height root-window-height))
+                (xcb:+request-unchecked+reply
+                    exlybar--connection
+                    (make-instance 'xcb:GetGeometry
+                                   :drawable (exlybar--find-root-window-id))))
+               ((map ('y-offset mon-y-offset) ('height mon-height))
+                (exlybar--find-display-geometry exlybar-preferred-display))
+               (bottom-strut (if exlybar-is-bottom
+                                   (+ exlybar-height exlybar-margin-y
+                                      (- root-window-height
+                                         (+ mon-y-offset mon-height)))
+                                 0)))
+    (xcb:+request exlybar--connection
+        (make-instance 'xcb:ewmh:set-_NET_WM_STRUT
+                       :window exlybar--window
+                       :left exlybar-offset-x
+                       :right 0
+                       :top (if exlybar-is-bottom
+                                0
+                              (+ exlybar-height exlybar-offset-y
+                                 exlybar-margin-y))
+                       :bottom bottom-strut))
+    (xcb:+request exlybar--connection
+        (make-instance 'xcb:ewmh:set-_NET_WM_STRUT_PARTIAL
+                       :window exlybar--window
+                       :left exlybar-offset-x
+                       :right 0
+                       :top (if exlybar-is-bottom 0
+                              (+ exlybar-height exlybar-offset-y
+                                 exlybar-margin-y))
+                       :bottom bottom-strut
+                       :left-start-y 0
+                       :left-end-y 0
+                       :right-start-y 0
+                       :right-end-y 0
+                       :top-start-x (if exlybar-is-bottom 0
+                                      exlybar-offset-x)
+                       :top-end-x (if exlybar-is-bottom 0
+                                    (1- (+ exlybar-offset-x exlybar-width)))
+                       :bottom-start-x (if exlybar-is-bottom
+                                           exlybar-offset-x
+                                         0)
+                       :bottom-end-x (if exlybar-is-bottom
+                                         (1- (+ exlybar-offset-x exlybar-width))
+                                       0))))
   ;; (xcb:+request exlybar--connection
   ;;     (make-instance 'xcb:MapWindow
   ;;                    :window exlybar--window))
@@ -339,7 +362,7 @@ Initialize the connection, window, graphics context, and modules."
                        :x exlybar-offset-x
                        :y y
                        :width 1
-                       :height exlybar-height
+                       :height (+ exlybar-margin-y exlybar-height)
                        :border-width 1
                        :class xcb:WindowClass:InputOutput
                        :visual 0

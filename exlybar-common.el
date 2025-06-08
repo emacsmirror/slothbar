@@ -54,6 +54,11 @@ Defaults to the width obtained from `display-pixel-width'"
   :type 'integer
   :group 'exlybar)
 
+(defcustom exlybar-margin-y 2
+  "Bar vertical margin in pixels."
+  :type 'integer
+  :group 'exlybar)
+
 (defcustom exlybar-preferred-display "eDP-1"
   "If multiple displays are connected:
 
