@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'rx)
 
 (require 'exlybar-module)
 (require 'exlybar-module-helpers)
@@ -119,6 +120,8 @@ WS-LIST."
 ;;; Begin exlybar-workspaces-generate-list-fn implementations
 
 (declare-function shorten-strings "shorten" (lst &optional tail-count))
+
+;;; EXWM
 
 (defvar exwm-workspace--list)
 
@@ -219,6 +222,85 @@ functions to update module status on changes, otherwise remove."
 
 (when (locate-library "exwm")
   (add-hook 'exlybar-before-init-hook 'exlybar-workspaces-setup-defaults-exwm))
+
+;;; herbstluftwm
+
+(defun exlybar-workspaces-generate-list-fn-herbstluftwm ()
+  "Implement `exlybar-workspaces-generate-list-fn' for herbstluftwm."
+  (when (executable-find "herbstclient")
+    (when-let ((tags (with-temp-buffer
+                       (when (eq 0 (call-process "herbstclient" nil t nil "tag_status"))
+                         (buffer-string)))))
+      (cl-loop for tag in (string-split tags)
+               for name = (substring tag 1)
+               collect
+               `(,name
+                 (,@(pcase tag
+                    ((rx (seq ?# (+ anychar))) '(:current :window))
+                    ((rx (seq ?: (+ anychar))) '(:window))
+                    ((rx (seq ?. (+ anychar))) '(:blankish)))))))))
+
+(defun exlybar-workspaces--make-herbstluft-events-filter ()
+  "Return a process filter for herbstclient -i that looks for tag changes."
+  (let ((processed-lines 0))
+    (lambda (proc string)
+      (when (buffer-live-p (process-buffer proc))
+        (with-current-buffer (process-buffer proc)
+          (let ((moving (= (point) (process-mark proc))))
+            (save-excursion
+              ;; Insert the text, advancing the process marker.
+              (goto-char (process-mark proc))
+              (insert string)
+              (set-marker (process-mark proc) (point)))
+            (if moving (goto-char (process-mark proc))))
+          (save-excursion
+            (goto-char (point-max))
+            (beginning-of-line (and (looking-at-p "^$") 0))
+            (when (> (line-number-at-pos) processed-lines)
+              (setq processed-lines (line-number-at-pos))
+              (when (string-prefix-p
+                     "tag_changed"
+                     (buffer-substring-no-properties (point) (line-end-position)))
+                (exlybar-module-refresh-all-by-name "workspaces")))))))))
+
+(defvar exlybar-workspaces--herbstluft-evt-listener-proc nil)
+(defvar exlybar-workspaces--herbstluft-evt-listener-proc-stderr nil)
+
+(defun exlybar-workspaces--start-herbstluft-event-listener ()
+  "Start a process to listen for herbstluftwm events."
+  (let* ((stdout (generate-new-buffer " *herbstluftwm events*"))
+         (stderr (generate-new-buffer " *herbstluftwm errors*"))
+         (process (make-process :name "herbstclient"
+                      :command '("herbstclient" "-i")
+                      :buffer stdout
+                      :filter (exlybar-workspaces--make-herbstluft-events-filter)
+                      :stderr stderr))
+         (stderr-process (get-buffer-process stderr)))
+    (unless (and process stderr-process)
+      (error "Process unexpectedly nil"))
+    (setq exlybar-workspaces--herbstluft-evt-listener-proc
+          process
+          exlybar-workspaces--herbstluft-evt-listener-proc-stderr
+          stderr-process)))
+
+(defun exlybar-workspaces--stop-herbstluft-event-listener ()
+  "Start a process to listen for herbstluftwm events."
+  (when exlybar-workspaces--herbstluft-evt-listener-proc
+    (kill-process exlybar-workspaces--herbstluft-evt-listener-proc))
+  (when exlybar-workspaces--herbstluft-evt-listener-proc-stderr
+    (kill-process exlybar-workspaces--herbstluft-evt-listener-proc-stderr)))
+
+(defun exlybar-workspaces-setup-defaults-herbstluftwm ()
+  "Configure exlybar-workspaces to display herbstluftwm tags."
+  (when (and (executable-find "herbstclient")
+             (equal "herbstluftwm" (getenv "DESKTOP_SESSION")))
+    (setq exlybar-workspaces-generate-list-fn
+          'exlybar-workspaces-generate-list-fn-herbstluftwm)
+    (add-hook 'exlybar-before-init-hook 'exlybar-workspaces--start-herbstluft-event-listener)
+    (add-hook 'exlybar-after-exit-hook 'exlybar-workspaces--stop-herbstluft-event-listener)))
+
+(when (executable-find "herbstclient")
+  (add-hook 'exlybar-before-init-hook 'exlybar-workspaces-setup-defaults-herbstluftwm))
 
 (provide 'exlybar-workspaces)
 ;;; exlybar-workspaces.el ends here
