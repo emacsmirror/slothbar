@@ -85,7 +85,7 @@ WS-LIST."
                       for ws = (sanitize ws)
                       concat
                       (pcase status
-                        ('(:current :window) (concat "^[^1 [" ws "]^]"))
+                        ((or '(:current) '(:current :window)) (concat "^[^1 [" ws "]^]"))
                         ((or '(:window) `(:window ,_)) (concat "^[^1 " ws "^]"))
                         (`(:current ,_) (concat "^[^0 [" ws "]^]"))
                         ('(:blankish) (concat "^[^2 " ws "^]"))))))))
@@ -301,6 +301,94 @@ functions to update module status on changes, otherwise remove."
 
 (when (executable-find "herbstclient")
   (add-hook 'exlybar-before-init-hook 'exlybar-workspaces-setup-defaults-herbstluftwm))
+
+;;; xmonad
+
+(defun exlybar-workspaces-generate-list-fn-xmonad ()
+  "Implement `exlybar-workspaces-generate-list-fn' for xmonad.
+
+In order for this to work, a section in xmonad.hs like the following:
+
+exlybarHook :: D.Client -> PP
+exlybarHook dbus =
+  let wrapper c s | s /= \"NSP\" = wrap (\":\" <> c <> \" \") \" . \" s
+                  | otherwise  = mempty
+      cur   = \"current\"
+      vis   = \"visible\"
+      urg   = \"urgent\"
+      hid   = \"window\"
+      bla   = \"blankish\"
+  in  def { ppOutput          = dbusOutput dbus
+          , ppCurrent         = wrapper cur
+          , ppVisible         = wrapper vis
+          , ppUrgent          = wrapper urg
+          , ppHidden          = wrapper hid
+          , ppHiddenNoWindows = wrapper bla
+          , ppTitle           = wrapper \"title\" . shorten 90
+          }
+
+myExlybarLogHook dbus = myLogHook <+> dynamicLogWithPP (exlybarHook dbus)
+"
+  (when (stringp exlybar-workspaces--xmonad-dbus-last-val)
+    (cl-loop for (status name)
+             in (mapcar 'string-split
+                        (butlast (string-split
+                                  exlybar-workspaces--xmonad-dbus-last-val
+                                  " \\. "
+                                  t)))
+             collect `(,name
+                       (,(intern status))))))
+
+(defvar exlybar-workspaces--xmonad-dbus-last-val nil
+  "Holds the most recent dbus message from xmonad.")
+
+(defun exlybar-workspaces--watch-xmonad-dbus-last-val (_ _ oper where)
+  "Refresh if the dbus message variable is modified with nil WHERE and OPER
+\\='set."
+  (when (and (not where) (eq 'set oper))
+    (run-with-timer 0 nil (lambda () (exlybar-module-refresh-all-by-name "workspaces")))))
+
+(add-variable-watcher 'exlybar-workspaces--xmonad-dbus-last-val
+                      'exlybar-workspaces--watch-xmonad-dbus-last-val)
+
+(defun exlybar-workspaces--xmonad-dbus-monitor (&optional workspaces)
+  "The dbus monitor sets `exlybar-workspaces--xmonad-dbus-last-val' to the
+value of WORKSPACES for
+`exlybar-workspaces-generate-list-fn-xmonad' to parse."
+  (when workspaces
+    (setq exlybar-workspaces--xmonad-dbus-last-val workspaces)))
+
+(defvar exlybar-workspaces--xmonad-dbus-object nil
+  "The state object for the xmonad dbus monitor.")
+
+(declare-function dbus-unregister-object "dbus")
+
+(defun exlybar-workspaces--unregister-xmonad-dbus-monitor ()
+  "Unregister the dbus object for the xmonad monitor."
+  (dbus-unregister-object exlybar-workspaces--xmonad-dbus-object))
+
+(declare-function dbus-register-monitor "dbus")
+
+(defun exlybar-workspaces-setup-defaults-xmonad ()
+  "When in xmonad, try to start a dbus monitor and set
+`exlybar-workspaces-generate-list-fn'.
+
+Note that the xmonad config must send dbus events. See the
+`exlybar-workspaces-generate-list-fn-xmonad' docstring for an example."
+  (when (and (locate-library "dbus")
+             (equal "xmonad" (getenv "DESKTOP_SESSION")))
+    (setq
+     exlybar-workspaces--xmonad-dbus-object
+     (dbus-register-monitor :session
+                            'exlybar-workspaces--xmonad-dbus-monitor
+                            :path "/org/xmonad/Log"
+                            :interface "org.xmonad.Log"
+                            :member "Update")
+     exlybar-workspaces-generate-list-fn
+     'exlybar-workspaces-generate-list-fn-xmonad)
+    (add-hook 'exlybar-after-exit-hook 'exlybar-workspaces--unregister-xmonad-dbus-monitor)))
+
+(add-hook 'exlybar-before-init-hook 'exlybar-workspaces-setup-defaults-xmonad)
 
 (provide 'exlybar-workspaces)
 ;;; exlybar-workspaces.el ends here
