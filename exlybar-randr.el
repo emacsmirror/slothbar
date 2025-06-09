@@ -144,7 +144,8 @@ This is adapted from the EXWM RandR module."
                                      (alist-get 'height geom))
                                   exlybar-height)
                              (alist-get 'y-offset geom))
-	  exlybar-width (alist-get 'width geom))
+	  exlybar-width (alist-get 'width geom)
+          exlybar--geometry-changed? t)
     (run-at-time 0 nil #'exlybar-refresh-modules)))
 
 (provide 'exlybar-randr)
