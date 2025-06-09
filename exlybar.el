@@ -1,12 +1,25 @@
 ;;; exlybar.el --- Emacs polybar-like thing -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
+;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
 ;; Homepage: https://github.com/jollm/exlybar
 ;; Package-Requires: ((backlight "1.4") (dash "2.1.0") (f "0.20.0") (fontsloth "20211101.1") (log4e "0.3.3") (s "1.12.0") (volume "20201002.1022") (xelb "0.18") (emacs "28.0"))
 ;; Keywords: window-manager, status-bar, exwm
+
+;; This program is free software: you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the Free
+;; Software Foundation, either version 3 of the License, or (at your option)
+;; any later version.
+
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+;; more details.
+
+;; You should have received a copy of the GNU General Public License along with
+;; this program. If not, see <https://www.gnu.org/licenses/>.
 
 ;; This file is NOT part of GNU Emacs.
 
