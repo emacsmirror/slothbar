@@ -163,15 +163,12 @@ Exlybar consists of five primary components:
   in order to support CompositeGlyphs32 requests for loaded glyphs.
 
 * Usage caveats
-*This probably doesn’t work well with multiple screens at the moment.* I only
-have a laptop and no extra monitors. I plan to get a multiscreen setup for
-testing soon.
++This probably doesn’t work well with multiple screens at the moment.+
+It's tested in multi-monitor setups so far in EXWM and should work in
+herbstluftwm and xmonad.
 
-*It’s not great at helping to find fonts.* I’m planning to add a font-find
-helper that delegates to fc-match. This would be helpful if you don’t happen to
-have the default fonts.
-
-*Check [[./exlybar-color.el]] for the default font paths.*
++It’s not great at helping to find fonts.+ See the
+=exlybar-font-candidates= docstring in [[./exlybar-color.el]].
 
 It depends on fontsloth which is another project in very early stages; see the
 fontsloth README linked above for a list of tested fonts.
