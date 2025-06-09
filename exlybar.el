@@ -5,7 +5,7 @@
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
 ;; Homepage: https://github.com/jollm/exlybar
-;; Package-Requires: ((backlight "1.4") (dash "2.1.0") (f "0.20.0") (fontsloth "20211101.1") (log4e "0.3.3") (s "1.12.0") (volume "20201002.1022") (xelb "0.18") (emacs "28.0"))
+;; Package-Requires: ((backlight "1.4") (dash "2.1.0") (f "0.20.0") (fontsloth "0.18.0") (log4e "0.3.3") (s "1.12.0") (volume "20201002.1022") (xelb "0.18") (emacs "28.0"))
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -53,7 +53,7 @@
 (require 'xcb-icccm)
 (require 'xcb-ewmh)
 
-(require 'exlybar-common)
+(require 'exlybar-util)
 (require 'exlybar-log)
 
 (defgroup exlybar nil
@@ -67,6 +67,111 @@
 (defvar exlybar--enabled nil "t if exlybar is enabled.")
 
 (require 'exlybar-layout)
+
+(defcustom exlybar-width (display-pixel-width)
+  "Exlybar width.
+
+Defaults to the width obtained from `display-pixel-width'"
+  :type 'integer
+  :group 'exlybar)
+
+(defcustom exlybar-height 20
+  "Exlybar height."
+  :type 'integer
+  :group 'exlybar)
+
+(defcustom exlybar-offset-x 0
+  "Bar display x offset in pixels."
+  :type 'integer
+  :group 'exlybar)
+
+(defcustom exlybar-offset-y 0
+  "Bar display y offset in pixels."
+  :type 'integer
+  :group 'exlybar)
+
+(defcustom exlybar-margin-y 2
+  "Bar vertical margin in pixels."
+  :type 'integer
+  :group 'exlybar)
+
+(defcustom exlybar-preferred-display "eDP-1"
+  "If multiple displays are connected:
+
+- nil indicates to automatically choose one. If the exlybar-randr
+  extension is enabled, this will be the primary display
+ - string should be the display name as reported by
+  `(display-monitor-attributes-list)`"
+  :type '(choice (const :tag "auto" nil)
+		 string)
+  :group 'exlybar)
+
+(defcustom exlybar-is-bottom nil
+  "True if exlybar is positioned at the bottom of the display, false
+  otherwise."
+  :type 'boolean
+  :group 'exlybar)
+
+(defcustom exlybar-modules nil
+  "List of exlybar module constructor names with optional layout
+instructions.
+
+E.g.: (:left
+       exlybar-tray-create exlybar-date-create
+       :right
+       exlybar-wifi-create exlybar-volume-create
+       exlybar-backlight-create exlybar-battery-create)"
+  :type '(repeat (choice (radio :tag "Layout instruction keyword" :value :left
+                                (const :left) (const :right) (const :center))
+                         (function :tag "Module constructor or lambda"
+                                   :value exlybar-date-create)))
+  :group 'exlybar
+  :require 'exlybar-module-requires)
+
+(defcustom exlybar-before-init-hook nil
+  "Functions to run when before exlybar is initialized."
+  :type 'hook
+  :group 'exlybar)
+
+(defcustom exlybar-after-init-hook nil
+  "Functions to run when after exlybar is initialized."
+  :type 'hook
+  :group 'exlybar)
+
+(defcustom exlybar-before-exit-hook nil
+  "Functions to run when before exlybar exits."
+  :type 'hook
+  :group 'exlybar)
+
+(defcustom exlybar-after-exit-hook nil
+  "Functions to run when after exlybar exits."
+  :type 'hook
+  :group 'exlybar)
+
+(defvar exlybar--connection)
+
+(defvar exlybar--modules nil
+  "List of exlybar modules with optional layout instructions.")
+
+(defmacro exlybar--global-minor-mode-body (name &optional init exit)
+  "Global minor mode body for mode with NAME.
+The INIT and EXIT functions are added to `exlybar-after-init-hook' and
+`exlybar-before-exit-hook' respectively.  If an X connection exists, the mode is
+immediately enabled or disabled."
+  (declare (indent 1) (debug t))
+  (let* ((mode (intern (format "exlybar-%s-mode" name)))
+         (init (or init (intern (format "exlybar-%s--init" name))))
+         (exit (or exit (intern (format "exlybar-%s--exit" name)))))
+    `(progn
+       (cond
+        (,mode
+         (add-hook 'exlybar-after-init-hook #',init)
+         (add-hook 'exlybar-before-exit-hook #',exit)
+         (when exlybar--connection (,init)))
+        (t
+         (remove-hook 'exlybar-after-init-hook #',init)
+         (remove-hook 'exlybar-before-exit-hook #',exit)
+         (when exlybar--connection (,exit)))))))
 
 (defsubst exlybar-enabled-p ()
   "Return t if exlybar is enabled."
@@ -110,7 +215,7 @@
                 (xcb:+request-unchecked+reply
                     exlybar--connection
                     (make-instance 'xcb:GetGeometry
-                                   :drawable (exlybar--find-root-window-id))))
+                                   :drawable (exlybar-util--find-root-window-id))))
                ((map ('y-offset mon-y-offset) ('height mon-height))
                 (exlybar--find-display-geometry exlybar-preferred-display))
                (bottom-strut (if exlybar-is-bottom
@@ -354,13 +459,13 @@ Initialize the connection, window, graphics context, and modules."
                                   nil)
   ;; initialize the bar window
   (let ((id (xcb:generate-id exlybar--connection))
-        (background-pixel (exlybar--color->pixel
-                           (exlybar--find-background-color)))
+        (background-pixel (exlybar-util--color->pixel
+                           (exlybar-util--find-background-color)))
         (y exlybar-offset-y)
         parent depth)
     (setq exlybar--window id)
     (exlybar--log-debug* "Exlybar window id: %s" exlybar--window)
-    (setq parent (exlybar--find-root-window-id)
+    (setq parent (exlybar-util--find-root-window-id)
           depth (slot-value (xcb:+request-unchecked+reply
                                 exlybar--connection
                                 (make-instance 'xcb:GetGeometry
@@ -389,8 +494,7 @@ Initialize the connection, window, graphics context, and modules."
                                            xcb:EventMask:KeyPress
                                            xcb:EventMask:PointerMotion
                                            xcb:EventMask:PropertyChange
-                                           xcb:EventMask:SubstructureNotify
-                                           )))
+                                           xcb:EventMask:SubstructureNotify)))
     ;; Set WM_NAME and WM_CLASS.
     (xcb:+request exlybar--connection
         (make-instance 'xcb:icccm:set-WM_NAME
@@ -421,10 +525,10 @@ Initialize the connection, window, graphics context, and modules."
                               :drawable exlybar--window
                               :value-mask (logior xcb:GC:Background
                                                   xcb:GC:Foreground)
-                              :background (exlybar--color->pixel
-                                           (exlybar--find-background-color))
-                              :foreground (exlybar--color->pixel
-                                           (exlybar--find-foreground-color))))))
+                              :background (exlybar-util--color->pixel
+                                           (exlybar-util--find-background-color))
+                              :foreground (exlybar-util--color->pixel
+                                           (exlybar-util--find-foreground-color))))))
       (exlybar--log-debug* "exlybar init create gc errors: %s" egc))
     ;; initialize modules
     (exlybar--construct-modules)

@@ -44,7 +44,9 @@
 ;;; Code:
 
 (require 'xcb-randr)
-(require 'exlybar-common)
+
+(require 'exlybar)
+(require 'exlybar-util)
 
 (defgroup exlybar-randr nil
   "Exlybar RandR."

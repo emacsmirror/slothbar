@@ -1,6 +1,6 @@
-;;; exlybar-color.el --- support color code formats similar to stumpwm's -*- lexical-binding: t -*-
+;;; exlybar-color.el --- Support color code formats similar to stumpwm's -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
+;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
@@ -44,7 +44,7 @@
 (require 'cl-lib)
 (require 's)
 
-(require 'exlybar-common)
+(require 'exlybar-util)
 (require 'exlybar-log)
 ;; FIXME: store colors without relying on an xcb type
 (require 'exlybar-render)
@@ -109,8 +109,8 @@
 
 ;; TODO: use this
 ;; (defcustom exlybar-color-bg
-;;   (exlybar--color->pixel
-;;    (exlybar--find-background-color))
+;;   (exlybar-util--color->pixel
+;;    (exlybar-util--find-background-color))
 ;;   "The default background color.
 ;; Currently unused."
 ;;   :type 'natnum
@@ -152,162 +152,15 @@ See `exlybar-zone-color'"
   :type 'string
   :group 'exlybar)
 
-;;; Try to use safe fallback font lists where possible
-
-(declare-function font-info nil (name))
-
-(cl-defsubst exlybar--font-list-filename-search (font-name-list)
-  "Given FONT-NAME-LIST, return a file path to the first font found,
-  or nil or none are found."
-  (seq-some #'(lambda (v) (when v v))
-	    (cl-mapcar #'(lambda (name)
-			   (when-let ((fuck (font-info name)))
-			     (elt fuck 12)))
-		       font-name-list)))
-
-(defvar exlybar-font--color-code-map
-  (make-vector 10 nil)
-  "The font map corresponding to color codes ^f0-^f9.")
-
-(defcustom exlybar-font-candidates
-  '(("Aporetic Sans"
-     "IBM Plex Serif"
-     "Deja Vu Serif"
-     "Cantarell")
-    ("Font Awesome")
-    ("Aporetic Sans Mono"
-     "IBM Plex Mono"
-     "DejaVu Sans Mono:style=Book")
-    ("all-the-icons")
-    ("Symbols Nerd Font Mono"))
-  "A list of lists of candidate fonts for color codes ^f0-^f9, where
-elements of the outer list correspond to ^f0, ^f1, and so on.
-
-Elements of the inner lists are ordered highest preference first. Each
-candidate should be a font name as in `font-family-list'.
-
-In deciding whether a font should be grouped with others or a separate
-entry, consider whether the fonts have a similar purpose and cover
-similar code-point ranges. For example, it may make sense to have
-separate entries grouping variable pitch and monospace fonts. Some icon
-fonts may make sense to group and others may not depending on their
-code-point ranges."
-  :type '(repeat (repeat string))
-  :group 'exlybar)
-
-(defun exlybar-font--map-font-candidates (&optional candidates)
-  "Given a list of lists of font names CANDIDATES, generate a vector where
-each slot value is a file path corresponding to the best match for each
-font name list."
-  (cl-loop for f-list in (or candidates exlybar-font-candidates)
-           for i = 0 then (1+ i)
-           with font-map = (make-vector 10 nil)
-           do
-           (when-let (path (exlybar--font-list-filename-search f-list))
-             (aset font-map i path))
-           finally return font-map))
-
-(defun exlybar-font--watch-color-code-map (sym nval oper where)
-  "Update `exlybar-font--color-code-map' when a relevant change occurs."
-  (exlybar--log-trace* "watch-font-map called %s %s %s %s" sym nval oper where)
-  (when (and (not where) (eq 'set oper))
-    (setq exlybar-font--color-code-map (exlybar-font--map-font-candidates nval))))
-
-(add-variable-watcher 'exlybar-font-candidates #'exlybar-font--watch-color-code-map)
-
-(with-eval-after-load "exlybar"
-  (add-hook 'exlybar-before-init-hook
-            (lambda ()
-              (setq exlybar-font--color-code-map
-                    (exlybar-font--map-font-candidates)))))
-
-(cl-defun exlybar-font--precompute-px-sizes (height &optional font-map)
-  "Given a HEIGHT, compute pixel sizes for all fonts in the font map."
-  (exlybar--log-trace* "precompute-px-size called %s %s" height font-map)
-  (apply
-   #'vector
-   (cl-loop for font-path across (or font-map exlybar-font--color-code-map) collect
-            (when font-path
-	      (fontsloth-font-compute-px (fontsloth-load-font font-path) height)))))
-
-(defvar exlybar-font-px-size (exlybar-font--precompute-px-sizes exlybar-height)
-  "Precomputed font px size map.
-
-There should be no need to recompute pixel sizes unless either the height or
-the fonts change.")
-
-(defun exlybar-font--watch-px-size (sym nval oper where)
-  "Update `exlybar-font-px-size' when a relevant change occurs."
-  (exlybar--log-trace* "watch-px-size called %s %s %s %s" sym nval oper where)
-  (when (and (not where) (eq 'set oper))
-    (let ((height (cl-case sym
-                    (exlybar-height (when (/= (symbol-value sym) nval) nval))
-                    (exlybar-font--color-code-map nil)))
-          (font-map (cl-case sym
-                      (exlybar-height nil)
-                      (exlybar-font--color-code-map
-                       (unless (equal (symbol-value sym) nval)
-                         nval)))))
-      (when (or height font-map exlybar-height)
-        (setq exlybar-font-px-size
-              (exlybar-font--precompute-px-sizes
-               (or height exlybar-height) (or font-map exlybar-font--color-code-map)))))))
-
-(add-variable-watcher 'exlybar-height #'exlybar-font--watch-px-size)
-(add-variable-watcher 'exlybar-font--color-code-map #'exlybar-font--watch-px-size)
-
-(defcustom exlybar-font-px-delta
-  [0.0
-   0.0
-   0.0
-   6.0
-   0.0
-   0.0
-   0.0
-   0.0
-   0.0
-   0.0]
-  "These deltas adjust computed px sizes.
-This could be helpful for in the same display area swapping between two fonts
-with different metrics."
-  :type '(vector float float float float float float float float float float)
-  :group 'exlybar)
-
-(defun exlybar-font--compute-y-delta (px-delta)
-  "Given a vector of PX-DELTA, compute corresponding Y-DELTA."
-  (apply #'vector (cl-loop for pd across px-delta collect (/ pd 3))))
-
-(defvar exlybar-font-y-delta
-  (exlybar-font--compute-y-delta exlybar-font-px-delta)
-  "These deltas to adjust font y offsets.
-This is a companion to `exlybar-font-px-delta'. Note that
-changing this setting does not invalidate existing glyph position
-caches. This is automatically recomputed when
-`exlybar-font-px-delta' changes.")
-
-(defun exlybar-font--watch-px-delta (sym nval oper where)
-  "Update `exlybar-font-y-delta' when `exlybar-font-px-delta' is modified."
-  (ignore sym)
-  (when (and (not where) (eq 'set oper))
-    (setq exlybar-font-y-delta (exlybar-font--compute-y-delta nval))))
-
-(add-variable-watcher 'exlybar-font-px-delta #'exlybar-font--watch-px-delta)
-
 (defsubst exlybar-color-find (color-index fg)
   "Find a color given COLOR-INDEX.
 FG t if a foreground color, nil if a background color"
   (if fg (aref exlybar-color-map-fg color-index)
-    (exlybar--color->pixel
-     (exlybar--find-background-color))))
+    (exlybar-util--color->pixel
+     (exlybar-util--find-background-color))))
 
-(defsubst exlybar-font-find (font-index)
-  "Find a font corresponding to color code ^f0-^f9 given FONT-INDEX.
 
-See `exlybar-font-candidates' for information about how fonts are
-configured."
-  (aref exlybar-font--color-code-map font-index))
-
-(defvar exlybar--color-pattern
+(defvar exlybar-color--pattern
   "\\^[][nrRbB>^;]\\|\\^[0-9*]\\{1,2\\}~?\\|\\^f[0-9]\\|\\^(.*?)"
   "This is the same color code pattern used in stumpwm.
 Note that not yet all of these options are supported for exlybar.")
@@ -379,7 +232,7 @@ If COLOR isn't a colorcode a list containing COLOR is returned."
                            (push (apply #'string (nreverse acc)) res)
                            finally return (nreverse res)))))
     (let ((substrings
-           (split-retain string exlybar--color-pattern)))
+           (split-retain string exlybar-color--pattern)))
       (cl-loop for substring in substrings
                with resolve~? = nil append
                (let ((p (exlybar-color-parse substring)))

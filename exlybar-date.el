@@ -56,7 +56,7 @@
   "An Exlybar date module."
   :group 'exlybar)
 
-(defsubst exlybar-date--equinox/solstice-day (k)
+(defsubst exlybar-date--equinox-solstice-day (k)
   "Day of the kth equinox/solstice for the current year.
 
 K=0, spring equinox; K=1, summer solstice; K=2, fall equinox;
@@ -70,9 +70,9 @@ See `solar-equinoxes/solstices'"
                   sum (date-days-in-month year m)))))
 
 (defcustom exlybar-date-color-zones
-  `(,(exlybar-date--equinox/solstice-day 0)
-    ,(exlybar-date--equinox/solstice-day 1)
-    ,(exlybar-date--equinox/solstice-day 2) nil nil)
+  `(,(exlybar-date--equinox-solstice-day 0)
+    ,(exlybar-date--equinox-solstice-day 1)
+    ,(exlybar-date--equinox-solstice-day 2) nil nil)
   "Days of the year indicating seasonal color changes.
 See `exlybar-zone-color'"
   :type '(list float float float boolean boolean)
@@ -106,7 +106,7 @@ See `exlybar-zone-color'"
 
 (defun exlybar-date--zone-color ()
   "Decide the seasonal zone color using solar equinox/solstice calculations."
-  (let* ((winter-solstice (exlybar-date--equinox/solstice-day 3))
+  (let* ((winter-solstice (exlybar-date--equinox-solstice-day 3))
          (day (string-to-number (format-time-string "%j")))
          (day (if (< winter-solstice day) (- winter-solstice day) day)))
     (let ((exlybar-color-zone-med exlybar-date-color-spring)

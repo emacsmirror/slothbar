@@ -105,7 +105,7 @@ This should be a color, or nil for transparent background."
          ;; Change the background color for embedder.
          (when (and exlybar--connection
                     exlybar-tray--embedder-window)
-           (let ((background-pixel (exlybar--color->pixel value)))
+           (let ((background-pixel (exlybar-util--color->pixel value)))
              (xcb:+request exlybar--connection
                  (make-instance 'xcb:ChangeWindowAttributes
                                 :window exlybar-tray--embedder-window
@@ -230,7 +230,7 @@ SHOULD-REFRESH? optional (defaults to t) nil to forgo module refresh"
   (xcb:+request exlybar-tray--connection
       (make-instance 'xcb:ReparentWindow
                      :window icon
-                     :parent (exlybar--find-root-window-id)
+                     :parent (exlybar-util--find-root-window-id)
                      :x 0 :y 0))
   (setq exlybar-tray--list
         (assq-delete-all icon exlybar-tray--list))
@@ -365,7 +365,7 @@ This overrides the default module init because system tray is special."
       (warn "[exlybar-tray] Other system tray detected")
       (cl-return-from exlybar-module-init)))
   (let ((id (xcb:generate-id exlybar-tray--connection))
-        (root (exlybar--find-root-window-id)))
+        (root (exlybar-util--find-root-window-id)))
     (setq exlybar-tray--selection-owner-window id)
     (xcb:+request exlybar-tray--connection
         (make-instance 'xcb:CreateWindow
@@ -414,7 +414,7 @@ This overrides the default module init because system tray is special."
   ;; Create the embedder.
   (let* ((id (xcb:generate-id exlybar-tray--connection))
          (background-pixel
-          (exlybar--color->pixel exlybar-tray-background-color))
+          (exlybar-util--color->pixel exlybar-tray-background-color))
         (parent exlybar--window)
         (depth (slot-value (xcb:+request-unchecked+reply
                                exlybar-tray--connection
@@ -551,7 +551,7 @@ This overrides the default module exit because system tray is special."
       (xcb:+request-checked+request-check exlybar-tray--connection
           (make-instance 'xcb:ReparentWindow
                          :window exlybar-tray--embedder-window
-                         :parent (exlybar--find-root-window-id)
+                         :parent (exlybar-util--find-root-window-id)
                          :x 0
                          :y 0)))
     (xcb:disconnect exlybar-tray--connection)

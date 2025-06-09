@@ -51,6 +51,7 @@
 (require 'xcb-render)
 
 (require 'exlybar-color)
+(require 'exlybar-font)
 (require 'exlybar-log)
 (require 'exlybar-module-types)
 (require 'exlybar-render)

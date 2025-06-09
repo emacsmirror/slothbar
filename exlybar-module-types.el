@@ -1,4 +1,4 @@
-;;; exlybar-module-types.el --- base type for modules  -*- lexical-binding: t -*-
+;;; exlybar-module-types.el --- Base type for modules  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -44,9 +44,9 @@
 
 (require 'cl-lib)
 
-(require 'exlybar-common)
+(require 'exlybar-util)
 
-(defvar exlybar-module-min-width 10
+(defvar exlybar-module-types-min-width 10
   "Let modules have a min width so an empty module is visible.")
 
 ;; TODO: allow changing backgrounds colors using color codes
@@ -55,10 +55,10 @@
      (:constructor exlybar-module-rgb-create)
      (:copier nil))
   "Container for a background and a foreground color."
-  (background-color (exlybar--color->pixel
-                     (exlybar--find-background-color)) :type 'number)
-  (foreground-color (exlybar--color->pixel
-                     (exlybar--find-foreground-color)) :type 'number))
+  (background-color (exlybar-util--color->pixel
+                     (exlybar-util--find-background-color)) :type 'number)
+  (foreground-color (exlybar-util--color->pixel
+                     (exlybar-util--find-foreground-color)) :type 'number))
 
 (cl-defstruct
     (exlybar-module
@@ -79,7 +79,7 @@
 `exlybar-choose-icon'.")
   (animation nil :type 'function)
   (cache nil :type 'hash-table)
-  (width exlybar-module-min-width :type 'fixed)
+  (width exlybar-module-types-min-width :type 'fixed)
   (xcb nil :type 'list)
   (needs-refresh? nil :type 'boolean)
   (update-timer nil :type 'timer))
