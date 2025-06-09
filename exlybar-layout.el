@@ -112,7 +112,7 @@ START-Y the starting y coord"
 (defun exlybar-layout-extents (layout)
   "Given a LAYOUT compute a list of contiguous segments.
 
-E.g.: (exlybar-layout-extents '(((795 0) m1) ((825 0) m2) ((1400 0) m3)))
+E.g.: (exlybar-layout-extents \\='(((795 0) m1) ((825 0) m2) ((1400 0) m3)))
       > ((795 850) (1400 1500))
 assuming m1 width is 30, m2 is 25, and m3 is 100.
 
@@ -130,8 +130,8 @@ LAYOUT as per per `exlybar-layout-coordinate'"
 (defun exlybar-layout-subtract-extents (new old)
   "Given NEW and OLD extents, give the list of segments in old not in new.
 
-E.g.: (let ((new '((0 180) (500 600)))
-            (old '((0 168) (168 816))))
+E.g.: (let ((new \\='((0 180) (500 600)))
+            (old \\='((0 168) (168 816))))
         (exlybar-layout-subtract-extents new old))
       > ((180 500) (600 816))
 

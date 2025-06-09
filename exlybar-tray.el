@@ -284,8 +284,7 @@ SHOULD-REFRESH? optional (defaults to t) nil to forgo module refresh"
 
 (defun exlybar-tray--on-ResizeRequest (data _synthetic)
   "Resize the tray icon on ResizeRequest given DATA."
-  (let ((obj (make-instance 'xcb:ResizeRequest))
-        attr)
+  (let ((obj (make-instance 'xcb:ResizeRequest)))
     (xcb:unmarshal obj data)
     (exlybar--log-debug* "received resize request for tray icon %s" obj)
     (with-slots (window width height) obj
@@ -500,8 +499,8 @@ This overrides the default module layout because system tray is special."
 (defvar exlybar-tray--should-map? nil
   "Set to t during refresh if reposition should map the embedder window.")
 
-(cl-defmethod exlybar-module-refresh ((m exlybar-tray))
-  "Refresh `exlybar-tray' module M.
+(cl-defmethod exlybar-module-refresh ((_ exlybar-tray))
+  "Refresh `exlybar-tray' module.
 This overrides the default module refresh because system tray is special."
   (let ((x exlybar-tray-icon-gap))
     (dolist (pair exlybar-tray--list)
@@ -533,8 +532,8 @@ This overrides the default module refresh because system tray is special."
     (setq exlybar-tray--should-map? nil)
     (xcb:flush exlybar-tray--connection)))
 
-(cl-defmethod exlybar-module-exit ((m exlybar-tray))
-  "Exit `exlybar-tray' module M.
+(cl-defmethod exlybar-module-exit ((_ exlybar-tray))
+  "Exit `exlybar-tray' module.
 This overrides the default module exit because system tray is special."
   (when exlybar-tray--connection
     ;; Hide & reparent out the embedder before disconnection to prevent

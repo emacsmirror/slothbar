@@ -96,8 +96,7 @@ See `exlybar-zone-color'"
 (defun exlybar-volume--get-status (m)
   "Return volume status for the given module M."
   (let* ((channel (exlybar-volume-channel m))
-         (volume-amixer-current-channel (or channel (volume-default-channel)))
-         (volume-osascript-current-channel channel))
+         (volume-amixer-current-channel (or channel (volume-default-channel))))
     (volume-get)))
 
 (defun exlybar-volume--format-spec (m pct)

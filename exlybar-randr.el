@@ -75,7 +75,8 @@
 (defun exlybar-randr--on-ScreenChangeNotify (data _synthetic)
   "Handle `ScreenChangeNotify' event.
 
-Run `exlybar-randr-screen-change-hook' (usually user scripts to configure RandR)."
+Run `exlybar-randr-screen-change-hook' (usually user scripts to
+configure RandR)."
   (let ((evt (make-instance 'xcb:randr:ScreenChangeNotify)))
     (xcb:unmarshal evt data)
     (let ((seqnum (slot-value evt '~sequence)))

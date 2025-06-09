@@ -424,7 +424,7 @@ DATA the event data"
                      (t (error "Unsupported type in exlybar-modules: %s" val))))
                   exlybar-modules)))
 
-(defun exlybar--watch-exlybar-modules (sym nval oper where)
+(defun exlybar--watch-exlybar-modules (_ _ oper where)
   "Watcher for `exlybar-modules' to (re)construct modules when preferences
 change."
   (when (and (not where) (eq 'set oper))
