@@ -49,6 +49,7 @@
 
 ;;; Code:
 
+(require 'fontsloth)
 (require 'xcb)
 (require 'xcb-icccm)
 (require 'xcb-ewmh)
@@ -176,6 +177,58 @@ immediately enabled or disabled."
 (defsubst exlybar-enabled-p ()
   "Return t if exlybar is enabled."
   exlybar--enabled)
+
+(defcustom exlybar-font-candidates
+  '(("Aporetic Sans"
+     "IBM Plex Serif"
+     "Deja Vu Serif"
+     "Cantarell")
+    ("Font Awesome")
+    ("Aporetic Sans Mono"
+     "IBM Plex Mono"
+     "DejaVu Sans Mono:style=Book")
+    ("all-the-icons")
+    ("Symbols Nerd Font Mono"))
+  "A list of lists of candidate fonts for color codes ^f0-^f9, where
+elements of the outer list correspond to ^f0, ^f1, and so on.
+
+Elements of the inner lists are ordered highest preference first. Each
+candidate should be a font name as in `font-family-list'.
+
+In deciding whether a font should be grouped with others or a separate
+entry, consider whether the fonts have a similar purpose and cover
+similar code-point ranges. For example, it may make sense to have
+separate entries grouping variable pitch and monospace fonts. Some icon
+fonts may make sense to group and others may not depending on their
+code-point ranges."
+  :type '(repeat (repeat string))
+  :group 'exlybar)
+
+(cl-defsubst exlybar--font-filename-search (font-name-list)
+  "Given FONT-NAME-LIST, return a file path to the first font found,
+  or nil or none are found."
+  (seq-some #'(lambda (v) (when v v))
+	    (cl-mapcar #'(lambda (name)
+			   (when-let ((fuck (font-info name)))
+			     (elt fuck 12)))
+		       font-name-list)))
+
+(defun exlybar-map-font-candidates (&optional candidates)
+  "Given a list of lists of font names CANDIDATES, generate a vector where
+each slot value is a file path corresponding to the best match for each
+font name list.
+
+Typically each element in the result vector would correspond to a color
+code ^f0-^f9.
+
+By default, CANDIDATES is the value of `exlybar-font-candidates'."
+  (cl-loop for f-list in (or candidates exlybar-font-candidates)
+           for i = 0 then (1+ i)
+           with font-map = (make-vector 10 nil)
+           do
+           (when-let (path (exlybar--font-filename-search f-list))
+             (aset font-map i path))
+           finally return font-map))
 
 (defun exlybar--find-display-geometry (&optional display)
   (let* ((all-attrs (display-monitor-attributes-list))
@@ -430,11 +483,9 @@ change."
   (when (and (not where) (eq 'set oper))
     (run-at-time 0 nil #'exlybar--construct-modules)))
 
-;;;###autoload
-(defun exlybar ()
+(defun exlybar--start ()
   "Start exlybar.
 Initialize the connection, window, graphics context, and modules."
-  (interactive)
   (run-hook-with-args 'exlybar-before-init-hook)
   (cl-assert (not exlybar--connection))
   (cl-assert (not exlybar--window))
@@ -555,6 +606,14 @@ Initialize the connection, window, graphics context, and modules."
     (exlybar--refresh)
     (setq exlybar--enabled t)
     (run-hook-with-args 'exlybar-after-init-hook)))
+
+;;;###autoload
+(defun exlybar ()
+  "Start exlybar."
+  (interactive)
+  (fontsloth-async-load-and-cache-fonts
+   (exlybar-map-font-candidates)
+   :finish-func (lambda (_) (exlybar--start))))
 
 ;;;###autoload
 (defun exlybar-exit ()

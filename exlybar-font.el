@@ -48,69 +48,22 @@
 
 (declare-function font-info nil (name))
 
-(cl-defsubst exlybar-font--filename-search (font-name-list)
-  "Given FONT-NAME-LIST, return a file path to the first font found,
-  or nil or none are found."
-  (seq-some #'(lambda (v) (when v v))
-	    (cl-mapcar #'(lambda (name)
-			   (when-let ((fuck (font-info name)))
-			     (elt fuck 12)))
-		       font-name-list)))
-
 (defvar exlybar-font--color-code-map
   (make-vector 10 nil)
   "The font map corresponding to color codes ^f0-^f9.")
-
-(defcustom exlybar-font-candidates
-  '(("Aporetic Sans"
-     "IBM Plex Serif"
-     "Deja Vu Serif"
-     "Cantarell")
-    ("Font Awesome")
-    ("Aporetic Sans Mono"
-     "IBM Plex Mono"
-     "DejaVu Sans Mono:style=Book")
-    ("all-the-icons")
-    ("Symbols Nerd Font Mono"))
-  "A list of lists of candidate fonts for color codes ^f0-^f9, where
-elements of the outer list correspond to ^f0, ^f1, and so on.
-
-Elements of the inner lists are ordered highest preference first. Each
-candidate should be a font name as in `font-family-list'.
-
-In deciding whether a font should be grouped with others or a separate
-entry, consider whether the fonts have a similar purpose and cover
-similar code-point ranges. For example, it may make sense to have
-separate entries grouping variable pitch and monospace fonts. Some icon
-fonts may make sense to group and others may not depending on their
-code-point ranges."
-  :type '(repeat (repeat string))
-  :group 'exlybar)
-
-(defun exlybar-font--map-font-candidates (&optional candidates)
-  "Given a list of lists of font names CANDIDATES, generate a vector where
-each slot value is a file path corresponding to the best match for each
-font name list."
-  (cl-loop for f-list in (or candidates exlybar-font-candidates)
-           for i = 0 then (1+ i)
-           with font-map = (make-vector 10 nil)
-           do
-           (when-let (path (exlybar-font--filename-search f-list))
-             (aset font-map i path))
-           finally return font-map))
 
 (defun exlybar-font--watch-color-code-map (sym nval oper where)
   "Update `exlybar-font--color-code-map' when a relevant change occurs."
   (exlybar--log-trace* "watch-font-map called %s %s %s %s" sym nval oper where)
   (when (and (not where) (eq 'set oper))
-    (setq exlybar-font--color-code-map (exlybar-font--map-font-candidates nval))))
+    (setq exlybar-font--color-code-map (exlybar-map-font-candidates nval))))
 
 (add-variable-watcher 'exlybar-font-candidates #'exlybar-font--watch-color-code-map)
 
 (add-hook 'exlybar-before-init-hook
           (lambda ()
             (setq exlybar-font--color-code-map
-                  (exlybar-font--map-font-candidates))))
+                  (exlybar-map-font-candidates))))
 
 (cl-defun exlybar-font--precompute-px-sizes (height &optional font-map)
   "Given a HEIGHT, compute pixel sizes for all fonts in the font map."
