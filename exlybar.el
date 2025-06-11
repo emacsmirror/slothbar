@@ -204,6 +204,8 @@ code-point ranges."
   :type '(repeat (repeat string))
   :group 'exlybar)
 
+(declare-function font-info "font.c" (name &optional frame))
+
 (cl-defsubst exlybar--font-filename-search (font-name-list)
   "Given FONT-NAME-LIST, return a file path to the first font found,
   or nil or none are found."
@@ -611,9 +613,11 @@ Initialize the connection, window, graphics context, and modules."
 (defun exlybar ()
   "Start exlybar."
   (interactive)
-  (fontsloth-async-load-and-cache-fonts
-   (exlybar-map-font-candidates)
-   :finish-func (lambda (_) (exlybar--start))))
+  (if (and (display-graphic-p) (eq 'x window-system))
+      (fontsloth-async-load-and-cache-fonts
+       (exlybar-map-font-candidates)
+       :finish-func (lambda (_) (exlybar--start)))
+    (message "Exlybar requires an X window system display to run")))
 
 ;;;###autoload
 (defun exlybar-exit ()

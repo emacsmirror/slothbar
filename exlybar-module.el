@@ -217,6 +217,8 @@ This default primary method uses a result from fontsloth-layout to set
   ;; (message "super init before")
   (exlybar-module-layout m))
 
+(declare-function cl-type-of "data.c" (object))
+
 (cl-defmethod exlybar-module-init :after ((m exlybar-module))
   "After init start module M's update timer and draw its text."
   (when (cl-find-method #'exlybar-module-update-status '() `(,(cl-type-of m)))

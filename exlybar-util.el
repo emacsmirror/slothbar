@@ -42,6 +42,8 @@
 
 ;;; Code:
 
+(declare-function x-display-visual-class "xfns.c" (&optional terminal))
+
 (defun exlybar-util--color->pixel (color)
   "Convert COLOR to PIXEL (index in TrueColor colormap)."
   (when (and color
