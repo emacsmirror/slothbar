@@ -102,8 +102,19 @@ the fonts change.")
               (exlybar-font--precompute-px-sizes
                (or height exlybar-height) (or font-map exlybar-font--color-code-map)))))))
 
-(add-variable-watcher 'exlybar-height #'exlybar-font--watch-px-size)
-(add-variable-watcher 'exlybar-font--color-code-map #'exlybar-font--watch-px-size)
+(add-hook 'exlybar-before-init-hook
+          (lambda ()
+            (add-variable-watcher 'exlybar-height
+                                  #'exlybar-font--watch-px-size)
+            (add-variable-watcher 'exlybar-font--color-code-map
+                                  #'exlybar-font--watch-px-size)))
+
+(add-hook 'exlybar-after-exit-hook
+          (lambda ()
+            (remove-variable-watcher 'exlybar-height
+                                     #'exlybar-font--watch-px-size)
+            (remove-variable-watcher 'exlybar-font--color-code-map
+                                     #'exlybar-font--watch-px-size)))
 
 (defcustom exlybar-font-px-delta
   [0.0
