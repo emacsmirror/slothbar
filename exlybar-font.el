@@ -58,12 +58,17 @@
   (when (and (not where) (eq 'set oper))
     (setq exlybar-font--color-code-map (exlybar-map-font-candidates nval))))
 
-(add-variable-watcher 'exlybar-font-candidates #'exlybar-font--watch-color-code-map)
-
 (add-hook 'exlybar-before-init-hook
           (lambda ()
             (setq exlybar-font--color-code-map
-                  (exlybar-map-font-candidates))))
+                  (exlybar-map-font-candidates))
+            (add-variable-watcher 'exlybar-font-candidates
+                                  #'exlybar-font--watch-color-code-map)))
+
+(add-hook 'exlybar-after-exit-hook
+          (lambda ()
+            (remove-variable-watcher 'exlybar-font-candidates
+                                     #'exlybar-font--watch-color-code-map)))
 
 (cl-defun exlybar-font--precompute-px-sizes (height &optional font-map)
   "Given a HEIGHT, compute pixel sizes for all fonts in the font map."
