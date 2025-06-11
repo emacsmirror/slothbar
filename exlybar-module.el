@@ -59,7 +59,22 @@
 (defvar exlybar--connection)
 (defvar exlybar--window)
 
-(cl-defgeneric exlybar-module-init ((m exlybar-module))
+(cl-defgeneric exlybar-module-init (m) "Initialize module m.")
+
+(cl-defgeneric exlybar-module-layout (m)
+  "Give module M a layout.")
+
+(cl-defgeneric exlybar-module-refresh (m) "Refresh module M.")
+
+(cl-defgeneric exlybar-module-reposition (m x y)
+  "Tell module M about its layout X and Y.")
+
+(cl-defgeneric exlybar-module-update-status (m)
+  "Refresh any backend status information required by module M.")
+
+(cl-defgeneric exlybar-module-exit (m) "Tear down module M.")
+
+(cl-defmethod exlybar-module-init ((m exlybar-module))
   "Initialize module M.
 This default primary method gives M a graphics context, a pixmap, a glyphset,
 and a cache. The xcb ids are stored in the module xcb alist."
@@ -181,7 +196,7 @@ LPAD is the module left padding"
                 else collect l)
       ,current-pos)))
 
-(cl-defgeneric exlybar-module-layout ((m exlybar-module))
+(cl-defmethod exlybar-module-layout ((m exlybar-module))
   "Give module M a layout.
 This default primary method uses a result from fontsloth-layout to set
 `exlybar-module-text-layout' and updates the module width accordingly."
@@ -211,7 +226,7 @@ This default primary method uses a result from fontsloth-layout to set
   (when (exlybar-module-format m)
     (exlybar-module--draw-text m)))
 
-(cl-defgeneric exlybar-module-refresh ((m exlybar-module))
+(cl-defmethod exlybar-module-refresh ((m exlybar-module))
   "Refresh module M.
 This default primary method redraws the text if it has changed."
   ;; (message "module refresh primary %s" (exlybar-module-name m))
@@ -241,12 +256,9 @@ This default primary method redraws the text if it has changed."
   "After refresh update M's needs-refresh?."
   (setf (exlybar-module-needs-refresh? m) nil))
 
-(cl-defgeneric exlybar-module-reposition ((m exlybar-module) x y)
+(cl-defmethod exlybar-module-reposition ((m exlybar-module) x y)
   "Tell module M about its layout X and Y."
   (ignore m) (ignore x) (ignore y))
-
-(cl-defgeneric exlybar-module-update-status ((m exlybar-module))
-  "Refresh any backend status information required by module M.")
 
 (cl-defmethod exlybar-module-exit :before ((m exlybar-module))
   "Cancel the update timer."
@@ -254,7 +266,7 @@ This default primary method redraws the text if it has changed."
     (cancel-timer (exlybar-module-update-timer m)))
   (setf (exlybar-module-update-timer m) nil))
 
-(cl-defgeneric exlybar-module-exit ((m exlybar-module))
+(cl-defmethod exlybar-module-exit ((m exlybar-module))
   "Tear down module M."
   (exlybar--log-debug* "exlybar-module-exit %s" (exlybar-module-name m))
   (pcase-let (((map ('pixmap pmap) ('gc gc) ('gs gs)) (exlybar-module-xcb m)))
