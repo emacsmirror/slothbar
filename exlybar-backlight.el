@@ -73,9 +73,6 @@ See `exlybar-zone-color'"
                (:constructor exlybar-backlight-create)
                (:copier nil)))
 
-(defvar exlybar-backlight--update-timer nil
-  "A variable to hold the update timer.")
-
 (defun exlybar-backlight-current-progress ()
   "Build a progress bar corresponding to the current state."
   (exlybar-progress-bar
@@ -95,10 +92,11 @@ See `exlybar-zone-color'"
   "Build the `format-spec' spec used to generate module text."
   `((?i . ,(string icon))))
 
-(defun exlybar-backlight--do-update (m)
-  "Poll the battery status and check whether to update M's text."
+(cl-defmethod exlybar-module-update-status ((m exlybar-backlight))
+  "Get the backlight status and check whether to update M's text."
   (let* ((status (exlybar-backlight--format-spec (exlybar-module-icon m)))
-         (txt (number-to-string (backlight--current-percentage))))
+         (txt (number-to-string (and (backlight--read-current-brightness)
+                                     (backlight--current-percentage)))))
     (unless (equal txt (exlybar-module-text m))
       (setf (exlybar-module-format-spec m) status
             (exlybar-module-text m) txt
@@ -106,33 +104,14 @@ See `exlybar-zone-color'"
 
 (cl-defmethod exlybar-module-init :before ((m exlybar-backlight))
   "Set the M's icon and update the text."
-  (exlybar-backlight--do-update m))
+  (exlybar-module-update-status m))
 
-(cl-defmethod exlybar-module-init :after ((m exlybar-backlight))
-  "Run the update timer."
-  (unless exlybar-backlight--update-timer
-    (setq exlybar-backlight--update-timer
-          (run-at-time nil 10 #'exlybar-backlight--do-update m))))
+(defun exlybar-backlight--set-brightness-advice (&rest _)
+  "A function to update status when the brightness is changed in Emacs."
+  (exlybar-module-refresh-all-by-name "backlight"))
 
-(cl-defmethod exlybar-module-exit :before ((m exlybar-backlight))
-  "Cancel the update timer."
-  (ignore m)
-  (when exlybar-backlight--update-timer
-    (cancel-timer exlybar-backlight--update-timer))
-  (setq exlybar-backlight--update-timer nil))
-
-(defadvice backlight--set-brightness
-    (after exlybar-backlight-after-set-brightness activate)
-  "Refresh the module if the brightness is adjusted in Emacs."
-  (when (exlybar-enabled-p)
-    (let ((m (seq-find (lambda (m)
-                         (equal "backlight"
-                                (when (exlybar-module-p m)
-                                  (exlybar-module-name m))))
-                       exlybar--modules)))
-      (when m
-        (exlybar-backlight--do-update m)
-        (exlybar-refresh-modules)))))
+(advice-add 'backlight--set-brightness
+            :after 'exlybar-backlight--set-brightness-advice)
 
 (provide 'exlybar-backlight)
 ;;; exlybar-backlight.el ends here
