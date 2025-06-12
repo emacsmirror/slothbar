@@ -95,13 +95,15 @@ WS-LIST."
               (string-replace " " "-"
                (replace-regexp-in-string "[\\^]" "^^" (string-trim s)))))
     `((?w . ,(cl-loop for (ws status) in ws-list
-                      for ws = (sanitize ws)
+                      for ws-safe = (sanitize ws)
                       concat
                       (pcase status
-                        ((or '(:current) '(:current :window)) (concat "^[^1 [" ws "]^]"))
-                        ((or '(:window) `(:window ,_)) (concat "^[^1 " ws "^]"))
-                        (`(:current ,_) (concat "^[^0 [" ws "]^]"))
-                        ('(:blankish) (concat "^[^2 " ws "^]"))))))))
+                        ((or '(:current) '(:current :window))
+                         (concat "^[^1 [" ws-safe "]^]"))
+                        ((or '(:window) `(:window ,_))
+                         (concat "^[^1 " ws-safe "^]"))
+                        (`(:current ,_) (concat "^[^0 [" ws-safe "]^]"))
+                        ('(:blankish) (concat "^[^2 " ws-safe "^]"))))))))
 
 (defun exlybar-workspaces-format-format (m)
   "Format M's format string."
