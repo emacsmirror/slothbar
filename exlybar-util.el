@@ -49,9 +49,9 @@
   (when (and color
              (eq (x-display-visual-class) 'true-color))
     (let ((rgb (x-color-values color)))
-      (logior (lsh (lsh (pop rgb) -8) 16)
-              (lsh (lsh (pop rgb) -8) 8)
-              (lsh (pop rgb) -8)))))
+      (logior (ash (ash (pop rgb) -8) 16)
+              (ash (ash (pop rgb) -8) 8)
+              (ash (pop rgb) -8)))))
 
 (defun exlybar-util--find-background-color ()
   "Attempt to guess a reasonable background color."
