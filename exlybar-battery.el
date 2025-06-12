@@ -126,10 +126,7 @@ The color is decided based on battery percentage. See `exlybar-zone-color'."))
                  (exlybar-choose-icon pct exlybar-battery-icons))))
     (map-insert status ?i (string icon))))
 
-(defvar exlybar-battery--update-timer nil
-  "A variable to hold the update timer.")
-
-(defun exlybar-battery--do-update (m)
+(cl-defmethod exlybar-module-update-status ((m exlybar-battery))
   "Poll the battery status and check whether to update M's text."
   (condition-case err
       (let* ((default-directory (f-full "~")) ; ensure status checks don't remote
@@ -147,24 +144,11 @@ The color is decided based on battery percentage. See `exlybar-zone-color'."))
           (exlybar--log-info "exlybar-battery: nil status from %s"
                              battery-status-function)))
     (t
-     (message "error in battery update timer %s" (error-message-string err)))))
+     (message "error in battery update %s" (error-message-string err)))))
 
 (cl-defmethod exlybar-module-init :before ((m exlybar-battery))
   "Set the M's icon and update the text."
-  (exlybar-battery--do-update m))
-
-(cl-defmethod exlybar-module-init :after ((m exlybar-battery))
-  "Run the update timer."
-  (unless exlybar-battery--update-timer
-    (setq exlybar-battery--update-timer
-          (run-at-time nil 10 #'exlybar-battery--do-update m))))
-
-(cl-defmethod exlybar-module-exit :before ((m exlybar-battery))
-  "Cancel the update timer."
-  (ignore m)
-  (when exlybar-battery--update-timer
-    (cancel-timer exlybar-battery--update-timer))
-  (setq exlybar-battery--update-timer nil))
+  (exlybar-module-update-status m))
 
 (provide 'exlybar-battery)
 ;;; exlybar-battery.el ends here

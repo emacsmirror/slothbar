@@ -130,9 +130,7 @@ See `exlybar-zone-color'"
   "Build the `format-spec' spec used to generate module text given ICON."
   `((?i . ,(string icon))))
 
-(defvar exlybar-date--update-timer nil "A variable to hold the update timer.")
-
-(defun exlybar-date--do-update (m)
+(cl-defmethod exlybar-module-update-status ((m exlybar-date))
   "Poll the wifi status and check whether to update the M's text."
   (let* ((date (format-time-string (exlybar-module-format m))))
     (unless (equal date (exlybar-module-text m))
@@ -144,20 +142,7 @@ See `exlybar-zone-color'"
 
 (cl-defmethod exlybar-module-init :before ((m exlybar-date))
   "Set the M's icon and update the text."
-  (exlybar-date--do-update m))
-
-(cl-defmethod exlybar-module-init :after ((m exlybar-date))
-  "Run the update timer."
-  (unless exlybar-date--update-timer
-    (setq exlybar-date--update-timer
-          (run-at-time nil 10 #'exlybar-date--do-update m))))
-
-(cl-defmethod exlybar-module-exit :before ((m exlybar-date))
-  "Cancel the update timer."
-  (ignore m)
-  (when exlybar-date--update-timer
-    (cancel-timer exlybar-date--update-timer))
-  (setq exlybar-date--update-timer nil))
+  (exlybar-module-update-status m))
 
 (provide 'exlybar-date)
 ;;; exlybar-date.el ends here

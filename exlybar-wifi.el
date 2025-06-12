@@ -144,9 +144,7 @@ QUAL is the wifi signal quality as a string"
     (?e . ,(or (exlybar-wifi-iw-essid) "nil"))
     (?p . ,(or qual "nil"))))
 
-(defvar exlybar-wifi--update-timer nil "A variable to hold the update timer.")
-
-(defun exlybar-wifi--do-update (m)
+(cl-defmethod exlybar-module-update-status ((m exlybar-wifi))
   "Poll the wifi status and check whether to update the M's text."
   (let* ((qual (exlybar-wifi-iw-quality))
          (status (exlybar-wifi--format-spec (exlybar-module-icon m) qual))
@@ -160,21 +158,7 @@ QUAL is the wifi signal quality as a string"
 
 (cl-defmethod exlybar-module-init :before ((m exlybar-wifi))
   "Set the M's icon and update the text."
-  (exlybar-wifi--do-update m))
-
-(cl-defmethod exlybar-module-init :after ((m exlybar-wifi))
-  "Run the update timer."
-  (ignore m)
-  (unless exlybar-wifi--update-timer
-    (setq exlybar-wifi--update-timer
-          (run-at-time nil 10 #'exlybar-wifi--do-update m))))
-
-(cl-defmethod exlybar-module-exit :before ((m exlybar-wifi))
-  "Cancel the update timer."
-  (ignore m)
-  (when exlybar-wifi--update-timer
-    (cancel-timer exlybar-wifi--update-timer))
-  (setq exlybar-wifi--update-timer nil))
+  (exlybar-module-update-status m))
 
 (provide 'exlybar-wifi)
 ;;; exlybar-wifi.el ends here
