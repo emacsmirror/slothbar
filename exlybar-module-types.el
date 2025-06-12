@@ -76,7 +76,7 @@
   (colors (exlybar-module-rgb-create) :type 'exlybar-module-rgb)
   (icon nil :type '(or character alist)
         :documentation "Either a single character or an alist as expected by
-`exlybar-choose-icon'.")
+`exlybar-color-choose-icon'.")
   (animation nil :type 'function)
   (cache nil :type 'hash-table)
   (width exlybar-module-types-min-width :type 'fixed)

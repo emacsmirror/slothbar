@@ -51,8 +51,8 @@
 (require 'map)
 
 (require 'exlybar-log)
+(require 'exlybar-color)
 (require 'exlybar-module)
-(require 'exlybar-module-helpers)
 
 (defgroup exlybar-battery nil
   "An Exlybar battery module."
@@ -61,7 +61,7 @@
 (defcustom exlybar-battery-icons
   '((10 . ?) (35 . ?) (60 . ?) (85 . ?) (101 . ?))
   "Icons for exlybar-battery discharge thresholds.
-See `exlybar-choose-icon' for how it is used."
+See `exlybar-color-choose-icon' for how it is used."
   :type 'alist
   :group 'exlybar-battery)
 
@@ -77,7 +77,7 @@ See `exlybar-choose-icon' for how it is used."
 
 (defcustom exlybar-battery-color-zones '(49 29 10 t t)
   "Battery percentages indicating icon color changes.
-See `exlybar-zone-color'"
+See `exlybar-color-zone'"
   :type 'list
   :group 'exlybar-battery)
 
@@ -95,7 +95,7 @@ more precise than e.g. `battery-upower'.")
                           'exlybar-battery-format-format
                           :documentation
                           "Pre-format %i in format to use zone colors.
-The color is decided based on battery percentage. See `exlybar-zone-color'."))
+The color is decided based on battery percentage. See `exlybar-color-zone'."))
                (:constructor exlybar-battery-create)
                (:copier nil)))
 
@@ -113,7 +113,7 @@ The color is decided based on battery percentage. See `exlybar-zone-color'."))
          (pct (if-let ((pct (map-elt status ?p))) (string-to-number pct) 100))
          (charging? (equal "+" (map-elt status ?b)))
          (zone-color (if charging? exlybar-battery-charge-color-command
-                       (apply #'exlybar-zone-color
+                       (apply #'exlybar-color-zone
                               pct exlybar-battery-color-zones))))
     (format-spec (exlybar-module-format m)
                  (exlybar-battery--format-fn-spec zone-color charging?) t)))
@@ -123,7 +123,7 @@ The color is decided based on battery percentage. See `exlybar-zone-color'."))
   (let* ((pct (if-let ((pct (map-elt status ?p))) (string-to-number pct) 100))
          (charging? (equal "+" (map-elt status ?b)))
          (icon (if charging? exlybar-battery-charge-icon
-                 (exlybar-choose-icon pct exlybar-battery-icons))))
+                 (exlybar-color-choose-icon pct exlybar-battery-icons))))
     (map-insert status ?i (string icon))))
 
 (cl-defmethod exlybar-module-update-status ((m exlybar-battery))

@@ -328,7 +328,7 @@ installation.
 
   ;;; change battery percentage thresholds for icon and percent color change
   (setq exlybar-battery-color-zones '(40 20 7 t t))
-  ;; see ~exlybar-zone-color~ for an explanation of the list elements
+  ;; see ~exlybar-color-zone~ for an explanation of the list elements
 
   ;;; see custom group ~exlybar~ and subgroups for current options
 

@@ -50,7 +50,6 @@
 (require 'rx)
 
 (require 'exlybar-module)
-(require 'exlybar-module-helpers)
 
 (defgroup exlybar-workspaces nil
   "An Exlybar workspaces module."

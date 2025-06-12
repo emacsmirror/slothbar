@@ -136,19 +136,19 @@
 
 (defcustom exlybar-color-zone-crit "^4"
   "A color for critical zone.
-See `exlybar-zone-color'"
+See `exlybar-color-zone'"
   :type 'string
   :group 'exlybar)
 
 (defcustom exlybar-color-zone-hi "^3"
   "A color for hi zone.
-See `exlybar-zone-color'"
+See `exlybar-color-zone'"
   :type 'string
   :group 'exlybar)
 
 (defcustom exlybar-color-zone-med "^5"
   "A color for med zone.
-See `exlybar-zone-color'"
+See `exlybar-color-zone'"
   :type 'string
   :group 'exlybar)
 
@@ -159,6 +159,58 @@ FG t if a foreground color, nil if a background color"
     (exlybar-util--color->pixel
      (exlybar-util--find-background-color))))
 
+;; TODO change these to keyword params
+(cl-defun exlybar-color-zone
+    (amount &optional (med 20) (hi 50) (crit 90) reverse local?)
+  "Return a color command based on the magnitude of the argument. If
+the limits for the levels aren't specified, they default to sensible
+values for a percentage. With reverse, lower numbers are more
+critical. With local? t, the color code is made local."
+  (cl-flet ((past (n) (funcall (if reverse #'<= #'>=) amount n)))
+    (let ((zone (cond ((past crit) exlybar-color-zone-crit)
+                      ((past hi) exlybar-color-zone-hi)
+                      ((past med) exlybar-color-zone-med)
+                      (t ""))))
+      (if (and (not (seq-empty-p zone)) local?) (s-append "~" zone)
+        zone))))
+
+(cl-defun exlybar-color-progress-bar
+    (percent increment colorize
+             &key (fill ?—) (blank ? ) (right ?\]) (left ?\[))
+  "Given PERCENT and INCREMENT return a string of RIGHT FILL* BLANK* LEFT.
+If RIGHT or LEFT are nil, they are respectively excluded.
+COLORIZE t to use default zone color codes, nil for no color
+codes, or a list of arguments excluding amount to pass to
+`exlybar-color-zone'"
+  (let* ((progress (/ percent increment))
+         (steps (/ 100 increment))
+         (bar (when left `(,left)))
+         (zone-color
+          (apply #'exlybar-color-zone percent
+                 (when (consp colorize) colorize)))
+         (has-zone? (and colorize (not (seq-empty-p zone-color)))))
+    (when has-zone?
+      (push ?^ bar) (push ?\[ bar)
+      (cl-loop for c across zone-color do (push c bar)))
+    (cl-loop with end-zone? = nil
+             for should-end-zone? = (and has-zone? (not end-zone?))
+             repeat steps do
+             (if (< 0 progress)
+                 (progn (cl-decf progress) (push fill bar))
+               (progn (when should-end-zone?
+                        (push ?^ bar) (push ?\] bar)
+                        (setq end-zone? t))
+                      (push blank bar)))
+             finally (when should-end-zone?
+                       (push ?^ bar) (push ?\] bar)))
+    (when right (push right bar))
+    (apply #'string (nreverse bar))))
+
+(defsubst exlybar-color-choose-icon (val icons)
+  "Return first (cdr icon) for which (< VAL (car icon)) is t.
+ICONS is an alist of the form ((ival1 . icon1) ... (ivaln . iconn)). ivals are
+expected to be in ascending order."
+  (cdr (seq-find (pcase-lambda (`(,p . ,_)) (< val p)) icons)))
 
 (defvar exlybar-color--pattern
   "\\^[][nrRbB>^;]\\|\\^[0-9*]\\{1,2\\}~?\\|\\^f[0-9]\\|\\^(.*?)"

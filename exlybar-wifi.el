@@ -52,8 +52,8 @@
 (require 's)
 (require 'seq)
 
+(require 'exlybar-color)
 (require 'exlybar-module)
-(require 'exlybar-module-helpers)
 
 (defgroup exlybar-wifi nil
   "An Exlybar wifi module."
@@ -61,7 +61,7 @@
 
 (defcustom exlybar-wifi-qual-color-zones '(-40 -64 -70 t)
   "Wifi signal qualities indicating color changes.
-See `exlybar-zone-color'"
+See `exlybar-color-zone'"
   :type 'list
   :group 'exlybar-wifi)
 
@@ -131,7 +131,7 @@ It applies zone colors to %p quality format specifier."
   (let* ((qual (or (map-elt (exlybar-module-cache m) 'qual)
                   (exlybar-wifi-iw-quality)))
          (zone-color
-          (if qual (apply #'exlybar-zone-color (string-to-number qual)
+          (if qual (apply #'exlybar-color-zone (string-to-number qual)
                           exlybar-wifi-qual-color-zones)
             "")))
     (format-spec (exlybar-module-format m)

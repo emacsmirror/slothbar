@@ -47,11 +47,10 @@
 
 (require 'volume)
 (require 'cl-lib)
-
-(require 'exlybar-module)
-(require 'exlybar-module-helpers)
-
 (require 'f)
+
+(require 'exlybar-color)
+(require 'exlybar-module)
 
 (defgroup exlybar-volume nil
   "An Exlybar volume module."
@@ -64,7 +63,7 @@
 
 (defcustom exlybar-volume-color-zones '(20 50 80)
   "Volume percentages indicating progress color changes.
-See `exlybar-zone-color'"
+See `exlybar-color-zone'"
   :type 'list
   :group 'exlybar-volume)
 
@@ -80,7 +79,7 @@ See `exlybar-zone-color'"
 
 (defun exlybar-volume-current-progress (pct)
   "Build a progress bar corresponding to the current PCT."
-  (exlybar-progress-bar
+  (exlybar-color-progress-bar
    pct exlybar-volume-progress-increment exlybar-volume-color-zones))
 
 (defun exlybar-volume--format-fn-spec (pct)
@@ -101,7 +100,7 @@ See `exlybar-zone-color'"
 
 (defun exlybar-volume--format-spec (m pct)
   "Build the `format-spec' spec used to generate module text given PCT."
-  `((?i . ,(string (exlybar-choose-icon pct (exlybar-module-icon m))))))
+  `((?i . ,(string (exlybar-color-choose-icon pct (exlybar-module-icon m))))))
 
 (cl-defmethod exlybar-module-update-status ((m exlybar-volume))
   "Query the volume backend and check whether to update M's text."

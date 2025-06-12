@@ -51,7 +51,6 @@
 (require 'xcb-systemtray)
 
 (require 'exlybar-module)
-(require 'exlybar-module-helpers)
 (require 'exlybar-log)
 
 (cl-defstruct (exlybar-tray--icon

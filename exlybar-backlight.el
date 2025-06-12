@@ -48,8 +48,8 @@
 (require 'backlight)
 (require 'cl-lib)
 
+(require 'exlybar-color)
 (require 'exlybar-module)
-(require 'exlybar-module-helpers)
 
 (defgroup exlybar-backlight nil
   "An Exlybar backlight module."
@@ -62,7 +62,7 @@
 
 (defcustom exlybar-backlight-color-zones '(20 40 80)
   "Backlight percentages indicating progress color changes.
-See `exlybar-zone-color'"
+See `exlybar-color-zone'"
   :type 'list
   :group 'exlybar-backlight)
 
@@ -75,7 +75,7 @@ See `exlybar-zone-color'"
 
 (defun exlybar-backlight-current-progress ()
   "Build a progress bar corresponding to the current state."
-  (exlybar-progress-bar
+  (exlybar-color-progress-bar
    (backlight--current-percentage)
    exlybar-backlight-progress-increment exlybar-backlight-color-zones))
 

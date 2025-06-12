@@ -50,8 +50,8 @@
 (require 'time-date)
 (require 'solar)
 
+(require 'exlybar-color)
 (require 'exlybar-module)
-(require 'exlybar-module-helpers)
 
 (defgroup exlybar-date nil
   "An Exlybar date module."
@@ -75,7 +75,7 @@ See `solar-equinoxes/solstices'"
     ,(exlybar-date--equinox-solstice-day 1)
     ,(exlybar-date--equinox-solstice-day 2) nil nil)
   "Days of the year indicating seasonal color changes.
-See `exlybar-zone-color'"
+See `exlybar-color-zone'"
   :type '(list float float float boolean boolean)
   :group 'exlybar-date)
 
@@ -113,7 +113,7 @@ See `exlybar-zone-color'"
     (let ((exlybar-color-zone-med exlybar-date-color-spring)
           (exlybar-color-zone-hi exlybar-date-color-summer)
           (exlybar-color-zone-crit exlybar-date-color-fall))
-      (apply #'exlybar-zone-color day exlybar-date-color-zones))))
+      (apply #'exlybar-color-zone day exlybar-date-color-zones))))
 
 (defun exlybar-date--format-fn-spec (zone-color)
   "Build the `format-spec' spec used by the format-fn."
