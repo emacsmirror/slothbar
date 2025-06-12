@@ -262,7 +262,7 @@ By default, CANDIDATES is the value of `exlybar-font-candidates'."
                                 :x exlybar-offset-x
                                 :y exlybar-offset-y
                                 :width exlybar-width
-                                :height (+ exlybar-height exlybar-margin-y)))))
+                                :height (+ exlybar-height)))))
     (exlybar--log-debug* "exlybar-refresh: configure window errors: %s" ecw))
   (xcb:+request exlybar--connection
       (make-instance 'xcb:MapWindow
@@ -536,7 +536,7 @@ Initialize the connection, window, graphics context, and modules."
                        :x exlybar-offset-x
                        :y y
                        :width 1
-                       :height (+ exlybar-margin-y exlybar-height)
+                       :height (+ exlybar-height)
                        :border-width 1
                        :class xcb:WindowClass:InputOutput
                        :visual 0
