@@ -45,6 +45,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+(require 'pcase)
 (require 'xcb)
 (require 'xcb-render)
 (require 'xcb-renderutil)

@@ -41,6 +41,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (require 'exlybar)
 (require 'exlybar-color)
 

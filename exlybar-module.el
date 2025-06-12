@@ -48,6 +48,7 @@
 (require 'cl-generic)
 (require 'fontsloth-layout)
 (require 'map)
+(require 'pcase)
 (require 'xcb-render)
 
 (require 'exlybar-color)

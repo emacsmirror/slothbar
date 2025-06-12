@@ -46,6 +46,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'compat)
 (require 'rx)
 
 (require 'exlybar-module)

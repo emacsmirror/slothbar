@@ -51,6 +51,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 
 (require 'exlybar-module-types)
 

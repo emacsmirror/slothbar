@@ -46,6 +46,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'pcase)
 (require 'time-date)
 (require 'solar)
 

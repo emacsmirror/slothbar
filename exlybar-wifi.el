@@ -48,7 +48,9 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
+(require 'map)
 (require 's)
+(require 'seq)
 
 (require 'exlybar-module)
 (require 'exlybar-module-helpers)

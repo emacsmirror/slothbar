@@ -5,7 +5,7 @@
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
 ;; Homepage: https://github.com/jollm/exlybar
-;; Package-Requires: ((backlight "1.4") (dash "2.1.0") (f "0.20.0") (fontsloth "0.18.0") (log4e "0.3.3") (s "1.12.0") (volume "20201002.1022") (xelb "0.18") (emacs "28.0"))
+;; Package-Requires: ((backlight "1.4") (compat "29.1") (dash "2.1.0") (f "0.20.0") (fontsloth "0.18.0") (log4e "0.3.3") (s "1.12.0") (volume "1.0") (xelb "0.18") (emacs "28.0"))
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -49,7 +49,10 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'fontsloth)
+(require 'pcase)
+(require 'seq)
 (require 'xcb)
 (require 'xcb-icccm)
 (require 'xcb-ewmh)
