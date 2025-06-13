@@ -51,6 +51,7 @@
 (require 'pcase)
 (require 'xcb-render)
 
+(require 'exlybar)
 (require 'exlybar-color)
 (require 'exlybar-font)
 (require 'exlybar-log)
