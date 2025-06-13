@@ -42,6 +42,9 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'fontsloth)
+
+(require 'exlybar-log)
 
 ;;; Try to use safe fallback font lists where possible
 
