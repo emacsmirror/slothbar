@@ -107,7 +107,8 @@ WS-LIST."
 
 (defun exlybar-workspaces-format-format (m)
   "Format M's format string."
-  (let ((ws-list (funcall exlybar-workspaces-generate-list-fn)))
+  (let ((ws-list (or (map-elt (exlybar-module-cache m) 'ws-list)
+                     (funcall exlybar-workspaces-generate-list-fn))))
     (format-spec (exlybar-module-format m)
                  (exlybar-workspaces--format-fn-spec ws-list) t)))
 
@@ -118,10 +119,15 @@ WS-LIST."
 (cl-defmethod exlybar-module-update-status ((m exlybar-workspaces))
   "Update M's text and format spec."
   (let* ((format-spec (exlybar-workspaces--format-spec (exlybar-module-icon m)))
-         (txt (format-spec (exlybar-module-format m) format-spec t)))
-    (setf (exlybar-module-format-spec m) format-spec
-          (exlybar-module-text m) txt
-          (exlybar-module-needs-refresh? m) t)))
+         (ws-list (funcall exlybar-workspaces-generate-list-fn))
+         (txt (format-spec (exlybar-module-format m) format-spec t))
+         (cache (exlybar-module-cache m)))
+    (unless (equal ws-list (map-elt cache 'ws-list))
+      (when cache
+        (map-put! cache 'ws-list ws-list))
+      (setf (exlybar-module-format-spec m) format-spec
+            (exlybar-module-text m) txt
+            (exlybar-module-needs-refresh? m) t))))
 
 (cl-defmethod exlybar-module-init :before ((m exlybar-workspaces))
   "Set the M's icon and update the text."
@@ -334,11 +340,11 @@ exlybarHook dbus =
       hid   = \"window\"
       bla   = \"blankish\"
   in  def { ppOutput          = dbusOutput dbus
-          , ppCurrent         = wrapper cur
           , ppVisible         = wrapper vis
-          , ppUrgent          = wrapper urg
           , ppHidden          = wrapper hid
           , ppHiddenNoWindows = wrapper bla
+          , ppUrgent          = wrapper urg
+          , ppCurrent         = wrapper cur
           , ppTitle           = wrapper \"title\" . shorten 90
           }
 
