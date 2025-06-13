@@ -84,7 +84,7 @@ See `exlybar-color-zone'"
 (cl-defstruct (exlybar-battery
                (:include exlybar-module (name "battery")
                          (format
-                          "^6^[^f1%i^] %b%p%% ^[^2|^] %t ^[^2|^] %r"
+                          "^6^[^f1%i^] %b%p% ^[^2|^] %t ^[^2|^] %r"
                           :documentation
                           "%i is for the battery icon.
 For the rest, see `battery-status-function'. Note that for %r,
