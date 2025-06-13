@@ -146,8 +146,8 @@ The color is decided based on battery percentage. See `exlybar-color-zone'."))
     (t
      (message "error in battery update %s" (error-message-string err)))))
 
-(cl-defmethod exlybar-module-init :before ((m exlybar-battery))
-  "Set the M's icon and update the text."
+(cl-defmethod exlybar-module-init :after ((m exlybar-battery))
+  "Set M's icon and update the text."
   (exlybar-module-update-status m))
 
 (provide 'exlybar-battery)

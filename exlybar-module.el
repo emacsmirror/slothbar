@@ -174,7 +174,7 @@ LPAD is the module left padding"
            then (if ls (max prev-x (fontsloth-layout-current-pos (car ls)))
                   prev-x) collect
            (if (stringp part)
-               (let* ((txt (format-spec part spec))
+               (let* ((txt (format-spec part spec t))
                       (font (fontsloth-load-font (exlybar-font-find fidx)))
                       (px (+ (aref exlybar-font-px-size fidx)
                              (aref exlybar-font-px-delta fidx)))
