@@ -1,10 +1,10 @@
-;;; exlybar-date.el --- An exlybar date/time module  -*- lexical-binding: t -*-
+;;; exlybar-date.el --- An slothbar date/time module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -37,10 +37,10 @@
 
 ;;; Commentary:
 
-;; This is an implementation of `exlybar-module' for date/time status
+;; This is an implementation of `slothbar-module' for date/time status
 ;; information.
 
-;; To use this module, add it to `exlybar-modules' with any desired layout
+;; To use this module, add it to `slothbar-modules' with any desired layout
 ;; insructions.
 
 ;;; Code:
@@ -53,11 +53,11 @@
 (require 'exlybar-color)
 (require 'exlybar-module-)
 
-(defgroup exlybar-date nil
-  "An Exlybar date module."
-  :group 'exlybar)
+(defgroup slothbar-date nil
+  "An Slothbar date module."
+  :group 'slothbar)
 
-(defsubst exlybar-date--equinox-solstice-day (k)
+(defsubst slothbar-date--equinox-solstice-day (k)
   "Day of the kth equinox/solstice for the current year.
 
 K=0, spring equinox; K=1, summer solstice; K=2, fall equinox;
@@ -70,82 +70,82 @@ See `solar-equinoxes/solstices'"
     (+ d (cl-loop for m from (1- m) downto 1
                   sum (date-days-in-month year m)))))
 
-(defcustom exlybar-date-color-zones
-  `(,(exlybar-date--equinox-solstice-day 0)
-    ,(exlybar-date--equinox-solstice-day 1)
-    ,(exlybar-date--equinox-solstice-day 2) nil nil)
+(defcustom slothbar-date-color-zones
+  `(,(slothbar-date--equinox-solstice-day 0)
+    ,(slothbar-date--equinox-solstice-day 1)
+    ,(slothbar-date--equinox-solstice-day 2) nil nil)
   "Days of the year indicating seasonal color changes.
-See `exlybar-color-zone'"
+See `slothbar-color-zone'"
   :type '(list (float :tag "Med") (float :tag "Hi") (float :tag "Crit")
                (boolean :tag "Reverse?") (boolean :tag "Local?"))
-  :group 'exlybar-date)
+  :group 'slothbar-date)
 
-(defcustom exlybar-date-color-spring "^7"
+(defcustom slothbar-date-color-spring "^7"
   "Color for spring dates."
   :type 'string
-  :group 'exlybar-date)
-(defcustom exlybar-date-color-summer "^5"
+  :group 'slothbar-date)
+(defcustom slothbar-date-color-summer "^5"
   "Color for summer dates."
   :type 'string
-  :group 'exlybar-date)
-(defcustom exlybar-date-color-fall "^8"
+  :group 'slothbar-date)
+(defcustom slothbar-date-color-fall "^8"
   "Color for fall dates."
   :type 'string
-  :group 'exlybar-date)
-(defcustom exlybar-date-color-winter "^9"
+  :group 'slothbar-date)
+(defcustom slothbar-date-color-winter "^9"
   "Color for winter dates."
   :type 'string
-  :group 'exlybar-date)
+  :group 'slothbar-date)
 
-(cl-defstruct (exlybar-date
-               (:include exlybar-module (name "date") (icon ?)
+(cl-defstruct (slothbar-date
+               (:include slothbar-module (name "date") (icon ?)
                          (format (concat "^2^[^f1%i^] ^["
-                                         exlybar-date-color-winter
+                                         slothbar-date-color-winter
                                          "%ζ%a, %h %e.^] %l:%M %#p %Z"))
-                         (format-fn #'exlybar-date-format-format))
-               (:constructor exlybar-date-create)
+                         (format-fn #'slothbar-date-format-format))
+               (:constructor slothbar-date-create)
                (:copier nil)))
 
-(defun exlybar-date--zone-color ()
+(defun slothbar-date--zone-color ()
   "Decide the seasonal zone color using solar equinox/solstice calculations."
-  (let* ((winter-solstice (exlybar-date--equinox-solstice-day 3))
+  (let* ((winter-solstice (slothbar-date--equinox-solstice-day 3))
          (day (string-to-number (format-time-string "%j")))
          (day (if (< winter-solstice day) (- winter-solstice day) day)))
-    (let ((exlybar-color-zone-med exlybar-date-color-spring)
-          (exlybar-color-zone-hi exlybar-date-color-summer)
-          (exlybar-color-zone-crit exlybar-date-color-fall))
-      (apply #'exlybar-color-zone day exlybar-date-color-zones))))
+    (let ((slothbar-color-zone-med slothbar-date-color-spring)
+          (slothbar-color-zone-hi slothbar-date-color-summer)
+          (slothbar-color-zone-crit slothbar-date-color-fall))
+      (apply #'slothbar-color-zone day slothbar-date-color-zones))))
 
-(defun exlybar-date--format-fn-spec (zone-color)
+(defun slothbar-date--format-fn-spec (zone-color)
   "Build the `format-spec' spec used by the format-fn.
 
-ZONE-COLOR the color code as determined by `exlybar-color-zone'"
-  `((?i . ,(format (concat exlybar-date-color-winter "%s%%i") zone-color))
-    (?ζ . ,(exlybar-date--zone-color))))
+ZONE-COLOR the color code as determined by `slothbar-color-zone'"
+  `((?i . ,(format (concat slothbar-date-color-winter "%s%%i") zone-color))
+    (?ζ . ,(slothbar-date--zone-color))))
 
-(defun exlybar-date-format-format (m)
+(defun slothbar-date-format-format (m)
   "This is the default format-fn that is applied to module M's format."
   (format-time-string
-   (format-spec (exlybar-module-format m)
-                (exlybar-date--format-fn-spec (exlybar-date--zone-color)) t)))
+   (format-spec (slothbar-module-format m)
+                (slothbar-date--format-fn-spec (slothbar-date--zone-color)) t)))
 
-(defsubst exlybar-date--format-spec (icon)
+(defsubst slothbar-date--format-spec (icon)
   "Build the `format-spec' spec used to generate module text given ICON."
   `((?i . ,(string icon))))
 
-(cl-defmethod exlybar-module-update-status ((m exlybar-date))
+(cl-defmethod slothbar-module-update-status ((m slothbar-date))
   "Poll the wifi status and check whether to update the M's text."
-  (let* ((date (format-time-string (exlybar-module-format m))))
-    (unless (equal date (exlybar-module-text m))
+  (let* ((date (format-time-string (slothbar-module-format m))))
+    (unless (equal date (slothbar-module-text m))
       (setf
-       (exlybar-module-format-spec m)
-       (exlybar-date--format-spec (exlybar-module-icon m))
-       (exlybar-module-text m) date
-       (exlybar-module-needs-refresh? m) t))))
+       (slothbar-module-format-spec m)
+       (slothbar-date--format-spec (slothbar-module-icon m))
+       (slothbar-module-text m) date
+       (slothbar-module-needs-refresh? m) t))))
 
-(cl-defmethod exlybar-module-init :before ((m exlybar-date))
+(cl-defmethod slothbar-module-init :before ((m slothbar-date))
   "Set the M's icon and update the text."
-  (exlybar-module-update-status m))
+  (slothbar-module-update-status m))
 
 (provide 'exlybar-date)
 ;;; exlybar-date.el ends here

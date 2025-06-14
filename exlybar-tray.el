@@ -1,10 +1,10 @@
-;;; exlybar-tray.el --- An exlybar system tray module  -*- lexical-binding: t -*-
+;;; exlybar-tray.el --- An slothbar system tray module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: multimedia, window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -37,9 +37,9 @@
 
 ;;; Commentary:
 
-;; This is an implementation of `exlybar-module' for a system tray.
+;; This is an implementation of `slothbar-module' for a system tray.
 
-;; To use this module, add it to `exlybar-modules' with any desired layout
+;; To use this module, add it to `slothbar-modules' with any desired layout
 ;; insructions.
 
 ;;; Code:
@@ -53,20 +53,20 @@
 (require 'exlybar-log)
 (require 'exlybar-module-)
 
-(cl-defstruct (exlybar-tray--icon
-               (:constructor exlybar-tray--icon-create))
+(cl-defstruct (slothbar-tray--icon
+               (:constructor slothbar-tray--icon-create))
   "Attributes of a system tray icon."
   (width 0 :type 'natnum)
   (height 0 :type 'natnum)
   (visible nil :type 'boolean))
 
-(cl-defstruct (exlybar-tray
-               (:include exlybar-module
+(cl-defstruct (slothbar-tray
+               (:include slothbar-module
                          (name "tray")
                          (format nil)
                          (lpad 4)
                          (rpad 4))
-               (:constructor exlybar-tray-create)
+               (:constructor slothbar-tray-create)
                (:copier nil))
   "A system tray module.")
 
@@ -80,34 +80,34 @@
    (owner :initarg :owner :type xcb:WINDOW))      ;new slot
   :documentation "A systemtray client message.")
 
-(defgroup exlybar-tray nil
+(defgroup slothbar-tray nil
   "System tray module."
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-tray-icon-gap 2
+(defcustom slothbar-tray-icon-gap 2
   "Gap between icons."
   :type 'integer
-  :group 'exlybar-tray)
+  :group 'slothbar-tray)
 
-(defvar exlybar-tray--embedder-window nil "The embedder window.")
+(defvar slothbar-tray--embedder-window nil "The embedder window.")
 
-(defcustom exlybar-tray-background-color nil
+(defcustom slothbar-tray-background-color nil
   "Background color of system tray module.
 
 This should be a color, or nil for transparent background."
   :type '(choice (const :tag "Transparent" nil)
                  (color))
-  :group 'exlybar-tray
+  :group 'slothbar-tray
   :initialize #'custom-initialize-default
   :set (lambda (symbol value)
          (set-default symbol value)
          ;; Change the background color for embedder.
-         (when (and exlybar--connection
-                    exlybar-tray--embedder-window)
-           (let ((background-pixel (exlybar-util--color->pixel value)))
-             (xcb:+request exlybar--connection
+         (when (and slothbar--connection
+                    slothbar-tray--embedder-window)
+           (let ((background-pixel (slothbar-util--color->pixel value)))
+             (xcb:+request slothbar--connection
                  (make-instance 'xcb:ChangeWindowAttributes
-                                :window exlybar-tray--embedder-window
+                                :window slothbar-tray--embedder-window
                                 :value-mask (logior xcb:CW:BackPixmap
                                                     (if background-pixel
                                                         xcb:CW:BackPixel 0))
@@ -115,62 +115,62 @@ This should be a color, or nil for transparent background."
                                 xcb:BackPixmap:ParentRelative
                                 :background-pixel background-pixel))
              ;; Unmap & map to take effect immediately.
-             (xcb:+request exlybar--connection
+             (xcb:+request slothbar--connection
                  (make-instance 'xcb:UnmapWindow
-                                :window exlybar-tray--embedder-window))
-             (xcb:+request exlybar--connection
+                                :window slothbar-tray--embedder-window))
+             (xcb:+request slothbar--connection
                  (make-instance 'xcb:MapWindow
-                                :window exlybar-tray--embedder-window))
-             (xcb:flush exlybar--connection)))))
+                                :window slothbar-tray--embedder-window))
+             (xcb:flush slothbar--connection)))))
 
 ;; GTK icons require at least 16 pixels to show normally.
-(defconst exlybar-tray--icon-min-size 16 "Minimum icon size.")
+(defconst slothbar-tray--icon-min-size 16 "Minimum icon size.")
 
-(defvar exlybar-tray--connection nil "The X connection.")
+(defvar slothbar-tray--connection nil "The X connection.")
 
-(defvar exlybar-tray--list nil "The icon list.")
+(defvar slothbar-tray--list nil "The icon list.")
 
-(defvar exlybar-tray--selection-owner-window nil
+(defvar slothbar-tray--selection-owner-window nil
   "The selection owner window.")
 
-(defvar exlybar-tray--module nil "The tray module (there can only be one).")
+(defvar slothbar-tray--module nil "The tray module (there can only be one).")
 
 (defvar xcb:Atom:_NET_SYSTEM_TRAY_S0 "This is the tray selection atom.")
 
-(defun exlybar-tray--embed (icon)
+(defun slothbar-tray--embed (icon)
   "Embed ICON."
-  (exlybar--log-debug* "tray try to embed #x%x" icon)
-  (let ((info (xcb:+request-unchecked+reply exlybar-tray--connection
+  (slothbar--log-debug* "tray try to embed #x%x" icon)
+  (let ((info (xcb:+request-unchecked+reply slothbar-tray--connection
                   (make-instance 'xcb:xembed:get-_XEMBED_INFO
                                  :window icon)))
         width* height* visible)
     (when info
-      (exlybar--log-debug* "Embedding #x%x" icon)
+      (slothbar--log-debug* "Embedding #x%x" icon)
       (with-slots (width height)
-          (xcb:+request-unchecked+reply exlybar-tray--connection
+          (xcb:+request-unchecked+reply slothbar-tray--connection
               (make-instance 'xcb:GetGeometry :drawable icon))
-        (setq height* exlybar-height
+        (setq height* slothbar-height
               width* (round (* width (/ (float height*) height))))
-        (when (< width* exlybar-tray--icon-min-size)
-          (setq width* exlybar-tray--icon-min-size
+        (when (< width* slothbar-tray--icon-min-size)
+          (setq width* slothbar-tray--icon-min-size
                 height* (round (* height (/ (float width*) width)))))
-        (exlybar--log-debug*
+        (slothbar--log-debug*
          "Resize icon from %dx%d to %dx%d" width height width* height*))
       ;; Add this icon to save-set.
-      (xcb:+request exlybar-tray--connection
+      (xcb:+request slothbar-tray--connection
           (make-instance 'xcb:ChangeSaveSet
                          :mode xcb:SetMode:Insert
                          :window icon))
       ;; Reparent to the embedder.
-      (xcb:+request exlybar-tray--connection
+      (xcb:+request slothbar-tray--connection
           (make-instance 'xcb:ReparentWindow
                          :window icon
-                         :parent exlybar-tray--embedder-window
+                         :parent slothbar-tray--embedder-window
                          :x 0
                          ;; Vertically centered.
-                         :y (/ (- exlybar-height height*) 2)))
+                         :y (/ (- slothbar-height height*) 2)))
       ;; Resize the icon.
-      (xcb:+request exlybar-tray--connection
+      (xcb:+request slothbar-tray--connection
           (make-instance 'xcb:ConfigureWindow
                          :window icon
                          :value-mask (logior xcb:ConfigWindow:Width
@@ -180,7 +180,7 @@ This should be a color, or nil for transparent background."
                          :height height*
                          :border-width 0))
       ;; Set event mask.
-      (xcb:+request exlybar-tray--connection
+      (xcb:+request slothbar-tray--connection
           (make-instance 'xcb:ChangeWindowAttributes
                          :window icon
                          :value-mask xcb:CW:EventMask
@@ -188,7 +188,7 @@ This should be a color, or nil for transparent background."
                                              xcb:EventMask:KeyPress
                                              xcb:EventMask:PropertyChange)))
       (setq visible (slot-value info 'flags))
-      (exlybar--log-debug* "embed has flags %s" (slot-value info 'flags))
+      (slothbar--log-debug* "embed has flags %s" (slot-value info 'flags))
       ;; TODO: should we check for the MAPPED flag at this point?
       (if ;visible
           nil
@@ -197,10 +197,10 @@ This should be a color, or nil for transparent background."
         ;; Default to visible.
         (setq visible t))
       (when visible
-        (exlybar--log-debug* "Mapping the icon window")
-        (xcb:+request exlybar-tray--connection
+        (slothbar--log-debug* "Mapping the icon window")
+        (xcb:+request slothbar-tray--connection
             (make-instance 'xcb:MapWindow :window icon)))
-      (xcb:+request exlybar-tray--connection
+      (xcb:+request slothbar-tray--connection
           (make-instance 'xcb:xembed:SendEvent
                          :destination icon
                          :event
@@ -209,114 +209,114 @@ This should be a color, or nil for transparent background."
                                          :window icon
                                          :time xcb:Time:CurrentTime
                                          :embedder
-                                         exlybar-tray--embedder-window
+                                         slothbar-tray--embedder-window
                                          :version 0)
-                          exlybar-tray--connection)))
-      (push `(,icon . ,(exlybar-tray--icon-create
+                          slothbar-tray--connection)))
+      (push `(,icon . ,(slothbar-tray--icon-create
                         :width width*
                         :height height*
                         :visible visible))
-            exlybar-tray--list)
-      (setf (exlybar-module-needs-refresh? exlybar-tray--module) t)
-      (exlybar-refresh-modules))))
+            slothbar-tray--list)
+      (setf (slothbar-module-needs-refresh? slothbar-tray--module) t)
+      (slothbar-refresh-modules))))
 
-(cl-defun exlybar-tray--unembed (icon &optional (should-refresh? t))
+(cl-defun slothbar-tray--unembed (icon &optional (should-refresh? t))
   "Unembed ICON.
 SHOULD-REFRESH? optional (defaults to t) nil to forgo module refresh"
-  (exlybar--log-debug* "Unembed #x%x" icon)
-  (xcb:+request exlybar-tray--connection
+  (slothbar--log-debug* "Unembed #x%x" icon)
+  (xcb:+request slothbar-tray--connection
       (make-instance 'xcb:UnmapWindow :window icon))
-  (xcb:+request exlybar-tray--connection
+  (xcb:+request slothbar-tray--connection
       (make-instance 'xcb:ReparentWindow
                      :window icon
-                     :parent (exlybar-util--find-root-window-id)
+                     :parent (slothbar-util--find-root-window-id)
                      :x 0 :y 0))
-  (setq exlybar-tray--list
-        (assq-delete-all icon exlybar-tray--list))
-  (setf (exlybar-module-needs-refresh? exlybar-tray--module) t)
-  (when should-refresh? (exlybar-refresh-modules)))
+  (setq slothbar-tray--list
+        (assq-delete-all icon slothbar-tray--list))
+  (setf (slothbar-module-needs-refresh? slothbar-tray--module) t)
+  (when should-refresh? (slothbar-refresh-modules)))
 
 ;;; xcb event handlers
 
-(defun exlybar-tray--on-DestroyNotify (data _synthetic)
+(defun slothbar-tray--on-DestroyNotify (data _synthetic)
   "Unembed icons on DestroyNotify given DATA."
   (let ((obj (make-instance 'xcb:DestroyNotify)))
     (xcb:unmarshal obj data)
-    (exlybar--log-debug* "received destroynotify for tray icon %s" obj)
+    (slothbar--log-debug* "received destroynotify for tray icon %s" obj)
     (with-slots (window) obj
-      (when (assoc window exlybar-tray--list)
-        (exlybar-tray--unembed window)))))
+      (when (assoc window slothbar-tray--list)
+        (slothbar-tray--unembed window)))))
 
-(defun exlybar-tray--on-ReparentNotify (data _synthetic)
+(defun slothbar-tray--on-ReparentNotify (data _synthetic)
   "Unembed icons on ReparentNotify given DATA."
   (let ((obj (make-instance 'xcb:ReparentNotify)))
     (xcb:unmarshal obj data)
-    (exlybar--log-debug* "received reparentnotify for tray icon %s" obj)
+    (slothbar--log-debug* "received reparentnotify for tray icon %s" obj)
     (with-slots (window parent) obj
-      (when (and (/= parent exlybar-tray--embedder-window)
-                 (assoc window exlybar-tray--list))
-        (exlybar-tray--unembed window)))))
+      (when (and (/= parent slothbar-tray--embedder-window)
+                 (assoc window slothbar-tray--list))
+        (slothbar-tray--unembed window)))))
 
-(defun exlybar-tray--resize-icon (window width height)
+(defun slothbar-tray--resize-icon (window width height)
   "Resize icon window WINDOW given WIDTH and HEIGHT."
-  (when-let ((attr (cdr (assoc window exlybar-tray--list))))
-    (setf (exlybar-tray--icon-height attr) exlybar-height
-          (exlybar-tray--icon-width attr)
-          (round (* width (/ (float (exlybar-tray--icon-height attr))
+  (when-let ((attr (cdr (assoc window slothbar-tray--list))))
+    (setf (slothbar-tray--icon-height attr) slothbar-height
+          (slothbar-tray--icon-width attr)
+          (round (* width (/ (float (slothbar-tray--icon-height attr))
                              height))))
-    (when (< (exlybar-tray--icon-width attr) exlybar-tray--icon-min-size)
-      (setf (exlybar-tray--icon-width attr) exlybar-tray--icon-min-size
-            (exlybar-tray--icon-height attr)
-            (round (* height (/ (float (exlybar-tray--icon-width attr))
+    (when (< (slothbar-tray--icon-width attr) slothbar-tray--icon-min-size)
+      (setf (slothbar-tray--icon-width attr) slothbar-tray--icon-min-size
+            (slothbar-tray--icon-height attr)
+            (round (* height (/ (float (slothbar-tray--icon-width attr))
                                 width)))))
-    (xcb:+request exlybar-tray--connection
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:ConfigureWindow
                        :window window
                        :value-mask (logior xcb:ConfigWindow:Y
                                            xcb:ConfigWindow:Width
                                            xcb:ConfigWindow:Height)
                        ;; Vertically centered.
-                       :y (/ (- exlybar-height
-                                (exlybar-tray--icon-height attr)) 2)
-                       :width (exlybar-tray--icon-width attr)
-                       :height (exlybar-tray--icon-height attr)))))
+                       :y (/ (- slothbar-height
+                                (slothbar-tray--icon-height attr)) 2)
+                       :width (slothbar-tray--icon-width attr)
+                       :height (slothbar-tray--icon-height attr)))))
 
-(defun exlybar-tray--on-ResizeRequest (data _synthetic)
+(defun slothbar-tray--on-ResizeRequest (data _synthetic)
   "Resize the tray icon on ResizeRequest given DATA."
   (let ((obj (make-instance 'xcb:ResizeRequest)))
     (xcb:unmarshal obj data)
-    (exlybar--log-debug* "received resize request for tray icon %s" obj)
+    (slothbar--log-debug* "received resize request for tray icon %s" obj)
     (with-slots (window width height) obj
-      (exlybar-tray--resize-icon window width height))
-    (setf (exlybar-module-needs-refresh? exlybar-tray--module) t)
-    (exlybar-refresh-modules)))
+      (slothbar-tray--resize-icon window width height))
+    (setf (slothbar-module-needs-refresh? slothbar-tray--module) t)
+    (slothbar-refresh-modules)))
 
-(defun exlybar-tray--on-PropertyNotify (data _synthetic)
+(defun slothbar-tray--on-PropertyNotify (data _synthetic)
   "Map/Unmap the tray icon on PropertyNotify given DATA."
   (let ((obj (make-instance 'xcb:PropertyNotify))
         attr info visible)
     (xcb:unmarshal obj data)
-    (exlybar--log-debug* "received propertynotify for tray icon %s" obj)
+    (slothbar--log-debug* "received propertynotify for tray icon %s" obj)
     (with-slots (window atom state) obj
       (when (and (eq state xcb:Property:NewValue)
                  (eq atom xcb:Atom:_XEMBED_INFO)
-                 (setq attr (cdr (assoc window exlybar-tray--list))))
-        (setq info (xcb:+request-unchecked+reply exlybar-tray--connection
+                 (setq attr (cdr (assoc window slothbar-tray--list))))
+        (setq info (xcb:+request-unchecked+reply slothbar-tray--connection
                        (make-instance 'xcb:xembed:get-_XEMBED_INFO
                                       :window window)))
         (when info
           (setq visible (/= 0 (logand (slot-value info 'flags)
                                       xcb:xembed:MAPPED)))
           (if visible
-              (xcb:+request exlybar-tray--connection
+              (xcb:+request slothbar-tray--connection
                   (make-instance 'xcb:MapWindow :window window))
-            (xcb:+request exlybar-tray--connection
+            (xcb:+request slothbar-tray--connection
                 (make-instance 'xcb:UnmapWindow :window window)))
-          (setf (exlybar-tray--icon-visible attr) visible)
-          (setf (exlybar-module-needs-refresh? exlybar-tray--module) t)
-          (exlybar-refresh-modules))))))
+          (setf (slothbar-tray--icon-visible attr) visible)
+          (setf (slothbar-module-needs-refresh? slothbar-tray--module) t)
+          (slothbar-refresh-modules))))))
 
-(defun exlybar-tray--on-ClientMessage (data _synthetic)
+(defun slothbar-tray--on-ClientMessage (data _synthetic)
   "Handle client messages given DATA."
   (let ((obj (make-instance 'xcb:ClientMessage))
         opcode data32)
@@ -325,47 +325,47 @@ SHOULD-REFRESH? optional (defaults to t) nil to forgo module refresh"
       (when (eq type xcb:Atom:_NET_SYSTEM_TRAY_OPCODE)
         (setq data32 (slot-value data 'data32)
               opcode (elt data32 1))
-        (exlybar--log-debug* "tray icon clientmessage opcode: %s" opcode)
+        (slothbar--log-debug* "tray icon clientmessage opcode: %s" opcode)
         (cond ((= opcode xcb:systemtray:opcode:REQUEST-DOCK)
-               (unless (assoc (elt data32 2) exlybar-tray--list)
-                 (exlybar-tray--embed (elt data32 2))))
+               (unless (assoc (elt data32 2) slothbar-tray--list)
+                 (slothbar-tray--embed (elt data32 2))))
               ;; Not implemented (rarely used nowadays).
               ((or (= opcode xcb:systemtray:opcode:BEGIN-MESSAGE)
                    (= opcode xcb:systemtray:opcode:CANCEL-MESSAGE)))
               (t
-               (exlybar--log-error "Unknown icon opcode message: %s" obj)))))))
+               (slothbar--log-error "Unknown icon opcode message: %s" obj)))))))
 
 ;;; module lifecycle
 
-(cl-defmethod exlybar-module-init ((m exlybar-tray))
-  "Initialize `exlybar-tray' module M.
+(cl-defmethod slothbar-module-init ((m slothbar-tray))
+  "Initialize `slothbar-tray' module M.
 This overrides the default module init because system tray is special."
-  (exlybar--log-debug* "initializing tray %s" m)
-  (cl-assert (not exlybar-tray--connection))
-  (cl-assert (not exlybar-tray--list))
-  (cl-assert (not exlybar-tray--selection-owner-window))
-  (cl-assert (not exlybar-tray--embedder-window))
+  (slothbar--log-debug* "initializing tray %s" m)
+  (cl-assert (not slothbar-tray--connection))
+  (cl-assert (not slothbar-tray--list))
+  (cl-assert (not slothbar-tray--selection-owner-window))
+  (cl-assert (not slothbar-tray--embedder-window))
   ;; Create a new connection.
-  (setq exlybar-tray--connection (xcb:connect))
+  (setq slothbar-tray--connection (xcb:connect))
   (set-process-query-on-exit-flag
-   (slot-value exlybar-tray--connection 'process) nil)
+   (slot-value slothbar-tray--connection 'process) nil)
   ;; Initialize XELB modules.
-  (xcb:xembed:init exlybar-tray--connection t)
-  (xcb:systemtray:init exlybar-tray--connection t)
+  (xcb:xembed:init slothbar-tray--connection t)
+  (xcb:systemtray:init slothbar-tray--connection t)
   ;; Acquire the manager selection _NET_SYSTEM_TRAY_S0.
   (with-slots (owner)
-      (xcb:+request-unchecked+reply exlybar-tray--connection
+      (xcb:+request-unchecked+reply slothbar-tray--connection
           (make-instance 'xcb:GetSelectionOwner
                          :selection xcb:Atom:_NET_SYSTEM_TRAY_S0))
     (when (/= owner xcb:Window:None)
       ;; (xcb:disconnect exwm-systemtray--connection)
       ;; (setq exwm-systemtray--connection nil)
-      (warn "[exlybar-tray] Other system tray detected")
-      (cl-return-from exlybar-module-init)))
-  (let ((id (xcb:generate-id exlybar-tray--connection))
-        (root (exlybar-util--find-root-window-id)))
-    (setq exlybar-tray--selection-owner-window id)
-    (xcb:+request exlybar-tray--connection
+      (warn "[slothbar-tray] Other system tray detected")
+      (cl-return-from slothbar-module-init)))
+  (let ((id (xcb:generate-id slothbar-tray--connection))
+        (root (slothbar-util--find-root-window-id)))
+    (setq slothbar-tray--selection-owner-window id)
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:CreateWindow
                        :depth 0
                        :wid id
@@ -380,13 +380,13 @@ This overrides the default module init because system tray is special."
                        :value-mask xcb:CW:OverrideRedirect
                        :override-redirect 1))
     ;; Get the selection ownership.
-    (xcb:+request exlybar-tray--connection
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:SetSelectionOwner
                        :owner id
                        :selection xcb:Atom:_NET_SYSTEM_TRAY_S0
                        :time xcb:Time:CurrentTime))
     ;; Send a client message to announce the selection.
-    (xcb:+request exlybar-tray--connection
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:SendEvent
                        :propagate 0
                        :destination root
@@ -398,30 +398,30 @@ This overrides the default module init because system tray is special."
                                               :selection
                                               xcb:Atom:_NET_SYSTEM_TRAY_S0
                                               :owner id)
-                               exlybar-tray--connection)))
+                               slothbar-tray--connection)))
     ;; Set _NET_WM_NAME.
-    (xcb:+request exlybar-tray--connection
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:ewmh:set-_NET_WM_NAME
                        :window id
-                       :data "exlybar: exlybar-tray--selection-owner-window"))
+                       :data "slothbar: slothbar-tray--selection-owner-window"))
     ;; Set the _NET_SYSTEM_TRAY_ORIENTATION property.
-    (xcb:+request exlybar-tray--connection
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:xembed:set-_NET_SYSTEM_TRAY_ORIENTATION
                        :window id
                        :data xcb:systemtray:ORIENTATION:HORZ)))
   ;; Create the embedder.
-  (let* ((id (xcb:generate-id exlybar-tray--connection))
+  (let* ((id (xcb:generate-id slothbar-tray--connection))
          (background-pixel
-          (exlybar-util--color->pixel exlybar-tray-background-color))
-        (parent exlybar--window)
+          (slothbar-util--color->pixel slothbar-tray-background-color))
+        (parent slothbar--window)
         (depth (slot-value (xcb:+request-unchecked+reply
-                               exlybar-tray--connection
+                               slothbar-tray--connection
                                (make-instance 'xcb:GetGeometry
                                               :drawable parent))
                            'depth))
         (y 0))
-    (setq exlybar-tray--embedder-window id)
-    (xcb:+request exlybar-tray--connection
+    (setq slothbar-tray--embedder-window id)
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:CreateWindow
                        :depth depth
                        :wid id
@@ -429,7 +429,7 @@ This overrides the default module init because system tray is special."
                        :x 0
                        :y y
                        :width 1
-                       :height exlybar-height
+                       :height slothbar-height
                        :border-width 0
                        :class xcb:WindowClass:InputOutput
                        :visual 0
@@ -441,123 +441,123 @@ This overrides the default module init because system tray is special."
                        :background-pixel background-pixel
                        :event-mask xcb:EventMask:SubstructureNotify))
     ;; Set _NET_WM_NAME.
-    (xcb:+request exlybar-tray--connection
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:ewmh:set-_NET_WM_NAME
                        :window id
-                       :data "exlybar: exlybar-tray--embedder-window")))
-  (xcb:flush exlybar-tray--connection)
+                       :data "slothbar: slothbar-tray--embedder-window")))
+  (xcb:flush slothbar-tray--connection)
   ;; Attach event listeners.
-  (xcb:+event exlybar-tray--connection 'xcb:DestroyNotify
-              #'exlybar-tray--on-DestroyNotify)
-  (xcb:+event exlybar-tray--connection 'xcb:ReparentNotify
-              #'exlybar-tray--on-ReparentNotify)
-  (xcb:+event exlybar-tray--connection 'xcb:ResizeRequest
-              #'exlybar-tray--on-ResizeRequest)
-  (xcb:+event exlybar-tray--connection 'xcb:PropertyNotify
-              #'exlybar-tray--on-PropertyNotify)
-  (xcb:+event exlybar-tray--connection 'xcb:ClientMessage
-              #'exlybar-tray--on-ClientMessage)
+  (xcb:+event slothbar-tray--connection 'xcb:DestroyNotify
+              #'slothbar-tray--on-DestroyNotify)
+  (xcb:+event slothbar-tray--connection 'xcb:ReparentNotify
+              #'slothbar-tray--on-ReparentNotify)
+  (xcb:+event slothbar-tray--connection 'xcb:ResizeRequest
+              #'slothbar-tray--on-ResizeRequest)
+  (xcb:+event slothbar-tray--connection 'xcb:PropertyNotify
+              #'slothbar-tray--on-PropertyNotify)
+  (xcb:+event slothbar-tray--connection 'xcb:ClientMessage
+              #'slothbar-tray--on-ClientMessage)
   ;; we don't need xcb since it is all managed here
-  (push '(unused . unused) (exlybar-module-xcb m)))
+  (push '(unused . unused) (slothbar-module-xcb m)))
 
-(cl-defmethod exlybar-module-init :before ((m exlybar-tray))
-  "Before initialize `exlybar-tray' module M."
-  (setf (exlybar-module-cache m) (make-hash-table :test 'eq))
-  (puthash 'prev-height exlybar-height (exlybar-module-cache m))
-  (setq exlybar-tray--module m))
+(cl-defmethod slothbar-module-init :before ((m slothbar-tray))
+  "Before initialize `slothbar-tray' module M."
+  (setf (slothbar-module-cache m) (make-hash-table :test 'eq))
+  (puthash 'prev-height slothbar-height (slothbar-module-cache m))
+  (setq slothbar-tray--module m))
 
-(defvar exlybar-tray--should-map? nil
+(defvar slothbar-tray--should-map? nil
   "Set to t during refresh if reposition should map the embedder window.")
 
-(cl-defmethod exlybar-module-layout ((m exlybar-tray))
-  "Layout `exlybar-tray' module M.
+(cl-defmethod slothbar-module-layout ((m slothbar-tray))
+  "Layout `slothbar-tray' module M.
 This overrides the default module layout because system tray is special."
-  (exlybar--log-debug* "doing layout for tray %s" m)
-  (when exlybar-tray--embedder-window
-    (xcb:+request exlybar-tray--connection
+  (slothbar--log-debug* "doing layout for tray %s" m)
+  (when slothbar-tray--embedder-window
+    (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:UnmapWindow
-                       :window exlybar-tray--embedder-window)))
-  (let ((x (+ (exlybar-module-lpad m) exlybar-tray-icon-gap)))
-    (dolist (pair exlybar-tray--list)
-      (unless (eq exlybar-height
-                  (gethash 'prev-height (exlybar-module-cache m)))
-        (exlybar--log-debug*
-         "tray new height %s, resizing icon %s" exlybar-height (cdr pair))
-        (exlybar-tray--resize-icon
+                       :window slothbar-tray--embedder-window)))
+  (let ((x (+ (slothbar-module-lpad m) slothbar-tray-icon-gap)))
+    (dolist (pair slothbar-tray--list)
+      (unless (eq slothbar-height
+                  (gethash 'prev-height (slothbar-module-cache m)))
+        (slothbar--log-debug*
+         "tray new height %s, resizing icon %s" slothbar-height (cdr pair))
+        (slothbar-tray--resize-icon
          (car pair)
-         (exlybar-tray--icon-width (cdr pair))
-         (exlybar-tray--icon-height (cdr pair))))
-      (when (exlybar-tray--icon-visible (cdr pair))
-        (setq x (+ x (exlybar-tray--icon-width (cdr pair))
-                   exlybar-tray-icon-gap))))
-    (puthash 'prev-height exlybar-height (exlybar-module-cache m))
-    (exlybar--log-debug* "setting tray new width to %s" x)
-    (setf (exlybar-module-width m) (+ (- (exlybar-module-rpad m)
-                                         exlybar-tray-icon-gap) x))
-    (unless (eq x (gethash 'prev-width (exlybar-module-cache m)))
-      (setq exlybar-tray--should-map? t))
-    (puthash 'prev-width x (exlybar-module-cache m))))
+         (slothbar-tray--icon-width (cdr pair))
+         (slothbar-tray--icon-height (cdr pair))))
+      (when (slothbar-tray--icon-visible (cdr pair))
+        (setq x (+ x (slothbar-tray--icon-width (cdr pair))
+                   slothbar-tray-icon-gap))))
+    (puthash 'prev-height slothbar-height (slothbar-module-cache m))
+    (slothbar--log-debug* "setting tray new width to %s" x)
+    (setf (slothbar-module-width m) (+ (- (slothbar-module-rpad m)
+                                         slothbar-tray-icon-gap) x))
+    (unless (eq x (gethash 'prev-width (slothbar-module-cache m)))
+      (setq slothbar-tray--should-map? t))
+    (puthash 'prev-width x (slothbar-module-cache m))))
 
-(cl-defmethod exlybar-module-refresh ((_ exlybar-tray))
-  "Refresh `exlybar-tray' module.
+(cl-defmethod slothbar-module-refresh ((_ slothbar-tray))
+  "Refresh `slothbar-tray' module.
 This overrides the default module refresh because system tray is special."
-  (let ((x exlybar-tray-icon-gap))
-    (dolist (pair exlybar-tray--list)
-      (when (exlybar-tray--icon-visible (cdr pair))
-        (xcb:+request exlybar-tray--connection
+  (let ((x slothbar-tray-icon-gap))
+    (dolist (pair slothbar-tray--list)
+      (when (slothbar-tray--icon-visible (cdr pair))
+        (xcb:+request slothbar-tray--connection
             (make-instance 'xcb:ConfigureWindow
                            :window (car pair)
                            :value-mask xcb:ConfigWindow:X
                            :x x))
-        (setq x (+ x (exlybar-tray--icon-width (cdr pair))
-                   exlybar-tray-icon-gap))
-        (setq exlybar-tray--should-map? t)))))
+        (setq x (+ x (slothbar-tray--icon-width (cdr pair))
+                   slothbar-tray-icon-gap))
+        (setq slothbar-tray--should-map? t)))))
 
-(cl-defmethod exlybar-module-reposition ((m exlybar-tray) x y)
-  "Reposition `exlybar-tray' M to X,Y."
-  (exlybar--log-debug* "tray reposition %s,%s %s" x y (exlybar-module-width m))
-  (xcb:+request exlybar-tray--connection
+(cl-defmethod slothbar-module-reposition ((m slothbar-tray) x y)
+  "Reposition `slothbar-tray' M to X,Y."
+  (slothbar--log-debug* "tray reposition %s,%s %s" x y (slothbar-module-width m))
+  (xcb:+request slothbar-tray--connection
       (make-instance 'xcb:ConfigureWindow
-                     :window exlybar-tray--embedder-window
+                     :window slothbar-tray--embedder-window
                      :value-mask (logior xcb:ConfigWindow:X
                                          xcb:ConfigWindow:Width
                                          xcb:ConfigWindow:Height)
                      :x x
-                     :width (exlybar-module-width m)
-                     :height exlybar-height))
-  (when exlybar-tray--should-map?
-    (xcb:+request exlybar-tray--connection
-        (make-instance 'xcb:MapWindow :window exlybar-tray--embedder-window))
-    (setq exlybar-tray--should-map? nil)
-    (xcb:flush exlybar-tray--connection)))
+                     :width (slothbar-module-width m)
+                     :height slothbar-height))
+  (when slothbar-tray--should-map?
+    (xcb:+request slothbar-tray--connection
+        (make-instance 'xcb:MapWindow :window slothbar-tray--embedder-window))
+    (setq slothbar-tray--should-map? nil)
+    (xcb:flush slothbar-tray--connection)))
 
-(cl-defmethod exlybar-module-exit ((_ exlybar-tray))
-  "Exit `exlybar-tray' module.
+(cl-defmethod slothbar-module-exit ((_ slothbar-tray))
+  "Exit `slothbar-tray' module.
 This overrides the default module exit because system tray is special."
-  (when exlybar-tray--connection
+  (when slothbar-tray--connection
     ;; Hide & reparent out the embedder before disconnection to prevent
     ;; embedded icons from being reparented to an Emacs frame (which is the
     ;; parent of the embedder).
-    (when exlybar-tray--embedder-window
-      (xcb:+request exlybar-tray--connection
+    (when slothbar-tray--embedder-window
+      (xcb:+request slothbar-tray--connection
           (make-instance 'xcb:UnmapWindow
-                         :window exlybar-tray--embedder-window)))
+                         :window slothbar-tray--embedder-window)))
     ;; XXX: there is a race condition if the reparent doesn't occur prior to
     ;; connection close.
     ;; Using a checked request and waiting for check appears to be enough time.
-    (when exlybar-tray--embedder-window
-      (xcb:+request-checked+request-check exlybar-tray--connection
+    (when slothbar-tray--embedder-window
+      (xcb:+request-checked+request-check slothbar-tray--connection
           (make-instance 'xcb:ReparentWindow
-                         :window exlybar-tray--embedder-window
-                         :parent (exlybar-util--find-root-window-id)
+                         :window slothbar-tray--embedder-window
+                         :parent (slothbar-util--find-root-window-id)
                          :x 0
                          :y 0)))
-    (xcb:disconnect exlybar-tray--connection)
-    (setq exlybar-tray--connection nil
-          exlybar-tray--list nil
-          exlybar-tray--selection-owner-window nil
-          exlybar-tray--embedder-window nil
-          exlybar-tray--module nil))
+    (xcb:disconnect slothbar-tray--connection)
+    (setq slothbar-tray--connection nil
+          slothbar-tray--list nil
+          slothbar-tray--selection-owner-window nil
+          slothbar-tray--embedder-window nil
+          slothbar-tray--module nil))
   (cl-call-next-method))
 
 (provide 'exlybar-tray)

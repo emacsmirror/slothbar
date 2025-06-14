@@ -1,4 +1,4 @@
-* Example Guix channel to install exlybar and dependencies
+* Example Guix channel to install slothbar and dependencies
 
 #+BEGIN_SRC scheme
 
@@ -159,14 +159,14 @@ writing your own glue should be straightforward.  And if you do, please consider
 sending the code to me, so I can integrate it into this file.")
     (license #f)))
 
-(define-public emacs-exlybar
+(define-public emacs-slothbar
   (package
-   (name "emacs-exlybar")
+   (name "emacs-slothbar")
    (version "0.27.5")
    (source (origin
             (method git-fetch)
             (uri (git-reference
-                  (url "https://github.com/jollm/exlybar.git")
+                  (url "https://codeberg.org/agnes-li/slothbar.git")
                   (commit "v0.27.5")))
             (sha256
              (base32
@@ -179,7 +179,7 @@ sending the code to me, so I can integrate it into this file.")
 		       emacs-all-the-icons))
    (arguments
     '(#:include '("^[^/]*\\.el$" "^[^/]*\\.info$" "^doc/.*\\.info$")))
-   (home-page "https://github.com/jollm/exlybar")
+   (home-page "https://codeberg.org/agnes-li/slothbar")
    (synopsis "Emacs polybar-like thing")
    (description
     "This module uses xelb to build polybar like modules for displaying status information.
@@ -187,7 +187,7 @@ sending the code to me, so I can integrate it into this file.")
      *Please see the website for a detailed README.*
 
      To use this module, load and enable it as follows:
-     (use-package exlybar
-       :config (exlybar))")
+     (use-package slothbar
+       :config (slothbar))")
    (license license:gpl3+)))
 #+END_SRC

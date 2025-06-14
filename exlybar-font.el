@@ -4,7 +4,7 @@
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -48,7 +48,7 @@
 
 ;;; Try to use safe fallback font lists where possible
 
-(defcustom exlybar-font-candidates
+(defcustom slothbar-font-candidates
   '(("Aporetic Sans"
      "IBM Plex Serif"
      "Deja Vu Serif"
@@ -72,11 +72,11 @@ separate entries grouping variable pitch and monospace fonts. Some icon
 fonts may make sense to group and others may not depending on their
 code-point ranges."
   :type '(repeat (repeat string))
-  :group 'exlybar)
+  :group 'slothbar)
 
 (declare-function font-info "font.c" (name &optional frame))
 
-(cl-defsubst exlybar-font--filename-search (font-name-list)
+(cl-defsubst slothbar-font--filename-search (font-name-list)
   "Given FONT-NAME-LIST, return a file path to the first font found, or nil
 or none are found."
   (seq-some (lambda (v) (when v v))
@@ -85,7 +85,7 @@ or none are found."
 			   (elt fuck 12)))
 		       font-name-list)))
 
-(defun exlybar-font-map-candidates (&optional candidates)
+(defun slothbar-font-map-candidates (&optional candidates)
   "Given a list of lists of font names CANDIDATES, generate a vector where
 each slot value is a file path corresponding to the best match for each
 font name list.
@@ -93,85 +93,85 @@ font name list.
 Typically each element in the result vector would correspond to a color
 code ^f0-^f9.
 
-By default, CANDIDATES is the value of `exlybar-font-candidates'."
-  (cl-loop for f-list in (or candidates exlybar-font-candidates)
+By default, CANDIDATES is the value of `slothbar-font-candidates'."
+  (cl-loop for f-list in (or candidates slothbar-font-candidates)
            for i = 0 then (1+ i)
            with font-map = (make-vector 10 nil)
            do
-           (when-let (path (exlybar-font--filename-search f-list))
+           (when-let (path (slothbar-font--filename-search f-list))
              (aset font-map i path))
            finally return font-map))
 
-(defvar exlybar-font--color-code-map
+(defvar slothbar-font--color-code-map
   (make-vector 10 nil)
   "The font map corresponding to color codes ^f0-^f9.")
 
-(defun exlybar-font--watch-color-code-map (_ nval oper where)
+(defun slothbar-font--watch-color-code-map (_ nval oper where)
   "With OPER eq \\='set and nil WHERE, update
-`exlybar-font--color-code-map' with NVAL candidates."
+`slothbar-font--color-code-map' with NVAL candidates."
   (when (and (not where) (eq 'set oper))
-    (setq exlybar-font--color-code-map (exlybar-font-map-candidates nval))))
+    (setq slothbar-font--color-code-map (slothbar-font-map-candidates nval))))
 
-(add-hook 'exlybar-before-init-hook
+(add-hook 'slothbar-before-init-hook
           (lambda ()
-            (setq exlybar-font--color-code-map
-                  (exlybar-font-map-candidates))
-            (add-variable-watcher 'exlybar-font-candidates
-                                  #'exlybar-font--watch-color-code-map)))
+            (setq slothbar-font--color-code-map
+                  (slothbar-font-map-candidates))
+            (add-variable-watcher 'slothbar-font-candidates
+                                  #'slothbar-font--watch-color-code-map)))
 
-(add-hook 'exlybar-after-exit-hook
+(add-hook 'slothbar-after-exit-hook
           (lambda ()
-            (remove-variable-watcher 'exlybar-font-candidates
-                                     #'exlybar-font--watch-color-code-map)))
+            (remove-variable-watcher 'slothbar-font-candidates
+                                     #'slothbar-font--watch-color-code-map)))
 
-(cl-defun exlybar-font--precompute-px-sizes (height &optional font-map)
+(cl-defun slothbar-font--precompute-px-sizes (height &optional font-map)
   "Given a HEIGHT, compute pixel sizes for all fonts in the FONT-MAP.
 
-With no FONT-MAP argument, the value of `exlybar-font--color-code-map' is used."
-  (exlybar--log-trace* "precompute-px-size called %s %s" height font-map)
+With no FONT-MAP argument, the value of `slothbar-font--color-code-map' is used."
+  (slothbar--log-trace* "precompute-px-size called %s %s" height font-map)
   (apply
    #'vector
-   (cl-loop for font-path across (or font-map exlybar-font--color-code-map) collect
+   (cl-loop for font-path across (or font-map slothbar-font--color-code-map) collect
             (when font-path
 	      (fontsloth-font-compute-px (fontsloth-load-font font-path) height)))))
 
-(defvar exlybar-font-px-size nil
+(defvar slothbar-font-px-size nil
   "Precomputed font px size map.
 
 There should be no need to recompute pixel sizes unless either the height or
 the fonts change.")
 
-(defvar exlybar-height)
+(defvar slothbar-height)
 
-(defun exlybar-font--watch-px-size (sym nval oper where)
-  "With OPER eq \\='set and nil WHERE, update `exlybar-font-px-size'
-appropriately for NVAL with SYM equal to exlybar-height or
-exlybar-font--color-code-map."
+(defun slothbar-font--watch-px-size (sym nval oper where)
+  "With OPER eq \\='set and nil WHERE, update `slothbar-font-px-size'
+appropriately for NVAL with SYM equal to slothbar-height or
+slothbar-font--color-code-map."
   (when (and (not where) (eq 'set oper))
     (let ((height (cl-case sym
-                    (exlybar-height (when (/= (symbol-value sym) nval) nval))
-                    (exlybar-font--color-code-map nil)))
+                    (slothbar-height (when (/= (symbol-value sym) nval) nval))
+                    (slothbar-font--color-code-map nil)))
           (font-map (cl-case sym
-                      (exlybar-height nil)
-                      (exlybar-font--color-code-map
+                      (slothbar-height nil)
+                      (slothbar-font--color-code-map
                        (unless (equal (symbol-value sym) nval)
                          nval)))))
-      (when (or height font-map exlybar-height)
-        (setq exlybar-font-px-size
-              (exlybar-font--precompute-px-sizes
-               (or height exlybar-height) (or font-map exlybar-font--color-code-map)))))))
+      (when (or height font-map slothbar-height)
+        (setq slothbar-font-px-size
+              (slothbar-font--precompute-px-sizes
+               (or height slothbar-height) (or font-map slothbar-font--color-code-map)))))))
 
-(add-hook 'exlybar-before-init-hook
+(add-hook 'slothbar-before-init-hook
           (lambda ()
-            (add-variable-watcher 'exlybar-font--color-code-map
-                                  #'exlybar-font--watch-px-size)))
+            (add-variable-watcher 'slothbar-font--color-code-map
+                                  #'slothbar-font--watch-px-size)))
 
-(add-hook 'exlybar-after-exit-hook
+(add-hook 'slothbar-after-exit-hook
           (lambda ()
-            (remove-variable-watcher 'exlybar-font--color-code-map
-                                     #'exlybar-font--watch-px-size)))
+            (remove-variable-watcher 'slothbar-font--color-code-map
+                                     #'slothbar-font--watch-px-size)))
 
-(defcustom exlybar-font-px-delta
+(defcustom slothbar-font-px-delta
   [0.0
    0.0
    0.0
@@ -186,34 +186,34 @@ exlybar-font--color-code-map."
 This could be helpful for in the same display area swapping between two fonts
 with different metrics."
   :type '(vector float float float float float float float float float float)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defun exlybar-font--compute-y-delta (px-delta)
+(defun slothbar-font--compute-y-delta (px-delta)
   "Given a vector of PX-DELTA, compute corresponding Y-DELTA."
   (apply #'vector (cl-loop for pd across px-delta collect (/ pd 3))))
 
-(defvar exlybar-font-y-delta
-  (exlybar-font--compute-y-delta exlybar-font-px-delta)
+(defvar slothbar-font-y-delta
+  (slothbar-font--compute-y-delta slothbar-font-px-delta)
   "These deltas to adjust font y offsets.
-This is a companion to `exlybar-font-px-delta'.  Note that
+This is a companion to `slothbar-font-px-delta'.  Note that
 changing this setting does not invalidate existing glyph position
 caches.  This is automatically recomputed when
-`exlybar-font-px-delta' changes.")
+`slothbar-font-px-delta' changes.")
 
-(defun exlybar-font--watch-px-delta (_ nval oper where)
-  "With OPER eq \\='set and nil WHERE, update `exlybar-font-y-delta'
+(defun slothbar-font--watch-px-delta (_ nval oper where)
+  "With OPER eq \\='set and nil WHERE, update `slothbar-font-y-delta'
 computed from NVAL."
   (when (and (not where) (eq 'set oper))
-    (setq exlybar-font-y-delta (exlybar-font--compute-y-delta nval))))
+    (setq slothbar-font-y-delta (slothbar-font--compute-y-delta nval))))
 
-(add-variable-watcher 'exlybar-font-px-delta #'exlybar-font--watch-px-delta)
+(add-variable-watcher 'slothbar-font-px-delta #'slothbar-font--watch-px-delta)
 
-(defsubst exlybar-font-find (font-index)
+(defsubst slothbar-font-find (font-index)
   "Find a font corresponding to color code ^f0-^f9 given FONT-INDEX.
 
-See `exlybar-font-candidates' for information about how fonts are
+See `slothbar-font-candidates' for information about how fonts are
 configured."
-  (aref exlybar-font--color-code-map font-index))
+  (aref slothbar-font--color-code-map font-index))
 
 (provide 'exlybar-font)
 ;;; exlybar-font.el ends here

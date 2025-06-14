@@ -1,6 +1,6 @@
-#+TITLE: exlybar
+#+TITLE: slothbar
 
-Exlybar is an “Emacs Polybar like thing”.
+Slothbar is an “Emacs Polybar like thing”.
 
 It aims to act as an X window manager agnostic status bar and system tray that
 is written completely in elisp and fully configurable in Emacs.
@@ -75,7 +75,7 @@ If you would like it to work on Emacs 27, please let me know.
 + Animations
 
 * Project organization
-Exlybar consists of five primary components:
+Slothbar consists of five primary components:
 + Status bar xcb lifecycle, refresh, and event handling
   Entry point: [[./exlybar.el]]
 
@@ -83,9 +83,9 @@ Exlybar consists of five primary components:
   copy/clear during a refresh cycle.
 
   This provides two autoloaded interactive functions:
-  + ~(exlybar)~: display the status bar
+  + ~(slothbar)~: display the status bar
 
-  + ~(exlybar-exit)~: exit the status bar
+  + ~(slothbar-exit)~: exit the status bar
 
 + Logical layout helpers
   Entry point: [[./exlybar-layout.el]]
@@ -94,8 +94,8 @@ Exlybar consists of five primary components:
   right, and center alignments of modules. It supports x and y coordinate
   offsets.
 
-  The extents fns ~exlybar-layout-extents~ and
-  ~exlybar-layout-subtract-extents~ allow for selective display update when the
+  The extents fns ~slothbar-layout-extents~ and
+  ~slothbar-layout-subtract-extents~ allow for selective display update when the
   layout changes.
 
 + Port of Stumpwm like color command syntax
@@ -109,8 +109,8 @@ Exlybar consists of five primary components:
 
   Currently the following color code commands are supported:
   - :font, shorthand ^f[0-9]
-    ~exlybar-font-map~ is customizable and maps 0-9 to font paths
-  - :fg, shorthand ^[0-9]~?  ~exlybar-color-map-fg~ is customizable and maps
+    ~slothbar-font-map~ is customizable and maps 0-9 to font paths
+  - :fg, shorthand ^[0-9]~?  ~slothbar-color-map-fg~ is customizable and maps
     0-9 to xcb colors The optional ~ suffix (not in stumpwm) indicates to apply
     the color locally, meaning only to non color commands preceding the next
     color command if any. This is implemented as an implicit :push :pop around
@@ -130,23 +130,23 @@ Exlybar consists of five primary components:
   + [[./exlybar-module.el]]
   + [[./exlybar-module-.el]]
 
-  At present it consists of a cl-struct base type ~exlybar-module~ and a set
+  At present it consists of a cl-struct base type ~slothbar-module~ and a set
   of generic functions and default primary methods for dispatch on objects of
   that type.
 
   Generic functions (default primary method descriptions):
-  + ~(exlybar-module-init (m exlybar-module))~: gives an xcb pixmap, graphics
+  + ~(slothbar-module-init (m slothbar-module))~: gives an xcb pixmap, graphics
     context, a glyphset, a cache, and fills a rectangle with the background
     color.
 
-  + ~(exlybar-module-layout-text (m exlybar-module))~: relies on
-    ~fontsloth-layout~ and ~exlybar-color~ to produce a sequence of color
+  + ~(slothbar-module-layout-text (m slothbar-module))~: relies on
+    ~fontsloth-layout~ and ~slothbar-color~ to produce a sequence of color
     commands and glyph positions
 
-  + ~(exlybar-module-refresh (m exlybar-module))~: if the module requests a
+  + ~(slothbar-module-refresh (m slothbar-module))~: if the module requests a
     refresh, draw the text using glyph positions and color commands
 
-  + ~(exlybar-module-exit (m exlybar-module))~: free xcb assets and clear
+  + ~(slothbar-module-exit (m slothbar-module))~: free xcb assets and clear
     module state
 
   Module implementations can provide specific :before and/or :after methods of
@@ -168,7 +168,7 @@ It's tested in multi-monitor setups so far in EXWM and should work in
 herbstluftwm and xmonad.
 
 +It’s not great at helping to find fonts.+ See the
-=exlybar-font-candidates= docstring in [[./exlybar-color.el]].
+=slothbar-font-candidates= docstring in [[./exlybar-color.el]].
 
 It depends on fontsloth which is another project in very early stages; see the
 fontsloth README linked above for a list of tested fonts.
@@ -186,7 +186,7 @@ Quelpa allows an installation directly from this repo that is then managed the
 usual way via package.el. Quelpa can be installed from MELPA or bootstrapped
 directly from source if desired.
 
-After a successful installation on Emacs 28, ~M-x: exlybar~ should display an
+After a successful installation on Emacs 28, ~M-x: slothbar~ should display an
 empty status bar docked at the top of the screen. If it does not, please open
 an issue. To configure the bar to display one or more of the available modules,
 see [[*Usage][Usage]] below.
@@ -196,8 +196,8 @@ see [[*Usage][Usage]] below.
   ;;; after installing quelpa
 
   ;; note this uses a MELPA recipe, so the usual MELPA options also apply
-  (quelpa '(exlybar :fetcher github :repo "jollm/exlybar"
-                    :branch "focal"))
+  (quelpa '(slothbar :fetcher codeberg :repo "agnes-li/slothbar"
+                     :branch "focal"))
 #+END_SRC
 
 ** Install with use-package
@@ -207,14 +207,14 @@ Note: [[https://github.com/radian-software/straight.el][straight.el]] is another
 use-package.
 
 #+BEGIN_SRC emacs-lisp
-  ;; if quelpa use-package is installed, this should install exlybar
-  (use-package exlybar
-    :quelpa ((exlybar :fetcher github :repo "jollm/exlybar"
-                      :branch "focal")))
+  ;; if quelpa use-package is installed, this should install slothbar
+  (use-package slothbar
+    :quelpa ((slothbar :fetcher codeberg :repo "agnes-li/slothbar"
+                       :branch "focal")))
 
   ;; if you want to auto-check for upgrades
-  (use-package exlybar
-    :quelpa ((exlybar :fetcher github :repo "jollm/exlybar"
+  (use-package slothbar
+    :quelpa ((slothbar :fetcher codeberg :repo "agnes-li/slothbar"
                       :branch "focal") :upgrade t))
 #+END_SRC
 
@@ -236,7 +236,7 @@ after checking out the desired revision.
 
 Once the channel definition is updated, run =guix pull=.
 
-Then, =guix install emacs-exlybar= should suffice to complete
+Then, =guix install emacs-slothbar= should suffice to complete
 installation.
 
 * Usage
@@ -245,55 +245,55 @@ installation.
   ;;; this demonstrates display for all modules provided so far
   (require 'exlybar)
 
-  ;; note: if you customize exlybar-modules, exlybar-module-requires
+  ;; note: if you customize slothbar-modules, slothbar-module-requires
   ;; will be required automatically
   (require 'exlybar-module-requires)
 
   ;;; layout everything to the right
 
-  (push 'exlybar-date-create exlybar-modules)
+  (push 'slothbar-date-create slothbar-modules)
 
-  (push 'exlybar-workspaces-create exlybar-modules)
+  (push 'slothbar-workspaces-create slothbar-modules)
 
-  (push 'exlybar-battery-create exlybar-modules)
+  (push 'slothbar-battery-create slothbar-modules)
 
-  (push 'exlybar-backlight-create exlybar-modules)
+  (push 'slothbar-backlight-create slothbar-modules)
 
-  (push 'exlybar-tray-create exlybar-modules)
+  (push 'slothbar-tray-create slothbar-modules)
 
-  (push 'exlybar-volume-create exlybar-modules)
+  (push 'slothbar-volume-create slothbar-modules)
 
   ;; microphone volume
-  (push '(exlybar-volume-create :icon ((1 . ?) (110 . ?))
+  (push '(slothbar-volume-create :icon ((1 . ?) (110 . ?))
                                 :channel "Capture")
-        exlybar-modules)
+        slothbar-modules)
 
-  (push 'exlybar-wifi-create exlybar-modules)
+  (push 'slothbar-wifi-create slothbar-modules)
 
-  (exlybar)
+  (slothbar)
 
   ;;; re-layout everything current displayed to the left
 
-  (push :left exlybar-modules)
+  (push :left slothbar-modules)
 
   ;;; re-layout everything in the center
 
-  (setq exlybar-modules (cdr exlybar-modules))
-  (push :center exlybar-modules)
+  (setq slothbar-modules (cdr slothbar-modules))
+  (push :center slothbar-modules)
 
   ;;; layout tray, date, and workspaces to the left, and wifi, volume,
   ;;; backlight, and battery to the right
-  (setq exlybar-modules
+  (setq slothbar-modules
         '(:left
-          exlybar-tray-create exlybar-date-create
-          exlybar-workspaces-create
+          slothbar-tray-create slothbar-date-create
+          slothbar-workspaces-create
           :right
-          exlybar-wifi-create exlybar-volume-create
-          exlybar-backlight-create exlybar-battery-create))
+          slothbar-wifi-create slothbar-volume-create
+          slothbar-backlight-create slothbar-battery-create))
 
   ;;; exit (exit doesn’t modify layout for next time)
 
-  (exlybar-exit)
+  (slothbar-exit)
 
 #+end_src
 
@@ -308,46 +308,46 @@ installation.
   ;;; assume one of the layouts demonstrated above
 
   ;;; display the bar
-  (exlybar)
+  (slothbar)
 
   ;;; make it taller
-  (setq exlybar-height 25)
+  (setq slothbar-height 25)
 
   ;;; make it shorter
-  (setq exlybar-height 16)
+  (setq slothbar-height 16)
 
   ;;; swap wifi signal quality and essid
-  (exlybar-module-format my/wifi) ;; show the current format
+  (slothbar-module-format my/wifi) ;; show the current format
   ;; it is "^6^[^f1%i^]^[^2|^]%e^[^2|^]%p"
-  (setf (exlybar-module-format my/wifi) "^6^[^f1%i^]^[^2|^]%p^[^2|^]%e")
+  (setf (slothbar-module-format my/wifi) "^6^[^f1%i^]^[^2|^]%p^[^2|^]%e")
 
   ;;; change battery default color to default
-  (exlybar-module-format my/battery) ;; show the current format
+  (slothbar-module-format my/battery) ;; show the current format
   ;; it is "^6^[^f1%i^] %b%p%% ^[^2|^] %t ^[^2|^] %r"
-  (setf (exlybar-module-format my/battery) "^0^[^f1%i^] %b%p%% ^[^2|^] %t ^[^2|^] %r")
+  (setf (slothbar-module-format my/battery) "^0^[^f1%i^] %b%p%% ^[^2|^] %t ^[^2|^] %r")
 
   ;;; change battery percentage thresholds for icon and percent color change
-  (setq exlybar-battery-color-zones '(40 20 7 t t))
-  ;; see ~exlybar-color-zone~ for an explanation of the list elements
+  (setq slothbar-battery-color-zones '(40 20 7 t t))
+  ;; see ~slothbar-color-zone~ for an explanation of the list elements
 
-  ;;; see custom group ~exlybar~ and subgroups for current options
+  ;;; see custom group ~slothbar~ and subgroups for current options
 
 #+end_src
 
 ** With use-package
 #+begin_src emacs-lisp
-  (use-package exlybar
+  (use-package slothbar
     :defer t
     :config
     (require 'exlybar-module-requires)
-    (setq exlybar-modules (list :left 'exlybar-tray-create 'exlybar-date-create
-                                'exlybar-workspaces-create
-                                :right 'exlybar-wifi-create 'exlybar-volume-create
-                                'exlybar-backlight-create 'exlybar-battery-create)))
+    (setq slothbar-modules (list :left 'slothbar-tray-create 'slothbar-date-create
+                                'slothbar-workspaces-create
+                                :right 'slothbar-wifi-create 'slothbar-volume-create
+                                'slothbar-backlight-create 'slothbar-battery-create)))
 
-  ;;; then M-x: exlybar
+  ;;; then M-x: slothbar
   ;;; To exit:
-  ;;; M-x: exlybar-exit
+  ;;; M-x: slothbar-exit
 #+end_src
 
 * Screen(s)

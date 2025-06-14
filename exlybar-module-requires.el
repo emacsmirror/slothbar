@@ -4,7 +4,7 @@
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -37,7 +37,7 @@
 
 ;;; Commentary:
 
-;; Part of exlybar.
+;; Part of slothbar.
 
 ;; This module collects all requires for status bar modules.
 

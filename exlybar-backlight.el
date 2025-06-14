@@ -1,10 +1,10 @@
-;;; exlybar-backlight.el --- An exlybar backlight module  -*- lexical-binding: t -*-
+;;; slothbar-backlight.el --- An slothbar backlight module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -37,10 +37,10 @@
 
 ;;; Commentary:
 
-;; This is an implementation of `exlybar-module' for backlight status
+;; This is an implementation of `slothbar-module' for backlight status
 ;; information.
 
-;; To use this module, add it to `exlybar-modules' with any desired layout
+;; To use this module, add it to `slothbar-modules' with any desired layout
 ;; insructions.
 
 ;;; Code:
@@ -51,68 +51,68 @@
 (require 'exlybar-color)
 (require 'exlybar-module-)
 
-(defgroup exlybar-backlight nil
-  "An Exlybar backlight module."
-  :group 'exlybar)
+(defgroup slothbar-backlight nil
+  "An Slothbar backlight module."
+  :group 'slothbar)
 
-(defcustom exlybar-backlight-progress-increment 10
+(defcustom slothbar-backlight-progress-increment 10
   "The percent step increment for the backlight module progress bar."
   :type 'integer
-  :group 'exlybar-backlight)
+  :group 'slothbar-backlight)
 
-(defcustom exlybar-backlight-color-zones '(20 40 80 nil nil)
+(defcustom slothbar-backlight-color-zones '(20 40 80 nil nil)
   "Backlight percentages indicating progress color changes.
-See `exlybar-color-zone'"
+See `slothbar-color-zone'"
   :type '(list (integer :tag "Med") (integer :tag "Hi") (integer :tag "Crit")
                (boolean :tag "Reverse?") (boolean :tag "Local?"))
-  :group 'exlybar-backlight)
+  :group 'slothbar-backlight)
 
-(cl-defstruct (exlybar-backlight
-               (:include exlybar-module (name "backlight") (icon ?)
+(cl-defstruct (slothbar-backlight
+               (:include slothbar-module (name "backlight") (icon ?)
                          (format "^8^f2^[^f1%i^]%p")
-                         (format-fn #'exlybar-backlight-format-format))
-               (:constructor exlybar-backlight-create)
+                         (format-fn #'slothbar-backlight-format-format))
+               (:constructor slothbar-backlight-create)
                (:copier nil)))
 
-(defun exlybar-backlight-current-progress ()
+(defun slothbar-backlight-current-progress ()
   "Build a progress bar corresponding to the current state."
-  (exlybar-color-progress-bar
+  (slothbar-color-progress-bar
    (backlight--current-percentage)
-   exlybar-backlight-progress-increment exlybar-backlight-color-zones))
+   slothbar-backlight-progress-increment slothbar-backlight-color-zones))
 
-(defun exlybar-backlight--format-fn-spec ()
+(defun slothbar-backlight--format-fn-spec ()
   "Build the `format-spec' spec used by the format-fn."
-  `((?p . ,(exlybar-backlight-current-progress))))
+  `((?p . ,(slothbar-backlight-current-progress))))
 
-(defun exlybar-backlight-format-format (m)
+(defun slothbar-backlight-format-format (m)
   "This is the default format-fn applied to module M's format."
-  (format-spec (exlybar-module-format m)
-               (exlybar-backlight--format-fn-spec) t))
+  (format-spec (slothbar-module-format m)
+               (slothbar-backlight--format-fn-spec) t))
 
-(defun exlybar-backlight--format-spec (icon)
+(defun slothbar-backlight--format-spec (icon)
   "Build the `format-spec' with ICON used to generate module text."
   `((?i . ,(string icon))))
 
-(cl-defmethod exlybar-module-update-status ((m exlybar-backlight))
+(cl-defmethod slothbar-module-update-status ((m slothbar-backlight))
   "Get the backlight status and check whether to update M's text."
-  (let* ((status (exlybar-backlight--format-spec (exlybar-module-icon m)))
+  (let* ((status (slothbar-backlight--format-spec (slothbar-module-icon m)))
          (txt (number-to-string (and (backlight--read-current-brightness)
                                      (backlight--current-percentage)))))
-    (unless (equal txt (exlybar-module-text m))
-      (setf (exlybar-module-format-spec m) status
-            (exlybar-module-text m) txt
-            (exlybar-module-needs-refresh? m) t))))
+    (unless (equal txt (slothbar-module-text m))
+      (setf (slothbar-module-format-spec m) status
+            (slothbar-module-text m) txt
+            (slothbar-module-needs-refresh? m) t))))
 
-(cl-defmethod exlybar-module-init :before ((m exlybar-backlight))
+(cl-defmethod slothbar-module-init :before ((m slothbar-backlight))
   "Set the M's icon and update the text."
-  (exlybar-module-update-status m))
+  (slothbar-module-update-status m))
 
-(defun exlybar-backlight--set-brightness-advice (&rest _)
+(defun slothbar-backlight--set-brightness-advice (&rest _)
   "A function to update status when the brightness is changed in Emacs."
-  (exlybar-module--refresh-all-by-name "backlight"))
+  (slothbar-module--refresh-all-by-name "backlight"))
 
 (advice-add 'backlight--set-brightness
-            :after #'exlybar-backlight--set-brightness-advice)
+            :after #'slothbar-backlight--set-brightness-advice)
 
 (provide 'exlybar-backlight)
 ;;; exlybar-backlight.el ends here

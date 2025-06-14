@@ -1,10 +1,10 @@
-;;; exlybar-volume.el --- An exlybar volume module  -*- lexical-binding: t -*-
+;;; exlybar-volume.el --- An slothbar volume module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -37,10 +37,10 @@
 
 ;;; Commentary:
 
-;; This is an implementation of `exlybar-module' for volume status
+;; This is an implementation of `slothbar-module' for volume status
 ;; information.
 
-;; To use this module, add it to `exlybar-modules' with any desired layout
+;; To use this module, add it to `slothbar-modules' with any desired layout
 ;; insructions.
 
 ;;; Code:
@@ -52,78 +52,78 @@
 (require 'exlybar-color)
 (require 'exlybar-module-)
 
-(defgroup exlybar-volume nil
-  "An Exlybar volume module."
-  :group 'exlybar)
+(defgroup slothbar-volume nil
+  "An Slothbar volume module."
+  :group 'slothbar)
 
-(defcustom exlybar-volume-progress-increment 10
+(defcustom slothbar-volume-progress-increment 10
   "The percent step increment for the volume module progress bar."
   :type 'integer
-  :group 'exlybar-volume)
+  :group 'slothbar-volume)
 
-(defcustom exlybar-volume-color-zones '(20 50 80 nil nil)
+(defcustom slothbar-volume-color-zones '(20 50 80 nil nil)
   "Volume percentages indicating progress color changes.
-See `exlybar-color-zone'"
+See `slothbar-color-zone'"
   :type '(list (integer :tag "Med") (integer :tag "Hi") (integer :tag "Crit")
                (boolean :tag "Reverse?") (boolean :tag "Local?"))
-  :group 'exlybar-volume)
+  :group 'slothbar-volume)
 
-(cl-defstruct (exlybar-volume
-               (:include exlybar-module (name "volume") (icon '((33 . ?) (67 . ?) (110 . ?)))
+(cl-defstruct (slothbar-volume
+               (:include slothbar-module (name "volume") (icon '((33 . ?) (67 . ?) (110 . ?)))
                          (format "^8^f2^[^f1%i^]%p")
-                         (format-fn #'exlybar-volume-format-format))
-               (:constructor exlybar-volume-create)
+                         (format-fn #'slothbar-volume-format-format))
+               (:constructor slothbar-volume-create)
                (:copier nil))
   (channel nil :type 'string
            :documentation "Channel name corresponding to `volume-channels'. When nil, it will be
 `volume-default-channel'."))
 
-(defun exlybar-volume-current-progress (pct)
+(defun slothbar-volume-current-progress (pct)
   "Build a progress bar corresponding to the current PCT."
-  (exlybar-color-progress-bar
-   pct exlybar-volume-progress-increment exlybar-volume-color-zones))
+  (slothbar-color-progress-bar
+   pct slothbar-volume-progress-increment slothbar-volume-color-zones))
 
-(defun exlybar-volume--format-fn-spec (pct)
+(defun slothbar-volume--format-fn-spec (pct)
   "Build the `format-spec' spec used by the format-fn given PCT."
-  `((?p . ,(exlybar-volume-current-progress pct))))
+  `((?p . ,(slothbar-volume-current-progress pct))))
 
-(defun exlybar-volume-format-format (m)
+(defun slothbar-volume-format-format (m)
   "This is the default format-fn that is applied to module M's format."
   (let ((default-directory (f-full "~")))
-    (format-spec (exlybar-module-format m)
-		 (exlybar-volume--format-fn-spec (exlybar-volume--get-status m)) t)))
+    (format-spec (slothbar-module-format m)
+		 (slothbar-volume--format-fn-spec (slothbar-volume--get-status m)) t)))
 
-(defun exlybar-volume--get-status (m)
+(defun slothbar-volume--get-status (m)
   "Return volume status for the given module M."
-  (let* ((channel (exlybar-volume-channel m))
+  (let* ((channel (slothbar-volume-channel m))
          (volume-amixer-current-channel (or channel (volume-default-channel))))
     (volume-get)))
 
-(defun exlybar-volume--format-spec (m pct)
+(defun slothbar-volume--format-spec (m pct)
   "Build M's `format-spec' spec used to generate module text given PCT."
-  `((?i . ,(string (exlybar-color-choose-icon pct (exlybar-module-icon m))))))
+  `((?i . ,(string (slothbar-color-choose-icon pct (slothbar-module-icon m))))))
 
-(cl-defmethod exlybar-module-update-status ((m exlybar-volume))
+(cl-defmethod slothbar-module-update-status ((m slothbar-volume))
   "Query the volume backend and check whether to update M's text."
   (let* ((default-directory (f-full "~"))
-	 (pct (exlybar-volume--get-status m))
-         (status (exlybar-volume--format-spec m pct))
+	 (pct (slothbar-volume--get-status m))
+         (status (slothbar-volume--format-spec m pct))
          (txt (number-to-string pct)))
-    (unless (equal txt (exlybar-volume-text m))
-      (setf (exlybar-module-format-spec m) status
-            (exlybar-module-text m) txt
-            (exlybar-module-needs-refresh? m) t))))
+    (unless (equal txt (slothbar-volume-text m))
+      (setf (slothbar-module-format-spec m) status
+            (slothbar-module-text m) txt
+            (slothbar-module-needs-refresh? m) t))))
 
-(cl-defmethod exlybar-module-init :before ((m exlybar-volume))
+(cl-defmethod slothbar-module-init :before ((m slothbar-volume))
   "Set the M's icon and update the text."
-  (exlybar-module-update-status m))
+  (slothbar-module-update-status m))
 
-(defun exlybar-volume--refresh-advice (&rest _)
+(defun slothbar-volume--refresh-advice (&rest _)
   "Refresh any module instances if the volume is adjusted in Emacs."
-  (exlybar-module--refresh-all-by-name "volume"))
+  (slothbar-module--refresh-all-by-name "volume"))
 
-(advice-add 'volume-update :after #'exlybar-volume--refresh-advice)
-(advice-add 'volume-set :after #'exlybar-volume--refresh-advice)
+(advice-add 'volume-update :after #'slothbar-volume--refresh-advice)
+(advice-add 'volume-set :after #'slothbar-volume--refresh-advice)
 
 (provide 'exlybar-volume)
 ;;; exlybar-volume.el ends here

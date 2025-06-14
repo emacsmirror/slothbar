@@ -4,7 +4,7 @@
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -51,147 +51,147 @@
 
 ;;; foreground colors
 
-(defcustom exlybar-color-fg
+(defcustom slothbar-color-fg
   '(:red #xeeee :green #xffff :blue #xffff :alpha #xeeee)
   "The default text color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-notice
+(defcustom slothbar-color-notice
   '(:red #xc3c3 :green #xe8e8 :blue #x8d8d :alpha #xeeee)
   "The default notice color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-diminish
+(defcustom slothbar-color-diminish
   '(:red #x6767 :green #x6e6e :blue #x9595 :alpha #xeeee)
   "The default diminish color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-warning
+(defcustom slothbar-color-warning
   '(:red #xffff :green #xcbcb :blue #x6b6b :alpha #xeeee)
   "The default warning color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-critical
+(defcustom slothbar-color-critical
   '(:red #xffff :green #x5353 :blue #x7070 :alpha #xeeee)
   "The default critical color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-blueish
+(defcustom slothbar-color-blueish
   '(:red #x8282 :green #xaaaa :blue #xffff :alpha #xeeee)
   "A blueish color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-amaranthish
+(defcustom slothbar-color-amaranthish
   '(:red #xc7c7 :green #x9292 :blue #xeaea :alpha #xeeee)
   "A purplish color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-pinkish
+(defcustom slothbar-color-pinkish
   '(:red #xffff :green #x6e6e :blue #xb4b4 :alpha #xeeee)
   "A pinkish color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-orangeish
+(defcustom slothbar-color-orangeish
   '(:red #xf7f7 :green #x8c8c :blue #x6c6c :alpha #xeeee)
   "An orangeish color."
   :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
-  :group 'exlybar)
+  :group 'slothbar)
 
 ;;; background colors
 
 ;; TODO: use this
-;; (defcustom exlybar-color-bg
-;;   (exlybar-util--color->pixel
-;;    (exlybar-util--find-background-color))
+;; (defcustom slothbar-color-bg
+;;   (slothbar-util--color->pixel
+;;    (slothbar-util--find-background-color))
 ;;   "The default background color.
 ;; Currently unused."
 ;;   :type 'natnum
-;;   :group 'exlybar)
+;;   :group 'slothbar)
 
 ;;; color maps
 
-(defcustom exlybar-color-map-fg
+(defcustom slothbar-color-map-fg
   (vector
-   (apply #'exlybar-render-create-color exlybar-color-fg)
-   (apply #'exlybar-render-create-color exlybar-color-notice)
-   (apply #'exlybar-render-create-color exlybar-color-diminish)
-   (apply #'exlybar-render-create-color exlybar-color-warning)
-   (apply #'exlybar-render-create-color exlybar-color-critical)
-   (apply #'exlybar-render-create-color exlybar-color-blueish)
-   (apply #'exlybar-render-create-color exlybar-color-amaranthish)
-   (apply #'exlybar-render-create-color exlybar-color-pinkish)
-   (apply #'exlybar-render-create-color exlybar-color-orangeish)
-   (apply #'exlybar-render-create-color exlybar-color-fg))
+   (apply #'slothbar-render-create-color slothbar-color-fg)
+   (apply #'slothbar-render-create-color slothbar-color-notice)
+   (apply #'slothbar-render-create-color slothbar-color-diminish)
+   (apply #'slothbar-render-create-color slothbar-color-warning)
+   (apply #'slothbar-render-create-color slothbar-color-critical)
+   (apply #'slothbar-render-create-color slothbar-color-blueish)
+   (apply #'slothbar-render-create-color slothbar-color-amaranthish)
+   (apply #'slothbar-render-create-color slothbar-color-pinkish)
+   (apply #'slothbar-render-create-color slothbar-color-orangeish)
+   (apply #'slothbar-render-create-color slothbar-color-fg))
   "The color map corresponding to color codes ^0-^9."
   :type '(vector sexp sexp sexp sexp sexp sexp sexp sexp sexp sexp)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-zone-crit "^4"
+(defcustom slothbar-color-zone-crit "^4"
   "A color for critical zone.
-See `exlybar-color-zone'"
+See `slothbar-color-zone'"
   :type 'string
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-zone-hi "^3"
+(defcustom slothbar-color-zone-hi "^3"
   "A color for hi zone.
-See `exlybar-color-zone'"
+See `slothbar-color-zone'"
   :type 'string
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-color-zone-med "^5"
+(defcustom slothbar-color-zone-med "^5"
   "A color for med zone.
-See `exlybar-color-zone'"
+See `slothbar-color-zone'"
   :type 'string
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defsubst exlybar-color-find (color-index fg)
+(defsubst slothbar-color-find (color-index fg)
   "Find a color given COLOR-INDEX.
 FG t if a foreground color, nil if a background color"
-  (if fg (aref exlybar-color-map-fg color-index)
-    (exlybar-util--color->pixel
-     (exlybar-util--find-background-color))))
+  (if fg (aref slothbar-color-map-fg color-index)
+    (slothbar-util--color->pixel
+     (slothbar-util--find-background-color))))
 
 ;; TODO change these to keyword params
-(cl-defun exlybar-color-zone
+(cl-defun slothbar-color-zone
     (amount &optional (med 20) (hi 50) (crit 90) reverse? local?)
   "Return a color command based on the magnitude of the AMOUNT, an integer.
 
 If the limits MED, HI, and CRIT for the levels aren't specified, they
 default to sensible values for a percentage.  See
-`exlybar-color-zone-med', `exlybar-color-zone-hi', and
-`exlybar-color-zone-crit' to customize these defaults.
+`slothbar-color-zone-med', `slothbar-color-zone-hi', and
+`slothbar-color-zone-crit' to customize these defaults.
 
 With REVERSE? t, lower numbers are more critical.  With LOCAL? t, the
 color code is made local."
   (cl-flet ((past (n) (funcall (if reverse? #'<= #'>=) amount n)))
-    (let ((zone (cond ((past crit) exlybar-color-zone-crit)
-                      ((past hi) exlybar-color-zone-hi)
-                      ((past med) exlybar-color-zone-med)
+    (let ((zone (cond ((past crit) slothbar-color-zone-crit)
+                      ((past hi) slothbar-color-zone-hi)
+                      ((past med) slothbar-color-zone-med)
                       (t ""))))
       (if (and (not (seq-empty-p zone)) local?) (s-append "~" zone)
         zone))))
 
-(cl-defun exlybar-color-progress-bar
+(cl-defun slothbar-color-progress-bar
     (percent increment colorize
              &key (fill ?—) (blank ? ) (right ?\]) (left ?\[))
   "Given PERCENT and INCREMENT return a string of RIGHT FILL* BLANK* LEFT.
 If RIGHT or LEFT are nil, they are respectively excluded.
 COLORIZE t to use default zone color codes, nil for no color
 codes, or a list of arguments excluding amount to pass to
-`exlybar-color-zone'"
+`slothbar-color-zone'"
   (let* ((progress (/ percent increment))
          (steps (/ 100 increment))
          (bar (when left `(,left)))
          (zone-color
-          (apply #'exlybar-color-zone percent
+          (apply #'slothbar-color-zone percent
                  (when (consp colorize) colorize)))
          (has-zone? (and colorize (not (seq-empty-p zone-color)))))
     (when has-zone?
@@ -211,19 +211,19 @@ codes, or a list of arguments excluding amount to pass to
     (when right (push right bar))
     (apply #'string (nreverse bar))))
 
-(defsubst exlybar-color-choose-icon (val icons)
+(defsubst slothbar-color-choose-icon (val icons)
   "Return first (cdr icon) for which (< VAL (car icon)) is t.
 
 ICONS is an alist of the form ((ival1 . icon1) ... (ivaln . iconn)).
 ivals are expected to be in ascending order."
   (cdr (seq-find (pcase-lambda (`(,p . ,_)) (< val p)) icons)))
 
-(defvar exlybar-color--pattern
+(defvar slothbar-color--pattern
   "\\^[][nrRbB>^;]\\|\\^[0-9*]\\{1,2\\}~?\\|\\^f[0-9]\\|\\^(.*?)"
   "This is the same color code pattern used in stumpwm.
-Note that not yet all of these options are supported for exlybar.")
+Note that not yet all of these options are supported for slothbar.")
 
-(defun exlybar-color-parse (color)
+(defun slothbar-color-parse (color)
   "Parse a possible colorcode into a list of the appropriate modifiers.
 If COLOR isn't a colorcode a list containing COLOR is returned."
   (if (and (> (length color) 1)
@@ -262,7 +262,7 @@ If COLOR isn't a colorcode a list containing COLOR is returned."
              (:reverse nil)))))
     (list color)))
 
-(defun exlybar-color-parse-string (string)
+(defun slothbar-color-parse-string (string)
   "Parse a color-coded STRING into a list of strings and color modifiers."
   ;; these two fns attempt to replicate cl ppcre:split
   (cl-labels ((expand-positions (pos length)
@@ -290,10 +290,10 @@ If COLOR isn't a colorcode a list containing COLOR is returned."
                            (push (apply #'string (nreverse acc)) res)
                            finally return (nreverse res)))))
     (let ((substrings
-           (split-retain string exlybar-color--pattern)))
+           (split-retain string slothbar-color--pattern)))
       (cl-loop for substring in substrings
                with resolve~? = nil append
-               (let ((p (exlybar-color-parse substring)))
+               (let ((p (slothbar-color-parse substring)))
                  (if (stringp (car p)) p
                    (if (eq :~ (caar p))
                        (progn (setq resolve~? t) (cons '(:push) (cdr p)))

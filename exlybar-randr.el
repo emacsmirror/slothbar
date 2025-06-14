@@ -1,10 +1,10 @@
-;;; exlybar-randr.el --- Exlybar randr event listeners -*- lexical-binding: t -*-
+;;; exlybar-randr.el --- Slothbar randr event listeners -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -37,9 +37,9 @@
 
 ;;; Commentary:
 
-;; Part of exlybar.
+;; Part of slothbar.
 
-;; This module provides randr awareness for exlybar.
+;; This module provides randr awareness for slothbar.
 
 ;;; Code:
 
@@ -48,43 +48,43 @@
 (require 'exlybar)
 (require 'exlybar-util)
 
-(defgroup exlybar-randr nil
-  "Exlybar RandR."
-  :group 'exlybar-randr)
+(defgroup slothbar-randr nil
+  "Slothbar RandR."
+  :group 'slothbar-randr)
 
-(defcustom exlybar-randr-screen-change-hook nil
+(defcustom slothbar-randr-screen-change-hook nil
   "Normal hook run when screen changes."
   :type 'hook
-  :group 'exlybar-randr)
+  :group 'slothbar-randr)
 
 ;;;###autoload
-(define-minor-mode exlybar-randr-mode
-  "Toggle exlybar randr support."
+(define-minor-mode slothbar-randr-mode
+  "Toggle slothbar randr support."
   :global t
-  :group 'exlybar-randr
-  (exlybar--global-minor-mode-body randr))
+  :group 'slothbar-randr
+  (slothbar--global-minor-mode-body randr))
 
-(defvar exlybar-randr--last-timestamp 0 "Used for debouncing events.")
+(defvar slothbar-randr--last-timestamp 0 "Used for debouncing events.")
 
-(defvar exlybar-randr--prev-screen-change-seqnum nil
+(defvar slothbar-randr--prev-screen-change-seqnum nil
   "The most recent ScreenChangeNotify sequence number.")
 
-(defvar exlybar-randr--compatibility-mode nil
+(defvar slothbar-randr--compatibility-mode nil
   "Non-nil when the server does not support RandR 1.5 protocol.")
 
-(defun exlybar-randr--on-ScreenChangeNotify (data _synthetic)
+(defun slothbar-randr--on-ScreenChangeNotify (data _synthetic)
   "Handle `ScreenChangeNotify' event with DATA.
 
-Run `exlybar-randr-screen-change-hook' (usually user scripts to
+Run `slothbar-randr-screen-change-hook' (usually user scripts to
 configure RandR)."
   (let ((evt (make-instance 'xcb:randr:ScreenChangeNotify)))
     (xcb:unmarshal evt data)
     (let ((seqnum (slot-value evt '~sequence)))
-      (unless (equal seqnum exlybar-randr--prev-screen-change-seqnum)
-        (setq exlybar-randr--prev-screen-change-seqnum seqnum)
-        (run-hooks 'exlybar-randr-screen-change-hook)))))
+      (unless (equal seqnum slothbar-randr--prev-screen-change-seqnum)
+        (setq slothbar-randr--prev-screen-change-seqnum seqnum)
+        (run-hooks 'slothbar-randr-screen-change-hook)))))
 
-(defun exlybar-randr--on-Notify (data _synthetic)
+(defun slothbar-randr--on-Notify (data _synthetic)
   "Handle `CrtcChangeNotify' and `OutputChangeNotify' events with DATA.
 
 Refresh when any CRTC/output changes."
@@ -94,75 +94,75 @@ Refresh when any CRTC/output changes."
                       (slot-value evt 'oc))))
       (when notify
         (with-slots (timestamp) notify
-          (when (> timestamp exlybar-randr--last-timestamp)
-            (run-at-time 0 nil #'exlybar-randr--refresh)
-            (setq exlybar-randr--last-timestamp timestamp)))))))
+          (when (> timestamp slothbar-randr--last-timestamp)
+            (run-at-time 0 nil #'slothbar-randr--refresh)
+            (setq slothbar-randr--last-timestamp timestamp)))))))
 
-(defun exlybar-randr--on-ConfigureNotify (data _synthetic)
+(defun slothbar-randr--on-ConfigureNotify (data _synthetic)
   "Handle `ConfigureNotify' event with DATA.
 
 Refresh when any RandR 1.5 monitor changes."
   (let ((evt (make-instance 'xcb:ConfigureNotify)))
     (xcb:unmarshal evt data)
     (with-slots (window) evt
-      (when (eq window exlybar--window)
-        (exlybar-randr--refresh)))))
+      (when (eq window slothbar--window)
+        (slothbar-randr--refresh)))))
 
-(defun exlybar-randr--init ()
-  "Initialize RandR extension and exlybar RandR module.
+(defun slothbar-randr--init ()
+  "Initialize RandR extension and slothbar RandR module.
 
 This is adapted from the EXWM RandR module."
-  (when (= 0 (slot-value (xcb:get-extension-data exlybar--connection 'xcb:randr)
+  (when (= 0 (slot-value (xcb:get-extension-data slothbar--connection 'xcb:randr)
                          'present))
-    (error "[exlybar] RandR extension is not supported by the server"))
+    (error "[slothbar] RandR extension is not supported by the server"))
   (with-slots (major-version minor-version)
-      (xcb:+request-unchecked+reply exlybar--connection
+      (xcb:+request-unchecked+reply slothbar--connection
           (make-instance 'xcb:randr:QueryVersion
                          :major-version 1 :minor-version 5))
     (cond ((and (= major-version 1) (= minor-version 5))
-           (setq exlybar-randr--compatibility-mode nil))
+           (setq slothbar-randr--compatibility-mode nil))
           ((and (= major-version 1) (>= minor-version 2))
-           (setq exlybar-randr--compatibility-mode t))
+           (setq slothbar-randr--compatibility-mode t))
           (t
-           (error "[exlybar] The server only support RandR version up to %d.%d"
+           (error "[slothbar] The server only support RandR version up to %d.%d"
                   major-version minor-version)))
     ;; Listen for `ScreenChangeNotify' to notify external tools to
     ;; configure RandR and `CrtcChangeNotify/OutputChangeNotify' to
     ;; refresh the workspace layout.
-    (xcb:+event exlybar--connection 'xcb:randr:ScreenChangeNotify
-                #'exlybar-randr--on-ScreenChangeNotify)
-    (xcb:+event exlybar--connection 'xcb:randr:Notify
-                #'exlybar-randr--on-Notify)
-    (xcb:+event exlybar--connection 'xcb:ConfigureNotify
-                #'exlybar-randr--on-ConfigureNotify)
-    (xcb:+request exlybar--connection
+    (xcb:+event slothbar--connection 'xcb:randr:ScreenChangeNotify
+                #'slothbar-randr--on-ScreenChangeNotify)
+    (xcb:+event slothbar--connection 'xcb:randr:Notify
+                #'slothbar-randr--on-Notify)
+    (xcb:+event slothbar--connection 'xcb:ConfigureNotify
+                #'slothbar-randr--on-ConfigureNotify)
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:randr:SelectInput
-                       :window exlybar--window
+                       :window slothbar--window
                        :enable (logior
                                 xcb:randr:NotifyMask:ScreenChange
                                 xcb:randr:NotifyMask:CrtcChange
                                 xcb:randr:NotifyMask:OutputChange)))
-    (xcb:flush exlybar--connection)))
+    (xcb:flush slothbar--connection)))
 
-(defun exlybar-randr--exit ()
+(defun slothbar-randr--exit ()
   "Perform cleanup."
-  (setq exlybar-randr--last-timestamp 0
-        exlybar-randr--prev-screen-change-seqnum nil
-        exlybar-randr--compatibility-mode nil))
+  (setq slothbar-randr--last-timestamp 0
+        slothbar-randr--prev-screen-change-seqnum nil
+        slothbar-randr--compatibility-mode nil))
 
-(defun exlybar-randr--refresh ()
-  "Refresh exlybar according to the updated RandR info."
+(defun slothbar-randr--refresh ()
+  "Refresh slothbar according to the updated RandR info."
   (interactive)
-  (let ((geom (exlybar--find-display-geometry exlybar-preferred-display)))
-    (setq exlybar-offset-x (alist-get 'x-offset geom)
-	  exlybar-offset-y (if exlybar-is-bottom
+  (let ((geom (slothbar--find-display-geometry slothbar-preferred-display)))
+    (setq slothbar-offset-x (alist-get 'x-offset geom)
+	  slothbar-offset-y (if slothbar-is-bottom
                                (- (+ (alist-get 'y-offset geom)
                                      (alist-get 'height geom))
-                                  exlybar-height)
+                                  slothbar-height)
                              (alist-get 'y-offset geom))
-	  exlybar-width (alist-get 'width geom)
-          exlybar--geometry-changed? t)
-    (run-at-time 0 nil #'exlybar-refresh-modules)))
+	  slothbar-width (alist-get 'width geom)
+          slothbar--geometry-changed? t)
+    (run-at-time 0 nil #'slothbar-refresh-modules)))
 
 (provide 'exlybar-randr)
 ;;; exlybar-randr.el ends here

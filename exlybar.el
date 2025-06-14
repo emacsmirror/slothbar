@@ -4,7 +4,7 @@
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Package-Requires: ((backlight "1.4") (compat "29.1") (dash "2.1.0") (f "0.20.0") (fontsloth "0.19.1") (log4e "0.3.3") (s "1.12.0") (volume "1.0") (xelb "0.18") (emacs "28.0"))
 ;; Keywords: window-manager, status-bar, exwm
 
@@ -42,16 +42,16 @@
 ;; information.
 
 ;; An example configuration with use-package:
-;;   (use-package exlybar
+;;   (use-package slothbar
 ;;     :init
 ;;     (require 'exlybar-module-requires)
-;;     (setq exlybar-modules
+;;     (setq slothbar-modules
 ;;           '(:left
-;;             exlybar-tray-create exlybar-date-create
+;;             slothbar-tray-create slothbar-date-create
 ;;             :right
-;;             exlybar-workspaces-create exlybar-wifi-create
-;;             exlybar-volume-create exlybar-battery))
-;;     :config (exlybar))
+;;             slothbar-workspaces-create slothbar-wifi-create
+;;             slothbar-volume-create slothbar-battery))
+;;     :config (slothbar))
 
 ;;; Code:
 
@@ -68,139 +68,139 @@
 (require 'exlybar-log)
 
 (defgroup exlybar nil
-  "Exlybar is a status bar that displays as a dock window in X."
+  "Slothbar is a status bar that displays as a dock window in X."
   :group 'display)
 
-(defvar exlybar--connection nil "The X connection.")
-(defvar exlybar--window nil "The parent window.")
-(defvar exlybar--gc nil "The graphics context.")
+(defvar slothbar--connection nil "The X connection.")
+(defvar slothbar--window nil "The parent window.")
+(defvar slothbar--gc nil "The graphics context.")
 
-(defvar exlybar--enabled nil "Non-nil if exlybar is enabled.")
+(defvar slothbar--enabled nil "Non-nil if slothbar is enabled.")
 
-(defcustom exlybar-width (display-pixel-width)
-  "Exlybar width.
+(defcustom slothbar-width (display-pixel-width)
+  "Slothbar width.
 
 Defaults to the width obtained from `display-pixel-width'"
   :type 'integer
-  :group 'exlybar)
+  :group 'slothbar)
 
 (require 'exlybar-layout)
 
-(defcustom exlybar-height 20
-  "Exlybar height."
+(defcustom slothbar-height 20
+  "Slothbar height."
   :type 'integer
-  :group 'exlybar)
+  :group 'slothbar)
 
 (require 'exlybar-font)
 
-(add-hook 'exlybar-before-init-hook
+(add-hook 'slothbar-before-init-hook
           (lambda ()
-            (add-variable-watcher 'exlybar-height
-                                  #'exlybar-font--watch-px-size)))
+            (add-variable-watcher 'slothbar-height
+                                  #'slothbar-font--watch-px-size)))
 
-(add-hook 'exlybar-after-exit-hook
+(add-hook 'slothbar-after-exit-hook
           (lambda ()
-            (remove-variable-watcher 'exlybar-height
-                                     #'exlybar-font--watch-px-size)))
+            (remove-variable-watcher 'slothbar-height
+                                     #'slothbar-font--watch-px-size)))
 
-(defcustom exlybar-offset-x 0
+(defcustom slothbar-offset-x 0
   "Bar display x offset in pixels."
   :type 'integer
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-offset-y 0
+(defcustom slothbar-offset-y 0
   "Bar display y offset in pixels."
   :type 'integer
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-margin-y 2
+(defcustom slothbar-margin-y 2
   "Bar vertical margin in pixels."
   :type 'integer
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-preferred-display "eDP-1"
+(defcustom slothbar-preferred-display "eDP-1"
   "If multiple displays are connected:
 
-- nil indicates to automatically choose one.  If the exlybar-randr
+- nil indicates to automatically choose one.  If the slothbar-randr
   extension is enabled, this will be the primary display
 - string should be the display name as reported by
   `display-monitor-attributes-list`"
   :type '(choice (const :tag "auto" nil)
 		 string)
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-is-bottom nil
-  "True if exlybar is positioned at the bottom of the display, false
+(defcustom slothbar-is-bottom nil
+  "True if slothbar is positioned at the bottom of the display, false
 otherwise."
   :type 'boolean
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-modules nil
-  "List of exlybar module constructor names with optional layout
+(defcustom slothbar-modules nil
+  "List of slothbar module constructor names with optional layout
 instructions.
 
 E.g.: (:left
-       exlybar-tray-create exlybar-date-create
+       slothbar-tray-create slothbar-date-create
        :right
-       exlybar-wifi-create exlybar-volume-create
-       exlybar-backlight-create exlybar-battery-create)"
+       slothbar-wifi-create slothbar-volume-create
+       slothbar-backlight-create slothbar-battery-create)"
   :type '(repeat (choice (radio :tag "Layout instruction keyword" :value :left
                                 (const :left) (const :right) (const :center))
                          (function :tag "Module constructor or lambda"
-                                   :value exlybar-date-create)))
-  :group 'exlybar
+                                   :value slothbar-date-create)))
+  :group 'slothbar
   :require 'exlybar-module-requires)
 
-(defcustom exlybar-before-init-hook nil
-  "Functions to run when before exlybar is initialized."
+(defcustom slothbar-before-init-hook nil
+  "Functions to run when before slothbar is initialized."
   :type 'hook
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-after-init-hook nil
-  "Functions to run when after exlybar is initialized."
+(defcustom slothbar-after-init-hook nil
+  "Functions to run when after slothbar is initialized."
   :type 'hook
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-before-exit-hook nil
-  "Functions to run when before exlybar exits."
+(defcustom slothbar-before-exit-hook nil
+  "Functions to run when before slothbar exits."
   :type 'hook
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defcustom exlybar-after-exit-hook nil
-  "Functions to run when after exlybar exits."
+(defcustom slothbar-after-exit-hook nil
+  "Functions to run when after slothbar exits."
   :type 'hook
-  :group 'exlybar)
+  :group 'slothbar)
 
-(defvar exlybar--connection)
+(defvar slothbar--connection)
 
-(defvar exlybar--modules nil
-  "List of exlybar modules with optional layout instructions.")
+(defvar slothbar--modules nil
+  "List of slothbar modules with optional layout instructions.")
 
-(defmacro exlybar--global-minor-mode-body (name &optional init exit)
+(defmacro slothbar--global-minor-mode-body (name &optional init exit)
   "Global minor mode body for mode with NAME.
-The INIT and EXIT functions are added to `exlybar-after-init-hook' and
-`exlybar-before-exit-hook' respectively.  If an X connection exists, the mode is
+The INIT and EXIT functions are added to `slothbar-after-init-hook' and
+`slothbar-before-exit-hook' respectively.  If an X connection exists, the mode is
 immediately enabled or disabled."
   (declare (indent 1) (debug t))
-  (let* ((mode (intern (format "exlybar-%s-mode" name)))
-         (init (or init (intern (format "exlybar-%s--init" name))))
-         (exit (or exit (intern (format "exlybar-%s--exit" name)))))
+  (let* ((mode (intern (format "slothbar-%s-mode" name)))
+         (init (or init (intern (format "slothbar-%s--init" name))))
+         (exit (or exit (intern (format "slothbar-%s--exit" name)))))
     `(progn
        (cond
         (,mode
-         (add-hook 'exlybar-after-init-hook #',init)
-         (add-hook 'exlybar-before-exit-hook #',exit)
-         (when exlybar--connection (,init)))
+         (add-hook 'slothbar-after-init-hook #',init)
+         (add-hook 'slothbar-before-exit-hook #',exit)
+         (when slothbar--connection (,init)))
         (t
-         (remove-hook 'exlybar-after-init-hook #',init)
-         (remove-hook 'exlybar-before-exit-hook #',exit)
-         (when exlybar--connection (,exit)))))))
+         (remove-hook 'slothbar-after-init-hook #',init)
+         (remove-hook 'slothbar-before-exit-hook #',exit)
+         (when slothbar--connection (,exit)))))))
 
-(defsubst exlybar-enabled-p ()
-  "Return t if exlybar is enabled."
-  exlybar--enabled)
+(defsubst slothbar-enabled-p ()
+  "Return t if slothbar is enabled."
+  slothbar--enabled)
 
-(defun exlybar--find-display-geometry (&optional display)
+(defun slothbar--find-display-geometry (&optional display)
   "Find DISPLAY geometry as an alist of x-offset, y-offset, width, and height.
 
 If DISPLAY is not found, the value chosen is the first found in
@@ -216,104 +216,104 @@ If DISPLAY is not found, the value chosen is the first found in
       (width . ,(caddr geom))
       (height . ,(cadddr geom)))))
 
-(defun exlybar--refresh ()
+(defun slothbar--refresh ()
   "Refresh the bar."
-  (xcb:+request exlybar--connection
+  (xcb:+request slothbar--connection
       (make-instance 'xcb:UnmapWindow
-                     :window exlybar--window))
-  (let ((ecw (xcb:+request-checked+request-check exlybar--connection
+                     :window slothbar--window))
+  (let ((ecw (xcb:+request-checked+request-check slothbar--connection
                  (make-instance 'xcb:ConfigureWindow
-                                :window exlybar--window
+                                :window slothbar--window
                                 :value-mask (logior xcb:ConfigWindow:X
 						    xcb:ConfigWindow:Y
                                                     xcb:ConfigWindow:Width
                                                     xcb:ConfigWindow:Height)
-                                :x exlybar-offset-x
-                                :y exlybar-offset-y
-                                :width exlybar-width
-                                :height (+ exlybar-height)))))
-    (exlybar--log-debug* "exlybar-refresh: configure window errors: %s" ecw))
-  (xcb:+request exlybar--connection
+                                :x slothbar-offset-x
+                                :y slothbar-offset-y
+                                :width slothbar-width
+                                :height (+ slothbar-height)))))
+    (slothbar--log-debug* "slothbar-refresh: configure window errors: %s" ecw))
+  (xcb:+request slothbar--connection
       (make-instance 'xcb:MapWindow
-                     :window exlybar--window))
-  (xcb:flush exlybar--connection)
+                     :window slothbar--window))
+  (xcb:flush slothbar--connection)
   ;; configure struts
   (pcase-let* (((eieio (height root-window-height))
                 (xcb:+request-unchecked+reply
-                    exlybar--connection
+                    slothbar--connection
                     (make-instance 'xcb:GetGeometry
-                                   :drawable (exlybar-util--find-root-window-id))))
+                                   :drawable (slothbar-util--find-root-window-id))))
                ((map ('y-offset mon-y-offset) ('height mon-height))
-                (exlybar--find-display-geometry exlybar-preferred-display))
-               (bottom-strut (if exlybar-is-bottom
-                                   (+ exlybar-height exlybar-margin-y
+                (slothbar--find-display-geometry slothbar-preferred-display))
+               (bottom-strut (if slothbar-is-bottom
+                                   (+ slothbar-height slothbar-margin-y
                                       (- root-window-height
                                          (+ mon-y-offset mon-height)))
                                  0)))
-    (xcb:+request exlybar--connection
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:ewmh:set-_NET_WM_STRUT
-                       :window exlybar--window
-                       :left exlybar-offset-x
+                       :window slothbar--window
+                       :left slothbar-offset-x
                        :right 0
-                       :top (if exlybar-is-bottom
+                       :top (if slothbar-is-bottom
                                 0
-                              (+ exlybar-height exlybar-offset-y
-                                 exlybar-margin-y))
+                              (+ slothbar-height slothbar-offset-y
+                                 slothbar-margin-y))
                        :bottom bottom-strut))
-    (xcb:+request exlybar--connection
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:ewmh:set-_NET_WM_STRUT_PARTIAL
-                       :window exlybar--window
-                       :left exlybar-offset-x
+                       :window slothbar--window
+                       :left slothbar-offset-x
                        :right 0
-                       :top (if exlybar-is-bottom 0
-                              (+ exlybar-height exlybar-offset-y
-                                 exlybar-margin-y))
+                       :top (if slothbar-is-bottom 0
+                              (+ slothbar-height slothbar-offset-y
+                                 slothbar-margin-y))
                        :bottom bottom-strut
                        :left-start-y 0
                        :left-end-y 0
                        :right-start-y 0
                        :right-end-y 0
-                       :top-start-x (if exlybar-is-bottom 0
-                                      exlybar-offset-x)
-                       :top-end-x (if exlybar-is-bottom 0
-                                    (1- (+ exlybar-offset-x exlybar-width)))
-                       :bottom-start-x (if exlybar-is-bottom
-                                           exlybar-offset-x
+                       :top-start-x (if slothbar-is-bottom 0
+                                      slothbar-offset-x)
+                       :top-end-x (if slothbar-is-bottom 0
+                                    (1- (+ slothbar-offset-x slothbar-width)))
+                       :bottom-start-x (if slothbar-is-bottom
+                                           slothbar-offset-x
                                          0)
-                       :bottom-end-x (if exlybar-is-bottom
-                                         (1- (+ exlybar-offset-x exlybar-width))
+                       :bottom-end-x (if slothbar-is-bottom
+                                         (1- (+ slothbar-offset-x slothbar-width))
                                        0))))
-  ;; (xcb:+request exlybar--connection
+  ;; (xcb:+request slothbar--connection
   ;;     (make-instance 'xcb:MapWindow
-  ;;                    :window exlybar--window))
-  (xcb:flush exlybar--connection))
+  ;;                    :window slothbar--window))
+  (xcb:flush slothbar--connection))
 
-(defun exlybar--on-DestroyNotify (data _synthetic)
+(defun slothbar--on-DestroyNotify (data _synthetic)
   "DestroyNotify.
 DATA the event data"
-  (exlybar--log-trace* "received destroynotify %s" data))
+  (slothbar--log-trace* "received destroynotify %s" data))
 
-(defun exlybar--on-ReparentNotify (data _synthetic)
+(defun slothbar--on-ReparentNotify (data _synthetic)
   "ReparentNotify.
 DATA the event data"
-  (exlybar--log-trace* "received reparentnotify %s" data))
+  (slothbar--log-trace* "received reparentnotify %s" data))
 
-(defun exlybar--on-ResizeRequest (data _synthetic)
+(defun slothbar--on-ResizeRequest (data _synthetic)
   "ResizeRequest.
 DATA the event data"
-  (exlybar--log-trace* "received resizerequest %s" data))
+  (slothbar--log-trace* "received resizerequest %s" data))
 
-(defun exlybar--on-PropertyNotify (data _synthetic)
+(defun slothbar--on-PropertyNotify (data _synthetic)
   "PropertyNotify.
 DATA the event data"
-  (exlybar--log-trace* "received propertynotify %s" data))
+  (slothbar--log-trace* "received propertynotify %s" data))
 
-(defun exlybar--on-ClientMessage (data _synthetic)
+(defun slothbar--on-ClientMessage (data _synthetic)
   "Handle client messages.
 DATA the event data"
-  (exlybar--log-trace* "received clientmessage %s" data))
+  (slothbar--log-trace* "received clientmessage %s" data))
 
-(defun exlybar--on-KeyPress (data _synthetic)
+(defun slothbar--on-KeyPress (data _synthetic)
   "Forward all KeyPress events to Emacs frame.
 DATA the event data"
   ;; This function a workspace frame has the input focus and the pointer is
@@ -322,188 +322,188 @@ DATA the event data"
         (obj (make-instance 'xcb:KeyPress)))
     (xcb:unmarshal obj data)
     (setf (slot-value obj 'event) dest)
-    (xcb:+request exlybar--connection
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:SendEvent
                        :propagate 0
                        :destination dest
                        :event-mask xcb:EventMask:NoEvent
-                       :event (xcb:marshal obj exlybar--connection)))
-    (exlybar--log-trace* "key press %s" obj))
-  (xcb:flush exlybar--connection))
+                       :event (xcb:marshal obj slothbar--connection)))
+    (slothbar--log-trace* "key press %s" obj))
+  (xcb:flush slothbar--connection))
 
-(defun exlybar--selectively-clear-areas (prev-extents new-extents)
+(defun slothbar--selectively-clear-areas (prev-extents new-extents)
   "Clear old areas that the new extents do not cover.
 PREV-EXTENTS the previous layout extents
 NEW-EXTENTS the new layout extents"
-  (let ((to-clear (exlybar-layout-subtract-extents new-extents prev-extents)))
+  (let ((to-clear (slothbar-layout-subtract-extents new-extents prev-extents)))
     (pcase-dolist (`(,l ,r) to-clear)
-      (xcb:+request exlybar--connection
+      (xcb:+request slothbar--connection
           (make-instance 'xcb:ClearArea
                          :exposures 0
-                         :window exlybar--window
+                         :window slothbar--window
                          :x l :y 0
-                         :width (- r l) :height exlybar-height)))))
+                         :width (- r l) :height slothbar-height)))))
 
-(defun exlybar--copy-areas (layout)
+(defun slothbar--copy-areas (layout)
   "Copy a LAYOUT's modules' pixmaps into their respective areas."
   (dolist (m layout)
-    (pcase-let ((`((,x ,y) ,(cl-struct exlybar-module width xcb)) m))
+    (pcase-let ((`((,x ,y) ,(cl-struct slothbar-module width xcb)) m))
       (when (alist-get 'pixmap xcb)
-        (xcb:+request exlybar--connection
+        (xcb:+request slothbar--connection
             (make-instance 'xcb:CopyArea
                            :src-drawable (alist-get 'pixmap xcb)
-                           :dst-drawable exlybar--window
+                           :dst-drawable slothbar--window
                            :gc (alist-get 'gc xcb)
                            :src-x 0 :src-y 0 :dst-x x :dst-y y
-                           :width width :height exlybar-height)))
-      (exlybar-module-reposition (cadr m) x y))))
+                           :width width :height slothbar-height)))
+      (slothbar-module-reposition (cadr m) x y))))
 
-(defvar exlybar--geometry-changed? nil "Held by `exlybar--on-Expose'.")
-(cl-defun exlybar-refresh-modules (&optional modules)
+(defvar slothbar--geometry-changed? nil "Held by `slothbar--on-Expose'.")
+(cl-defun slothbar-refresh-modules (&optional modules)
   "Ask the modules to refresh and see whether the layout has changed.
 MODULES optional modules to refresh and compare with prev-extents"
-  (when exlybar--geometry-changed?
-    (dolist (m exlybar--modules)
-      (when (exlybar-module-p m)
-        (setf (exlybar-module-needs-refresh? m) t
-              (exlybar-module-cache m) (make-hash-table :test 'equal))))
-    (exlybar--refresh))
+  (when slothbar--geometry-changed?
+    (dolist (m slothbar--modules)
+      (when (slothbar-module-p m)
+        (setf (slothbar-module-needs-refresh? m) t
+              (slothbar-module-cache m) (make-hash-table :test 'equal))))
+    (slothbar--refresh))
   ;; (message "refreshing modules")
   ;; refresh modules to update to latest dimensions
   (let ((prev-extents
-         (exlybar-layout-extents
-          (exlybar-layout-coordinate (exlybar-layout exlybar--modules) 0 0)))
-        (exlybar--modules (or modules exlybar--modules)))
+         (slothbar-layout-extents
+          (slothbar-layout-coordinate (slothbar-layout slothbar--modules) 0 0)))
+        (slothbar--modules (or modules slothbar--modules)))
     ;; (message "prev extents %s" prev-extents)
-    (dolist (m exlybar--modules)
-      (when (exlybar-module-p m)
-        (exlybar-module-refresh m)))
+    (dolist (m slothbar--modules)
+      (when (slothbar-module-p m)
+        (slothbar-module-refresh m)))
     (let* ((new-layout
-            (exlybar-layout-coordinate (exlybar-layout exlybar--modules) 0 0))
-           (new-extents (exlybar-layout-extents new-layout)))
+            (slothbar-layout-coordinate (slothbar-layout slothbar--modules) 0 0))
+           (new-extents (slothbar-layout-extents new-layout)))
       ;; (message "prev extents %s new extents %s" prev-extents new-extents)
       (when (not (equal prev-extents new-extents))
         ;; (message "layout has changed")
-        (exlybar--selectively-clear-areas prev-extents new-extents))
-      (exlybar--copy-areas new-layout)))
-  (xcb:flush exlybar--connection))
+        (slothbar--selectively-clear-areas prev-extents new-extents))
+      (slothbar--copy-areas new-layout)))
+  (xcb:flush slothbar--connection))
 
-(defun exlybar--watch-modules (_ nval oper where)
-  "With OPER eq \\='set and nil WHERE, refresh `exlybar--modules' with NVAL."
-  (when (and exlybar--enabled (not where) (eq 'set oper))
+(defun slothbar--watch-modules (_ nval oper where)
+  "With OPER eq \\='set and nil WHERE, refresh `slothbar--modules' with NVAL."
+  (when (and slothbar--enabled (not where) (eq 'set oper))
     ;; exit modules that have been removed
-    (dolist (m exlybar--modules)
-      (when (exlybar-module-p m)
+    (dolist (m slothbar--modules)
+      (when (slothbar-module-p m)
         (unless (seq-contains-p nval m #'eq)
-          (exlybar-module-exit m))))
+          (slothbar-module-exit m))))
     ;; check for uninitialized modules
     (dolist (m nval)
-      (when (exlybar-module-p m)
-        (unless (exlybar-module-xcb m)
-          (exlybar-module-init m))))
-    (exlybar-refresh-modules nval)))
+      (when (slothbar-module-p m)
+        (unless (slothbar-module-xcb m)
+          (slothbar-module-init m))))
+    (slothbar-refresh-modules nval)))
 
-(add-variable-watcher 'exlybar--modules #'exlybar--watch-modules)
+(add-variable-watcher 'slothbar--modules #'slothbar--watch-modules)
 
-(defvar exlybar--module-refresh-timer nil)
-(defun exlybar--start-module-refresh-timer ()
+(defvar slothbar--module-refresh-timer nil)
+(defun slothbar--start-module-refresh-timer ()
   "Start a timer to periodically refresh the modules."
-  (setq exlybar--module-refresh-timer
-        (run-at-time nil 10 #'exlybar-refresh-modules)))
+  (setq slothbar--module-refresh-timer
+        (run-at-time nil 10 #'slothbar-refresh-modules)))
 
-(defun exlybar--on-Expose (data _synthetic)
+(defun slothbar--on-Expose (data _synthetic)
   "Can draw things after Expose.
 DATA the event data"
-  (exlybar--log-debug* "exlybar received expose %s" data)
+  (slothbar--log-debug* "slothbar received expose %s" data)
   (ignore data)
-  (when exlybar--enabled
-    (when exlybar--module-refresh-timer
-      (exlybar--log-debug* "exlybar restarting module refresh timer")
-      (cancel-timer exlybar--module-refresh-timer)
-      (setq exlybar--module-refresh-timer nil))
-    (exlybar--start-module-refresh-timer))
-  (when (and exlybar--enabled exlybar--geometry-changed?)
-    (setq exlybar--geometry-changed? nil)
-    (run-at-time 0 nil #'exlybar-refresh-modules)))
+  (when slothbar--enabled
+    (when slothbar--module-refresh-timer
+      (slothbar--log-debug* "slothbar restarting module refresh timer")
+      (cancel-timer slothbar--module-refresh-timer)
+      (setq slothbar--module-refresh-timer nil))
+    (slothbar--start-module-refresh-timer))
+  (when (and slothbar--enabled slothbar--geometry-changed?)
+    (setq slothbar--geometry-changed? nil)
+    (run-at-time 0 nil #'slothbar-refresh-modules)))
 
-(defun exlybar--watch-height (_ _ oper where)
+(defun slothbar--watch-height (_ _ oper where)
   "With OPER eq \\='set and nil WHERE, refresh modules when
-`exlybar-height' changes."
-  (when (and exlybar--enabled (not where) (eq 'set oper))
-    (setq exlybar--geometry-changed? t)
-    (run-at-time 0 nil #'exlybar-refresh-modules)))
+`slothbar-height' changes."
+  (when (and slothbar--enabled (not where) (eq 'set oper))
+    (setq slothbar--geometry-changed? t)
+    (run-at-time 0 nil #'slothbar-refresh-modules)))
 
-(add-variable-watcher 'exlybar-height #'exlybar--watch-height)
+(add-variable-watcher 'slothbar-height #'slothbar--watch-height)
 
-(defun exlybar--construct-modules ()
-  "Construct modules from layout given in `exlybar-modules'."
-    (setq exlybar--modules
+(defun slothbar--construct-modules ()
+  "Construct modules from layout given in `slothbar-modules'."
+    (setq slothbar--modules
           (mapcar (lambda (val)
                     (cond
-                     ((or (keywordp val) (exlybar-module-p val))
+                     ((or (keywordp val) (slothbar-module-p val))
                       val)
                      ((functionp val)
                       (funcall val))
                      ((and (listp val) (functionp (car val)))
                       (apply (car val) (cdr val)))
-                     (t (error "Unsupported type in exlybar-modules: %s" val))))
-                  exlybar-modules)))
+                     (t (error "Unsupported type in slothbar-modules: %s" val))))
+                  slothbar-modules)))
 
-(defun exlybar--watch-exlybar-modules (_ _ oper where)
+(defun slothbar--watch-slothbar-modules (_ _ oper where)
   "With OPER eq \\='set and nil WHERE, (re)construct modules when
-`exlybar-modules' is modified."
+`slothbar-modules' is modified."
   (when (and (not where) (eq 'set oper))
-    (run-at-time 0 nil #'exlybar--construct-modules)))
+    (run-at-time 0 nil #'slothbar--construct-modules)))
 
-(defun exlybar--start ()
-  "Start exlybar.
+(defun slothbar--start ()
+  "Start slothbar.
 Initialize the connection, window, graphics context, and modules."
-  (run-hook-with-args 'exlybar-before-init-hook)
-  (cl-assert (not exlybar--connection))
-  (cl-assert (not exlybar--window))
-  (exlybar--log-enable-logging)
-  (let ((geom (exlybar--find-display-geometry exlybar-preferred-display)))
-    (setq exlybar-offset-x (alist-get 'x-offset geom)
-	  exlybar-offset-y (if exlybar-is-bottom
+  (run-hook-with-args 'slothbar-before-init-hook)
+  (cl-assert (not slothbar--connection))
+  (cl-assert (not slothbar--window))
+  (slothbar--log-enable-logging)
+  (let ((geom (slothbar--find-display-geometry slothbar-preferred-display)))
+    (setq slothbar-offset-x (alist-get 'x-offset geom)
+	  slothbar-offset-y (if slothbar-is-bottom
                                (- (+ (alist-get 'y-offset geom)
                                      (alist-get 'height geom))
-                                  exlybar-height)
+                                  slothbar-height)
                              (alist-get 'y-offset geom))
-	  exlybar-width (alist-get 'width geom)))
-  (setq exlybar-font-px-size
-        (exlybar-font--precompute-px-sizes
-         exlybar-height exlybar-font--color-code-map))
-  (setq exlybar--connection (xcb:connect))
+	  slothbar-width (alist-get 'width geom)))
+  (setq slothbar-font-px-size
+        (slothbar-font--precompute-px-sizes
+         slothbar-height slothbar-font--color-code-map))
+  (setq slothbar--connection (xcb:connect))
   ;; apparently ewmh initializes icccm automatically
-  (xcb:ewmh:init exlybar--connection)
-  ;; (xcb:icccm:init exlybar--connection)
-  (set-process-query-on-exit-flag (slot-value exlybar--connection
+  (xcb:ewmh:init slothbar--connection)
+  ;; (xcb:icccm:init slothbar--connection)
+  (set-process-query-on-exit-flag (slot-value slothbar--connection
                                               'process)
                                   nil)
   ;; initialize the bar window
-  (let ((id (xcb:generate-id exlybar--connection))
-        (background-pixel (exlybar-util--color->pixel
-                           (exlybar-util--find-background-color)))
-        (y exlybar-offset-y)
+  (let ((id (xcb:generate-id slothbar--connection))
+        (background-pixel (slothbar-util--color->pixel
+                           (slothbar-util--find-background-color)))
+        (y slothbar-offset-y)
         parent depth)
-    (setq exlybar--window id)
-    (exlybar--log-debug* "Exlybar window id: %s" exlybar--window)
-    (setq parent (exlybar-util--find-root-window-id)
+    (setq slothbar--window id)
+    (slothbar--log-debug* "Slothbar window id: %s" slothbar--window)
+    (setq parent (slothbar-util--find-root-window-id)
           depth (slot-value (xcb:+request-unchecked+reply
-                                exlybar--connection
+                                slothbar--connection
                                 (make-instance 'xcb:GetGeometry
                                                :drawable parent))
                             'depth))
-    (xcb:+request exlybar--connection
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:CreateWindow
                        :depth depth
                        :wid id
                        :parent parent
                        :override-redirect 1
-                       :x exlybar-offset-x
+                       :x slothbar-offset-x
                        :y y
                        :width 1
-                       :height (+ exlybar-height)
+                       :height (+ slothbar-height)
                        :border-width 1
                        :class xcb:WindowClass:InputOutput
                        :visual 0
@@ -519,104 +519,104 @@ Initialize the connection, window, graphics context, and modules."
                                            xcb:EventMask:PropertyChange
                                            xcb:EventMask:SubstructureNotify)))
     ;; Set WM_NAME and WM_CLASS.
-    (xcb:+request exlybar--connection
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:icccm:set-WM_NAME
                        :window id
-                       :data "exlybar"))
-    (xcb:+request exlybar--connection
+                       :data "slothbar"))
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:icccm:set-WM_CLASS
                        :window id
-                       :instance-name "exlybar"
-                       :class-name "Exlybar"))
+                       :instance-name "slothbar"
+                       :class-name "Slothbar"))
     ;; dock the window
-    (xcb:+request exlybar--connection
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:ewmh:set-_NET_WM_WINDOW_TYPE
                        :window id
                        :data `(,xcb:Atom:_NET_WM_WINDOW_TYPE_DOCK)))
     ;; state is sticky and above
-    (xcb:+request exlybar--connection
+    (xcb:+request slothbar--connection
         (make-instance 'xcb:ewmh:set-_NET_WM_STATE
                        :window id
                        :data `(,xcb:Atom:_NET_WM_STATE_STICKY
                                ,xcb:Atom:_NET_WM_STATE_ABOVE)))
     ;; create gc
-    (setq exlybar--gc (xcb:generate-id exlybar--connection))
+    (setq slothbar--gc (xcb:generate-id slothbar--connection))
     (let ((egc
-           (xcb:+request-checked+request-check exlybar--connection
+           (xcb:+request-checked+request-check slothbar--connection
                (make-instance 'xcb:CreateGC
-                              :cid exlybar--gc
-                              :drawable exlybar--window
+                              :cid slothbar--gc
+                              :drawable slothbar--window
                               :value-mask (logior xcb:GC:Background
                                                   xcb:GC:Foreground)
-                              :background (exlybar-util--color->pixel
-                                           (exlybar-util--find-background-color))
-                              :foreground (exlybar-util--color->pixel
-                                           (exlybar-util--find-foreground-color))))))
-      (exlybar--log-debug* "exlybar init create gc errors: %s" egc))
+                              :background (slothbar-util--color->pixel
+                                           (slothbar-util--find-background-color))
+                              :foreground (slothbar-util--color->pixel
+                                           (slothbar-util--find-foreground-color))))))
+      (slothbar--log-debug* "slothbar init create gc errors: %s" egc))
     ;; initialize modules
-    (exlybar--construct-modules)
-    (add-variable-watcher 'exlybar-modules #'exlybar--watch-exlybar-modules)
-    (dolist (m exlybar--modules)
-      (when (exlybar-module-p m)
-        (exlybar-module-init m)))
-    (xcb:flush exlybar--connection)
+    (slothbar--construct-modules)
+    (add-variable-watcher 'slothbar-modules #'slothbar--watch-slothbar-modules)
+    (dolist (m slothbar--modules)
+      (when (slothbar-module-p m)
+        (slothbar-module-init m)))
+    (xcb:flush slothbar--connection)
     ;; Attach event listeners.
-    (xcb:+event exlybar--connection 'xcb:DestroyNotify
-                #'exlybar--on-DestroyNotify)
-    (xcb:+event exlybar--connection 'xcb:ReparentNotify
-                #'exlybar--on-ReparentNotify)
-    (xcb:+event exlybar--connection 'xcb:ResizeRequest
-                #'exlybar--on-ResizeRequest)
-    (xcb:+event exlybar--connection 'xcb:PropertyNotify
-                #'exlybar--on-PropertyNotify)
-    (xcb:+event exlybar--connection 'xcb:ClientMessage
-                #'exlybar--on-ClientMessage)
-    (xcb:+event exlybar--connection 'xcb:KeyPress
-                #'exlybar--on-KeyPress)
-    (xcb:+event exlybar--connection 'xcb:Expose
-                #'exlybar--on-Expose)
-    (exlybar--refresh)
-    (setq exlybar--enabled t)
-    (run-hook-with-args 'exlybar-after-init-hook)))
+    (xcb:+event slothbar--connection 'xcb:DestroyNotify
+                #'slothbar--on-DestroyNotify)
+    (xcb:+event slothbar--connection 'xcb:ReparentNotify
+                #'slothbar--on-ReparentNotify)
+    (xcb:+event slothbar--connection 'xcb:ResizeRequest
+                #'slothbar--on-ResizeRequest)
+    (xcb:+event slothbar--connection 'xcb:PropertyNotify
+                #'slothbar--on-PropertyNotify)
+    (xcb:+event slothbar--connection 'xcb:ClientMessage
+                #'slothbar--on-ClientMessage)
+    (xcb:+event slothbar--connection 'xcb:KeyPress
+                #'slothbar--on-KeyPress)
+    (xcb:+event slothbar--connection 'xcb:Expose
+                #'slothbar--on-Expose)
+    (slothbar--refresh)
+    (setq slothbar--enabled t)
+    (run-hook-with-args 'slothbar-after-init-hook)))
 
 ;;;###autoload
-(defun exlybar ()
-  "Start exlybar."
+(defun slothbar ()
+  "Start slothbar."
   (interactive)
   (if (and (display-graphic-p) (eq 'x window-system))
       (fontsloth-async-load-and-cache-fonts
-       (exlybar-font-map-candidates)
-       :finish-func (lambda (_) (exlybar--start)))
-    (message "Exlybar requires an X window system display to run")))
+       (slothbar-font-map-candidates)
+       :finish-func (lambda (_) (slothbar--start)))
+    (message "Slothbar requires an X window system display to run")))
 
 ;;;###autoload
-(defun exlybar-exit ()
-  "Exit exlybar."
+(defun slothbar-exit ()
+  "Exit slothbar."
   (interactive)
-  (run-hook-with-args 'exlybar-before-exit-hook)
+  (run-hook-with-args 'slothbar-before-exit-hook)
   ;; exit modules
-  (when exlybar--module-refresh-timer
-    (cancel-timer exlybar--module-refresh-timer)
-    (setq exlybar--module-refresh-timer nil))
-  (setq exlybar--enabled nil)
-  (dolist (m exlybar--modules)
-    (when (exlybar-module-p m)
-      (exlybar-module-exit m)))
-  (remove-variable-watcher 'exlybar-modules #'exlybar--watch-exlybar-modules)
-  (when exlybar--connection
-    (when exlybar--window
-      (xcb:+request exlybar--connection
+  (when slothbar--module-refresh-timer
+    (cancel-timer slothbar--module-refresh-timer)
+    (setq slothbar--module-refresh-timer nil))
+  (setq slothbar--enabled nil)
+  (dolist (m slothbar--modules)
+    (when (slothbar-module-p m)
+      (slothbar-module-exit m)))
+  (remove-variable-watcher 'slothbar-modules #'slothbar--watch-slothbar-modules)
+  (when slothbar--connection
+    (when slothbar--window
+      (xcb:+request slothbar--connection
           (make-instance 'xcb:UnmapWindow
-                         :window exlybar--window)))
-    (when exlybar--gc
-      (xcb:+request exlybar--connection
+                         :window slothbar--window)))
+    (when slothbar--gc
+      (xcb:+request slothbar--connection
           (make-instance 'xcb:FreeGC
-                         :gc exlybar--gc)))
-    (xcb:disconnect exlybar--connection)
-    (setq exlybar--connection nil
-          exlybar--window nil
-          exlybar--gc nil)
-    (run-hook-with-args 'exlybar-after-exit-hook)))
+                         :gc slothbar--gc)))
+    (xcb:disconnect slothbar--connection)
+    (setq slothbar--connection nil
+          slothbar--window nil
+          slothbar--gc nil)
+    (run-hook-with-args 'slothbar-after-exit-hook)))
 
 (provide 'exlybar)
 

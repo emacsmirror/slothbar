@@ -4,7 +4,7 @@
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -37,7 +37,7 @@
 
 ;;; Commentary:
 
-;; exlybar-util.el:
+;; slothbar-util.el:
 ;; Provides utility code that may be useful in multiple places.
 
 ;;; Code:
@@ -46,7 +46,7 @@
 
 (declare-function x-display-visual-class "xfns.c" (&optional terminal))
 
-(defun exlybar-util--color->pixel (color)
+(defun slothbar-util--color->pixel (color)
   "Convert COLOR to PIXEL (index in TrueColor colormap)."
   (when (and color
              (eq (x-display-visual-class) 'true-color))
@@ -55,25 +55,25 @@
               (ash (ash (pop rgb) -8) 8)
               (ash (pop rgb) -8)))))
 
-(defun exlybar-util--find-background-color ()
+(defun slothbar-util--find-background-color ()
   "Attempt to guess a reasonable background color."
   ;; TODO update this after a theme is loaded or changed
   ;; also, is it possible to get current theme background directly?
   (frame-parameter (selected-frame) 'background-color))
 
-(defun exlybar-util--find-foreground-color ()
+(defun slothbar-util--find-foreground-color ()
   "Attempt to guess a reasonable foreground color."
   ;; TODO update this after a theme is loaded or changed
   ;; also, is it possible to get current theme foreground directly?
   (frame-parameter (selected-frame) 'foreground-color))
 
-(defvar exlybar-connection)
+(defvar slothbar-connection)
 
-(defun exlybar-util--find-root-window-id ()
+(defun slothbar-util--find-root-window-id ()
   "Attempt to find a root window."
-  (when (and (boundp 'exlybar--connection) exlybar--connection)
+  (when (and (boundp 'slothbar--connection) slothbar--connection)
     (slot-value (car (slot-value
-                      (xcb:get-setup exlybar--connection) 'roots))
+                      (xcb:get-setup slothbar--connection) 'roots))
                 'root)))
 
 (provide 'exlybar-util)

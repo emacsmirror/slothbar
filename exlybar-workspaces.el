@@ -1,10 +1,10 @@
-;;; exlybar-workspaces.el --- An exlybar workspaces module  -*- lexical-binding: t -*-
+;;; exlybar-workspaces.el --- An slothbar workspaces module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
-;; Homepage: https://github.com/jollm/exlybar
+;; Homepage: https://codeberg.org/agnes-li/slothbar
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -37,10 +37,10 @@
 
 ;;; Commentary:
 
-;; This is an implementation of `exlybar-module' for active/current
+;; This is an implementation of `slothbar-module' for active/current
 ;; workspaces information.
 
-;; To use this module, add it to `exlybar-modules' with any desired
+;; To use this module, add it to `slothbar-modules' with any desired
 ;; layout insructions.
 
 ;;; Code:
@@ -51,11 +51,11 @@
 
 (require 'exlybar-module-)
 
-(defgroup exlybar-workspaces nil
-  "An Exlybar workspaces module."
-  :group 'exlybar)
+(defgroup slothbar-workspaces nil
+  "An Slothbar workspaces module."
+  :group 'slothbar)
 
-(defcustom exlybar-workspaces-generate-list-fn (lambda () '())
+(defcustom slothbar-workspaces-generate-list-fn (lambda () '())
   "A function generating a workspaces status list.
 
 E.g.:
@@ -76,19 +76,19 @@ The possible status keywords are :window, :current, and :blankish. If
 :current appears in the status list for a workspace, it is expected at
 the head of the list."
   :type 'function
-  :group 'exlybar-workspaces)
+  :group 'slothbar-workspaces)
 
-(cl-defstruct (exlybar-workspaces
-               (:include exlybar-module (name "workspaces") (icon ?󰯉)
+(cl-defstruct (slothbar-workspaces
+               (:include slothbar-module (name "workspaces") (icon ?󰯉)
                          (format "^f2^2^[^5^f4%i^]%w")
-                         (format-fn #'exlybar-workspaces-format-format))
-               (:constructor exlybar-workspaces-create)
+                         (format-fn #'slothbar-workspaces-format-format))
+               (:constructor slothbar-workspaces-create)
                (:copier nil)))
 
-(defun exlybar-workspaces--format-fn-spec (ws-list)
+(defun slothbar-workspaces--format-fn-spec (ws-list)
   "Generate a spec suitable for `format-spec' from data in WS-LIST.
 
-See `exlybar-workspaces-generate-list-fn' for the expected structure of
+See `slothbar-workspaces-generate-list-fn' for the expected structure of
 WS-LIST."
   (cl-flet ((sanitize (s)
               (string-replace " " "-"
@@ -104,40 +104,40 @@ WS-LIST."
                         (`(:current ,_) (concat "^[^0 [" ws-safe "]^]"))
                         ('(:blankish) (concat "^[^2 " ws-safe "^]"))))))))
 
-(defun exlybar-workspaces-format-format (m)
+(defun slothbar-workspaces-format-format (m)
   "Format M's format string."
-  (let ((ws-list (or (map-elt (exlybar-module-cache m) 'ws-list)
-                     (funcall exlybar-workspaces-generate-list-fn))))
-    (format-spec (exlybar-module-format m)
-                 (exlybar-workspaces--format-fn-spec ws-list) t)))
+  (let ((ws-list (or (map-elt (slothbar-module-cache m) 'ws-list)
+                     (funcall slothbar-workspaces-generate-list-fn))))
+    (format-spec (slothbar-module-format m)
+                 (slothbar-workspaces--format-fn-spec ws-list) t)))
 
-(defun exlybar-workspaces--format-spec (icon)
+(defun slothbar-workspaces--format-spec (icon)
   "Build the `format-spec' spec used to generate module text given ICON."
   `((?i . ,(string icon))))
 
-(cl-defmethod exlybar-module-update-status ((m exlybar-workspaces))
+(cl-defmethod slothbar-module-update-status ((m slothbar-workspaces))
   "Update M's text and format spec."
-  (let* ((format-spec (exlybar-workspaces--format-spec (exlybar-module-icon m)))
-         (ws-list (funcall exlybar-workspaces-generate-list-fn))
-         (txt (format-spec (exlybar-module-format m) format-spec t))
-         (cache (exlybar-module-cache m)))
+  (let* ((format-spec (slothbar-workspaces--format-spec (slothbar-module-icon m)))
+         (ws-list (funcall slothbar-workspaces-generate-list-fn))
+         (txt (format-spec (slothbar-module-format m) format-spec t))
+         (cache (slothbar-module-cache m)))
     (unless (equal ws-list (map-elt cache 'ws-list))
       (when cache
         (map-put! cache 'ws-list ws-list))
-      (setf (exlybar-module-format-spec m) format-spec
-            (exlybar-module-text m) txt
-            (exlybar-module-needs-refresh? m) t))))
+      (setf (slothbar-module-format-spec m) format-spec
+            (slothbar-module-text m) txt
+            (slothbar-module-needs-refresh? m) t))))
 
-(cl-defmethod exlybar-module-init :before ((m exlybar-workspaces))
+(cl-defmethod slothbar-module-init :before ((m slothbar-workspaces))
   "Set the M's icon and update the text."
-  (exlybar-module-update-status m))
+  (slothbar-module-update-status m))
 
-(defun exlybar-workspaces--refresh-hook-fn (&rest _)
+(defun slothbar-workspaces--refresh-hook-fn (&rest _)
   "Refresh all workspaces modules, suitable for hooks."
-  (exlybar-module--refresh-all-by-name "workspaces"))
+  (slothbar-module--refresh-all-by-name "workspaces"))
 
 
-;;; Begin exlybar-workspaces-generate-list-fn implementations
+;;; Begin slothbar-workspaces-generate-list-fn implementations
 
 (declare-function shorten-strings "shorten" (lst &optional tail-count))
 
@@ -145,7 +145,7 @@ WS-LIST."
 
 (defvar exwm-workspace--list)
 
-(defun exlybar-workspaces--shorten-frame-buffer-names-exwm ()
+(defun slothbar-workspaces--shorten-frame-buffer-names-exwm ()
   "Return an alist mapping EXWM frame buffer names to shortened names.
 
 If shorten is not available, return nil."
@@ -158,41 +158,41 @@ If shorten is not available, return nil."
 (declare-function exwm-workspace--count "exwm-workspace")
 (declare-function exwm-workspace--position "exwm-workspace" (frame))
 
-(defcustom exlybar-workspaces-exwm-shorten-names t
+(defcustom slothbar-workspaces-exwm-shorten-names t
   "Non-nil to display shortened buffer names (if the shorten library is
 available) or nil to display workspace numbers."
   :type 'boolean
-  :group 'exlybar-workspaces)
+  :group 'slothbar-workspaces)
 
-(defcustom exlybar-workspaces-exwm-add-change-functions nil
+(defcustom slothbar-workspaces-exwm-add-change-functions nil
   "Non-nil to ensure immediate status update when changing the window
 selection or window buffer or nil to update lazily."
   :type 'boolean
-  :group 'exlybar-workspaces)
+  :group 'slothbar-workspaces)
 
-(defun exlybar-workspaces--watch-exwm-add-change-functions (_ new oper where)
-  "Watch variable `exlybar-workspaces-exwm-add-change-functions' and if
+(defun slothbar-workspaces--watch-exwm-add-change-functions (_ new oper where)
+  "Watch variable `slothbar-workspaces-exwm-add-change-functions' and if
 ever OPER is equal to \\='set and the NEW value is not a buffer local
 value indicated by WHERE, call
-`exlybar-workspaces--exwm-modify-change-functions' with the value of
+`slothbar-workspaces--exwm-modify-change-functions' with the value of
 NEW."
   (when (and (not where) (eq 'set oper))
-    (exlybar-workspaces--exwm-modify-change-functions new)))
+    (slothbar-workspaces--exwm-modify-change-functions new)))
 
-(add-variable-watcher 'exlybar-workspaces-exwm-add-change-functions
-                      'exlybar-workspaces--watch-exwm-add-change-functions)
+(add-variable-watcher 'slothbar-workspaces-exwm-add-change-functions
+                      'slothbar-workspaces--watch-exwm-add-change-functions)
 
 (defvar exwm--id-buffer-alist)
 (defvar exwm--frame)
 (defvar exwm-workspace--current)
 
-(defun exlybar-workspaces-generate-list-fn-exwm ()
-  "Implement `exlybar-workspaces-generate-list-fn' for EXWM.
+(defun slothbar-workspaces-generate-list-fn-exwm ()
+  "Implement `slothbar-workspaces-generate-list-fn' for EXWM.
 
 If the shorten library is available (from circe), the displayed names
 are shortened buffer names.  Otherwise, names are the workspace numbers."
   (let ((not-empty (make-vector (exwm-workspace--count) nil))
-        (shorts (exlybar-workspaces--shorten-frame-buffer-names-exwm)))
+        (shorts (slothbar-workspaces--shorten-frame-buffer-names-exwm)))
     (dolist (i exwm--id-buffer-alist)
       (with-current-buffer (cdr i)
         (when exwm--frame
@@ -203,7 +203,7 @@ are shortened buffer names.  Otherwise, names are the workspace numbers."
              for pos = (exwm-workspace--position frame)
              for sn = (map-elt shorts (buffer-name (car (buffer-list frame))))
              collect
-             `(,(or (and exlybar-workspaces-exwm-shorten-names sn)
+             `(,(or (and slothbar-workspaces-exwm-shorten-names sn)
                     (number-to-string pos))
                (,@(when (eq exwm-workspace--current frame)
                     '(:current))
@@ -212,41 +212,41 @@ are shortened buffer names.  Otherwise, names are the workspace numbers."
                 ,@(unless (aref not-empty pos)
                     '(:blankish)))))))
 
-(defun exlybar-workspaces--exwm-modify-change-functions (add?)
+(defun slothbar-workspaces--exwm-modify-change-functions (add?)
   "If ADD? is non-nil, add window buffer and window selection change
 functions to update module status on changes, otherwise remove."
   (if add?
       (progn (add-hook 'window-selection-change-functions
-                       #'exlybar-workspaces--refresh-hook-fn)
+                       #'slothbar-workspaces--refresh-hook-fn)
              (add-hook 'window-buffer-change-functions
-                       #'exlybar-workspaces--refresh-hook-fn))
+                       #'slothbar-workspaces--refresh-hook-fn))
     (remove-hook 'window-selection-change-functions
-                 #'exlybar-workspaces--refresh-hook-fn)
+                 #'slothbar-workspaces--refresh-hook-fn)
     (remove-hook 'window-buffer-change-functions
-                 #'exlybar-workspaces--refresh-hook-fn)))
+                 #'slothbar-workspaces--refresh-hook-fn)))
 
 (defvar exwm--connection)
 
-(defun exlybar-workspaces-setup-defaults-exwm ()
-  "Configure exlybar-workspaces to display EXWM workspaces."
+(defun slothbar-workspaces-setup-defaults-exwm ()
+  "Configure slothbar-workspaces to display EXWM workspaces."
   (when (and (boundp 'exwm--connection) exwm--connection)
-    (when (and exlybar-workspaces-exwm-shorten-names
+    (when (and slothbar-workspaces-exwm-shorten-names
                (locate-library "shorten"))
       (require 'shorten))
-    (setq exlybar-workspaces-generate-list-fn
-          #'exlybar-workspaces-generate-list-fn-exwm)
+    (setq slothbar-workspaces-generate-list-fn
+          #'slothbar-workspaces-generate-list-fn-exwm)
     (add-hook 'exwm-workspace-switch-hook
-              #'exlybar-workspaces--refresh-hook-fn)
-    (exlybar-workspaces--exwm-modify-change-functions
-     exlybar-workspaces-exwm-add-change-functions)))
+              #'slothbar-workspaces--refresh-hook-fn)
+    (slothbar-workspaces--exwm-modify-change-functions
+     slothbar-workspaces-exwm-add-change-functions)))
 
 (when (locate-library "exwm")
-  (add-hook 'exlybar-before-init-hook #'exlybar-workspaces-setup-defaults-exwm))
+  (add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-exwm))
 
 ;;; herbstluftwm
 
-(defun exlybar-workspaces-generate-list-fn-herbstluftwm ()
-  "Implement `exlybar-workspaces-generate-list-fn' for herbstluftwm."
+(defun slothbar-workspaces-generate-list-fn-herbstluftwm ()
+  "Implement `slothbar-workspaces-generate-list-fn' for herbstluftwm."
   (when (executable-find "herbstclient")
     (when-let ((tags (with-temp-buffer
                        (when (eq 0 (call-process "herbstclient" nil t nil "tag_status"))
@@ -260,7 +260,7 @@ functions to update module status on changes, otherwise remove."
                     ((rx (seq ?: (+ anychar))) '(:window))
                     ((rx (seq ?. (+ anychar))) '(:blankish)))))))))
 
-(defun exlybar-workspaces--make-herbstluft-events-filter ()
+(defun slothbar-workspaces--make-herbstluft-events-filter ()
   "Return a process filter for herbstclient -i to look for tag changes."
   (let ((processed-lines 0))
     (lambda (proc string)
@@ -281,60 +281,60 @@ functions to update module status on changes, otherwise remove."
               (when (string-prefix-p
                      "tag_changed"
                      (buffer-substring-no-properties (point) (line-end-position)))
-                (exlybar-module--refresh-all-by-name "workspaces")))))))))
+                (slothbar-module--refresh-all-by-name "workspaces")))))))))
 
-(defvar exlybar-workspaces--herbstluft-evt-listener-proc nil)
-(defvar exlybar-workspaces--herbstluft-evt-listener-proc-stderr nil)
+(defvar slothbar-workspaces--herbstluft-evt-listener-proc nil)
+(defvar slothbar-workspaces--herbstluft-evt-listener-proc-stderr nil)
 
-(defun exlybar-workspaces--start-herbstluft-event-listener ()
+(defun slothbar-workspaces--start-herbstluft-event-listener ()
   "Start a process to listen for herbstluftwm events."
   (let* ((stdout (generate-new-buffer " *herbstluftwm events*"))
          (stderr (generate-new-buffer " *herbstluftwm errors*"))
          (process (make-process :name "herbstclient"
                       :command '("herbstclient" "-i")
                       :buffer stdout
-                      :filter (exlybar-workspaces--make-herbstluft-events-filter)
+                      :filter (slothbar-workspaces--make-herbstluft-events-filter)
                       :stderr stderr))
          (stderr-process (get-buffer-process stderr)))
     (unless (and process stderr-process)
       (error "Process unexpectedly nil"))
-    (setq exlybar-workspaces--herbstluft-evt-listener-proc
+    (setq slothbar-workspaces--herbstluft-evt-listener-proc
           process
-          exlybar-workspaces--herbstluft-evt-listener-proc-stderr
+          slothbar-workspaces--herbstluft-evt-listener-proc-stderr
           stderr-process)))
 
-(defun exlybar-workspaces--stop-herbstluft-event-listener ()
+(defun slothbar-workspaces--stop-herbstluft-event-listener ()
   "Start a process to listen for herbstluftwm events."
-  (when (and exlybar-workspaces--herbstluft-evt-listener-proc
-             (process-live-p exlybar-workspaces--herbstluft-evt-listener-proc))
-    (kill-process exlybar-workspaces--herbstluft-evt-listener-proc))
-  (when (and exlybar-workspaces--herbstluft-evt-listener-proc-stderr
-             (process-live-p exlybar-workspaces--herbstluft-evt-listener-proc-stderr))
-    (kill-process exlybar-workspaces--herbstluft-evt-listener-proc-stderr)))
+  (when (and slothbar-workspaces--herbstluft-evt-listener-proc
+             (process-live-p slothbar-workspaces--herbstluft-evt-listener-proc))
+    (kill-process slothbar-workspaces--herbstluft-evt-listener-proc))
+  (when (and slothbar-workspaces--herbstluft-evt-listener-proc-stderr
+             (process-live-p slothbar-workspaces--herbstluft-evt-listener-proc-stderr))
+    (kill-process slothbar-workspaces--herbstluft-evt-listener-proc-stderr)))
 
-(defun exlybar-workspaces-setup-defaults-herbstluftwm ()
-  "Configure exlybar-workspaces to display herbstluftwm tags."
+(defun slothbar-workspaces-setup-defaults-herbstluftwm ()
+  "Configure slothbar-workspaces to display herbstluftwm tags."
   (when (and (executable-find "herbstclient")
              (equal "herbstluftwm" (getenv "DESKTOP_SESSION")))
-    (setq exlybar-workspaces-generate-list-fn
-          #'exlybar-workspaces-generate-list-fn-herbstluftwm)
-    (exlybar-workspaces--start-herbstluft-event-listener)
-    (add-hook 'exlybar-after-exit-hook #'exlybar-workspaces--stop-herbstluft-event-listener)))
+    (setq slothbar-workspaces-generate-list-fn
+          #'slothbar-workspaces-generate-list-fn-herbstluftwm)
+    (slothbar-workspaces--start-herbstluft-event-listener)
+    (add-hook 'slothbar-after-exit-hook #'slothbar-workspaces--stop-herbstluft-event-listener)))
 
-(add-hook 'exlybar-before-init-hook #'exlybar-workspaces-setup-defaults-herbstluftwm)
+(add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-herbstluftwm)
 
 ;;; xmonad
 
-(defvar exlybar-workspaces--xmonad-dbus-last-val nil
+(defvar slothbar-workspaces--xmonad-dbus-last-val nil
   "Holds the most recent dbus message from xmonad.")
 
-(defun exlybar-workspaces-generate-list-fn-xmonad ()
-  "Implement `exlybar-workspaces-generate-list-fn' for xmonad.
+(defun slothbar-workspaces-generate-list-fn-xmonad ()
+  "Implement `slothbar-workspaces-generate-list-fn' for xmonad.
 
 In order for this to work, a section in xmonad.hs like the following:
 
-exlybarHook :: D.Client -> PP
-exlybarHook dbus =
+slothbarHook :: D.Client -> PP
+slothbarHook dbus =
   let wrapper c s | s /= \"NSP\" = wrap (\":\" <> c <> \" \") \" . \" s
                   | otherwise  = mempty
       cur   = \"current\"
@@ -351,64 +351,64 @@ exlybarHook dbus =
           , ppTitle           = wrapper \"title\" . shorten 90
           }
 
-myExlybarLogHook dbus = myLogHook <+> dynamicLogWithPP (exlybarHook dbus)"
-  (when (stringp exlybar-workspaces--xmonad-dbus-last-val)
+mySlothbarLogHook dbus = myLogHook <+> dynamicLogWithPP (slothbarHook dbus)"
+  (when (stringp slothbar-workspaces--xmonad-dbus-last-val)
     (cl-loop for (status name)
              in (mapcar 'string-split
                         (butlast (string-split
-                                  exlybar-workspaces--xmonad-dbus-last-val
+                                  slothbar-workspaces--xmonad-dbus-last-val
                                   " \\. "
                                   t)))
              collect `(,name
                        (,(intern status))))))
 
-(defun exlybar-workspaces--watch-xmonad-dbus-last-val (_ _ oper where)
+(defun slothbar-workspaces--watch-xmonad-dbus-last-val (_ _ oper where)
   "Refresh if the dbus message variable is modified with nil WHERE and OPER
 \\='set."
   (when (and (not where) (eq 'set oper))
-    (run-with-timer 0 nil (lambda () (exlybar-module--refresh-all-by-name "workspaces")))))
+    (run-with-timer 0 nil (lambda () (slothbar-module--refresh-all-by-name "workspaces")))))
 
-(add-variable-watcher 'exlybar-workspaces--xmonad-dbus-last-val
-                      #'exlybar-workspaces--watch-xmonad-dbus-last-val)
+(add-variable-watcher 'slothbar-workspaces--xmonad-dbus-last-val
+                      #'slothbar-workspaces--watch-xmonad-dbus-last-val)
 
-(defun exlybar-workspaces--xmonad-dbus-monitor (&optional workspaces)
-  "The dbus monitor sets `exlybar-workspaces--xmonad-dbus-last-val' to the
+(defun slothbar-workspaces--xmonad-dbus-monitor (&optional workspaces)
+  "The dbus monitor sets `slothbar-workspaces--xmonad-dbus-last-val' to the
 value of WORKSPACES for
-`exlybar-workspaces-generate-list-fn-xmonad' to parse."
+`slothbar-workspaces-generate-list-fn-xmonad' to parse."
   (when workspaces
-    (setq exlybar-workspaces--xmonad-dbus-last-val workspaces)))
+    (setq slothbar-workspaces--xmonad-dbus-last-val workspaces)))
 
-(defvar exlybar-workspaces--xmonad-dbus-object nil
+(defvar slothbar-workspaces--xmonad-dbus-object nil
   "The state object for the xmonad dbus monitor.")
 
 (declare-function dbus-unregister-object "dbus")
 
-(defun exlybar-workspaces--unregister-xmonad-dbus-monitor ()
+(defun slothbar-workspaces--unregister-xmonad-dbus-monitor ()
   "Unregister the dbus object for the xmonad monitor."
-  (dbus-unregister-object exlybar-workspaces--xmonad-dbus-object))
+  (dbus-unregister-object slothbar-workspaces--xmonad-dbus-object))
 
 (declare-function dbus-register-monitor "dbus")
 
-(defun exlybar-workspaces-setup-defaults-xmonad ()
+(defun slothbar-workspaces-setup-defaults-xmonad ()
   "When in xmonad, try to start a dbus monitor and set
-`exlybar-workspaces-generate-list-fn'.
+`slothbar-workspaces-generate-list-fn'.
 
 Note that the xmonad config must send dbus events. See the
-`exlybar-workspaces-generate-list-fn-xmonad' docstring for an example."
+`slothbar-workspaces-generate-list-fn-xmonad' docstring for an example."
   (when (and (locate-library "dbus")
              (equal "xmonad" (getenv "DESKTOP_SESSION")))
     (setq
-     exlybar-workspaces--xmonad-dbus-object
+     slothbar-workspaces--xmonad-dbus-object
      (dbus-register-monitor :session
-                            #'exlybar-workspaces--xmonad-dbus-monitor
+                            #'slothbar-workspaces--xmonad-dbus-monitor
                             :path "/org/xmonad/Log"
                             :interface "org.xmonad.Log"
                             :member "Update")
-     exlybar-workspaces-generate-list-fn
-     #'exlybar-workspaces-generate-list-fn-xmonad)
-    (add-hook 'exlybar-after-exit-hook #'exlybar-workspaces--unregister-xmonad-dbus-monitor)))
+     slothbar-workspaces-generate-list-fn
+     #'slothbar-workspaces-generate-list-fn-xmonad)
+    (add-hook 'slothbar-after-exit-hook #'slothbar-workspaces--unregister-xmonad-dbus-monitor)))
 
-(add-hook 'exlybar-before-init-hook #'exlybar-workspaces-setup-defaults-xmonad)
+(add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-xmonad)
 
 (provide 'exlybar-workspaces)
 ;;; exlybar-workspaces.el ends here
