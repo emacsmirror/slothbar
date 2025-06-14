@@ -53,7 +53,7 @@
 (require 'cl-lib)
 (require 'seq)
 
-(require 'exlybar-module-types)
+(require 'exlybar-module)
 
 (defun exlybar-layout (module-ins)
   "Layout modules horizontally given modules and optional layout instructions.

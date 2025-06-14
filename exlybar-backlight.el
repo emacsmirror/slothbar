@@ -49,7 +49,7 @@
 (require 'cl-lib)
 
 (require 'exlybar-color)
-(require 'exlybar-module)
+(require 'exlybar-module-)
 
 (defgroup exlybar-backlight nil
   "An Exlybar backlight module."
@@ -109,7 +109,7 @@ See `exlybar-color-zone'"
 
 (defun exlybar-backlight--set-brightness-advice (&rest _)
   "A function to update status when the brightness is changed in Emacs."
-  (exlybar-module-refresh-all-by-name "backlight"))
+  (exlybar-module--refresh-all-by-name "backlight"))
 
 (advice-add 'backlight--set-brightness
             :after 'exlybar-backlight--set-brightness-advice)

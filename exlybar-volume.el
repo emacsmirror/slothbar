@@ -50,7 +50,7 @@
 (require 'f)
 
 (require 'exlybar-color)
-(require 'exlybar-module)
+(require 'exlybar-module-)
 
 (defgroup exlybar-volume nil
   "An Exlybar volume module."
@@ -120,7 +120,7 @@ See `exlybar-color-zone'"
 
 (defun exlybar-volume--refresh-advice (&rest _)
   "Refresh any module instances if the volume is adjusted in Emacs."
-  (exlybar-module-refresh-all-by-name "volume"))
+  (exlybar-module--refresh-all-by-name "volume"))
 
 (advice-add 'volume-update :after 'exlybar-volume--refresh-advice)
 (advice-add 'volume-set :after 'exlybar-volume--refresh-advice)

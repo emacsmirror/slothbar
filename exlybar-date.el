@@ -51,7 +51,7 @@
 (require 'solar)
 
 (require 'exlybar-color)
-(require 'exlybar-module)
+(require 'exlybar-module-)
 
 (defgroup exlybar-date nil
   "An Exlybar date module."

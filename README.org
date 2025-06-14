@@ -127,8 +127,8 @@ Exlybar consists of five primary components:
   *not yet finalized*
 
   Entry points:
-  + [[./exlybar-module-types.el]]
   + [[./exlybar-module.el]]
+  + [[./exlybar-module-.el]]
 
   At present it consists of a cl-struct base type ~exlybar-module~ and a set
   of generic functions and default primary methods for dispatch on objects of

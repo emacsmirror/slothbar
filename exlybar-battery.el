@@ -52,7 +52,7 @@
 
 (require 'exlybar-log)
 (require 'exlybar-color)
-(require 'exlybar-module)
+(require 'exlybar-module-)
 
 (defgroup exlybar-battery nil
   "An Exlybar battery module."

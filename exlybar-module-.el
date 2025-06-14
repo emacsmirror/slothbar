@@ -1,0 +1,298 @@
+;;; exlybar-module-.el --- Exlybar module lifecycle and display fns  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
+
+;; Author: Jo Gay <jo.gay@mailfence.com>
+;; Version: 0.27.5
+;; Homepage: https://github.com/jollm/exlybar
+;; Keywords: window-manager, status-bar, exwm
+
+;; This program is free software: you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the Free
+;; Software Foundation, either version 3 of the License, or (at your option)
+;; any later version.
+
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+;; more details.
+
+;; You should have received a copy of the GNU General Public License along with
+;; this program. If not, see <https://www.gnu.org/licenses/>.
+
+;; This file is NOT part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Part of exlybar.
+
+;; This provides a base implementation for exlybar modules to manage display
+;; refresh and lifecycle.
+
+;;; Code:
+
+(require 'cl-lib)
+(require 'cl-generic)
+(require 'fontsloth-layout)
+(require 'map)
+(require 'pcase)
+(require 'xcb-render)
+
+(require 'exlybar)
+(require 'exlybar-color)
+(require 'exlybar-font)
+(require 'exlybar-log)
+(require 'exlybar-module)
+(require 'exlybar-render)
+
+(defvar exlybar--connection)
+(defvar exlybar--window)
+
+(cl-defmethod exlybar-module-init ((m exlybar-module))
+  "Initialize module M.
+This default primary method gives M a graphics context, a pixmap, a glyphset,
+and a cache. The xcb ids are stored in the module xcb alist."
+  (pcase-let* ((c exlybar--connection)
+               (pmap (xcb:generate-id c))
+               (gc (xcb:generate-id c))
+               ((cl-struct exlybar-module name width colors) m))
+    (exlybar--log-debug* "exlybar-module-init %s" name)
+    (let ((epixmap (exlybar-render-create-pixmap c pmap width exlybar-height))
+          (egc
+           (xcb:+request-checked+request-check c
+               (make-instance 'xcb:CreateGC
+                              :cid gc
+                              :drawable exlybar--window
+                              :value-mask (logior xcb:GC:Background
+                                                  xcb:GC:Foreground
+                                                  xcb:GC:GraphicsExposures)
+                              :background (exlybar-module-rgb-background-color
+                                           colors)
+                              :foreground (exlybar-module-rgb-background-color
+                                           colors)
+                              :graphics-exposures 0))))
+      (exlybar--log-debug* "create %s pixmap, errors %s" name epixmap)
+      (exlybar--log-debug* "create %s gc, errors %s" name egc))
+    (exlybar-render-fill-rectangle c gc pmap width exlybar-height)
+    (push `(pixmap . ,pmap) (exlybar-module-xcb m))
+    (push `(gc . ,gc) (exlybar-module-xcb m))
+    (push `(gs . ,(exlybar-render-create-glyphset c)) (exlybar-module-xcb m))
+    (setf (exlybar-module-cache m) (make-hash-table :test 'equal))))
+
+(defun exlybar-module--load-glyphs (text-layout gs cache)
+  "Load glyphs from TEXT-LAYOUT into GS unless found in CACHE."
+  (dolist (pos text-layout)
+    (when (fontsloth-layout-glyph-position-p pos)
+      (pcase-let* (((cl-struct
+                     fontsloth-layout-glyph-position
+                     key (parent char-code) (user-data font-idx)) pos)
+                   (cache-key (map-elt cache char-code)))
+        (unless (equal cache-key key)
+          (exlybar-render-load-glyph
+           exlybar--connection gs
+           (fontsloth-load-font (exlybar-font-find font-idx))
+           pos)
+          (map-put! cache char-code key))))))
+
+(defun exlybar-module--draw-text (m)
+  "Draw module M's text into its pixmap.
+
+If any color codes are present, the resulting text will be colorized
+accordingly. Currently only commands :push, :pop, and :fg are supported."
+  (pcase-let* (((cl-struct
+                 exlybar-module cache text-layout xcb) m)
+               ((map ('pixmap pixmap) ('gs gs)) xcb))
+    (exlybar-module--load-glyphs text-layout gs cache)
+    (cl-flet ((draw (layout color)
+                (exlybar-render-draw-text
+                 exlybar--connection pixmap gs layout color)))
+      (cl-loop for pos in text-layout
+               with fgidx = 0 with fg-stack = nil with next = nil do
+               (if (fontsloth-layout-glyph-position-p pos)
+                   (push pos next)
+                 (cl-case (car pos)
+                   (:push (push fgidx fg-stack))
+                   (:pop (draw (nreverse next) (exlybar-color-find fgidx t))
+                         (setq fgidx (pop fg-stack))
+                         (setq next nil))
+                   (:fg (draw (nreverse next) (exlybar-color-find fgidx t))
+                        (setq fgidx (cadr pos))
+                        (setq next nil))))
+               finally (draw (nreverse next) (exlybar-color-find fgidx t))))))
+
+(defun exlybar-module--create-layout (text font fidx px x)
+  "Create a `fontsloth-layout' for TEXT, FONT, at size PX and offset x.
+FIDX is the index into `exlybar-color-map-fg'."
+  (let* ((l (fontsloth-layout-create)))
+    (fontsloth-layout-reset
+     l (fontsloth-layout-settings-create :x x
+                                         :y (aref exlybar-font-y-delta fidx)))
+    (fontsloth-layout-append
+     l `(,font) (fontsloth-layout-text-style-create
+                 :text text :px px :font-index 0
+                 ;; placing the font object directly in user-data would make
+                 ;; pretty-printing exlybar-modules too costly
+                 :user-data fidx))
+    (fontsloth-layout-finalize l)
+    l))
+
+(defun exlybar-module--layout-format (format spec lpad)
+  "Collect all `fonsloth-layout's necessary to render FORMAT.
+SPEC is a `format-spec' spec for the parts of FORMAT that are not color codes
+LPAD is the module left padding"
+  (cl-loop for part in (exlybar-color-parse-string format)
+           with fidx = 0 with font-stack = nil with ls = nil
+           for prev-x = lpad
+           then (if ls (max prev-x (fontsloth-layout-current-pos (car ls)))
+                  prev-x) collect
+           (if (stringp part)
+               (let* ((txt (format-spec part spec t))
+                      (font (fontsloth-load-font (exlybar-font-find fidx)))
+                      (px (+ (aref exlybar-font-px-size fidx)
+                             (aref exlybar-font-px-delta fidx)))
+                      (l (exlybar-module--create-layout
+                          txt font fidx px prev-x)))
+                 (push l ls) l)
+             (cl-case (car part)
+               (:push (push fidx font-stack) part)
+               (:pop (setq fidx (pop font-stack)) part)
+               (:font (setq fidx (cadr part)) part)
+               (t part)))))
+
+(defsubst exlybar-module--collect-layout-output (layouts)
+  "Collect all layout output from LAYOUTS interspersed with any color codes."
+  (let ((current-pos))
+    `(,(cl-loop for l in layouts
+                if (fontsloth-layout-p l)
+                nconc (progn
+                        (setq current-pos (fontsloth-layout-current-pos l))
+                        (fontsloth-layout-output l))
+                else collect l)
+      ,current-pos)))
+
+(cl-defmethod exlybar-module-layout ((m exlybar-module))
+  "Give module M a layout.
+This default primary method uses a result from fontsloth-layout to set
+`exlybar-module-text-layout' and updates the module width accordingly."
+  (pcase-let* (((cl-struct
+                 exlybar-module format format-fn (format-spec spec) lpad) m)
+               (format (if format-fn (funcall format-fn m) format))
+               (layouts (exlybar-module--layout-format format spec lpad)))
+    (cl-multiple-value-bind (output current-pos)
+        (exlybar-module--collect-layout-output layouts)
+      ;; (message "text layout width is %s" current-pos)
+      (setf (exlybar-module-width m)
+            (+ (exlybar-module-rpad m) (round current-pos))
+            (exlybar-module-text-layout m)
+            output))))
+
+(cl-defmethod exlybar-module-init :before ((m exlybar-module))
+  "Before init update module M's layout."
+  ;; (message "super init before")
+  (exlybar-module-layout m))
+
+(declare-function cl-type-of "data.c" (object))
+
+(cl-defmethod exlybar-module-init :after ((m exlybar-module))
+  "After init start module M's update timer and draw its text."
+  (when (cl-find-method #'exlybar-module-update-status '() `(,(cl-type-of m)))
+    (unless (exlybar-module-update-timer m)
+      (setf (exlybar-module-update-timer m)
+            (run-at-time nil 10 #'exlybar-module-update-status m))))
+  (when (exlybar-module-format m)
+    (exlybar-module--draw-text m)))
+
+(cl-defmethod exlybar-module-refresh ((m exlybar-module))
+  "Refresh module M.
+This default primary method redraws the text if it has changed."
+  ;; (message "module refresh primary %s" (exlybar-module-name m))
+  (when (exlybar-module-needs-refresh? m)
+    ;; (message "module %s changed, redrawing text, xcb %s"
+    ;;          (exlybar-module-name m) (exlybar-module-xcb m))
+    (exlybar-module--draw-text m)))
+
+(cl-defmethod exlybar-module-refresh :before ((m exlybar-module))
+  "When refreshing, redo layout and make a new pixmap."
+  ;; (message "running super before refresh")
+  (when (exlybar-module-needs-refresh? m)
+    (exlybar-module-layout m)
+    (let ((c exlybar--connection)
+          (xcb (exlybar-module-xcb m))
+          (width (exlybar-module-width m)))
+      (when (map-elt xcb 'pixmap)
+        (xcb:+request c
+            (make-instance 'xcb:FreePixmap :pixmap (map-elt xcb 'pixmap)))
+        (let ((pmap (xcb:generate-id c)))
+          (exlybar-render-create-pixmap c pmap width exlybar-height)
+          (map-put! (exlybar-module-xcb m) 'pixmap pmap)
+          (exlybar-render-fill-rectangle
+           c (map-elt xcb 'gc) pmap width exlybar-height))))))
+
+(cl-defmethod exlybar-module-refresh :after ((m exlybar-module))
+  "After refresh update M's needs-refresh?."
+  (setf (exlybar-module-needs-refresh? m) nil))
+
+(cl-defmethod exlybar-module-reposition ((m exlybar-module) x y)
+  "Tell module M about its layout X and Y."
+  (ignore m) (ignore x) (ignore y))
+
+(cl-defmethod exlybar-module-exit :before ((m exlybar-module))
+  "Cancel the update timer."
+  (when (exlybar-module-update-timer m)
+    (cancel-timer (exlybar-module-update-timer m)))
+  (setf (exlybar-module-update-timer m) nil))
+
+(cl-defmethod exlybar-module-exit ((m exlybar-module))
+  "Tear down module M."
+  (exlybar--log-debug* "exlybar-module-exit %s" (exlybar-module-name m))
+  (pcase-let (((map ('pixmap pmap) ('gc gc) ('gs gs)) (exlybar-module-xcb m)))
+    (when pmap
+      (xcb:+request exlybar--connection
+          (make-instance 'xcb:FreePixmap :pixmap pmap)))
+    (when gc
+      (xcb:+request exlybar--connection
+          (make-instance 'xcb:FreeGC :gc gc)))
+    (when gs
+      (let ((egs (xcb:+request-checked+request-check exlybar--connection
+                     (make-instance 'xcb:render:FreeGlyphSet :glyphset gs))))
+        (exlybar--log-debug* "trying to free glyphset, errors %s" egs))))
+  (setf (exlybar-module-cache m) nil
+        (exlybar-module-text m) nil
+        (exlybar-module-xcb m) nil))
+
+(defsubst exlybar-module--find-by-name (module-name)
+  "Find all instances of modules with names equivalent to MODULE-NAME."
+  (cl-remove-if-not
+   (lambda (m)
+     (equal module-name
+            (when (exlybar-module-p m)
+              (exlybar-module-name m))))
+   exlybar--modules))
+
+(defun exlybar-module--refresh-all-by-name (module-name)
+  "Refresh all instances of modules with names equivalent to MODULE-NAME.
+
+This is intended for refreshing modules on user actions known to change
+status."
+  (when (exlybar-enabled-p)
+    (let ((ms (exlybar-module--find-by-name module-name)))
+      (dolist (m ms)
+        (exlybar-module-update-status m))
+      (exlybar-refresh-modules))))
+
+(provide 'exlybar-module-)
+
+;;; exlybar-module-.el ends here

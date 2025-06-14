@@ -49,7 +49,7 @@
 (require 'compat)
 (require 'rx)
 
-(require 'exlybar-module)
+(require 'exlybar-module-)
 
 (defgroup exlybar-workspaces nil
   "An Exlybar workspaces module."
@@ -135,7 +135,7 @@ WS-LIST."
 
 (defun exlybar-workspaces--refresh-hook-fn (&rest _)
   "Refresh all workspaces modules, suitable for hooks."
-  (exlybar-module-refresh-all-by-name "workspaces"))
+  (exlybar-module--refresh-all-by-name "workspaces"))
 
 
 ;;; Begin exlybar-workspaces-generate-list-fn implementations
@@ -282,7 +282,7 @@ functions to update module status on changes, otherwise remove."
               (when (string-prefix-p
                      "tag_changed"
                      (buffer-substring-no-properties (point) (line-end-position)))
-                (exlybar-module-refresh-all-by-name "workspaces")))))))))
+                (exlybar-module--refresh-all-by-name "workspaces")))))))))
 
 (defvar exlybar-workspaces--herbstluft-evt-listener-proc nil)
 (defvar exlybar-workspaces--herbstluft-evt-listener-proc-stderr nil)
@@ -367,7 +367,7 @@ myExlybarLogHook dbus = myLogHook <+> dynamicLogWithPP (exlybarHook dbus)
   "Refresh if the dbus message variable is modified with nil WHERE and OPER
 \\='set."
   (when (and (not where) (eq 'set oper))
-    (run-with-timer 0 nil (lambda () (exlybar-module-refresh-all-by-name "workspaces")))))
+    (run-with-timer 0 nil (lambda () (exlybar-module--refresh-all-by-name "workspaces")))))
 
 (add-variable-watcher 'exlybar-workspaces--xmonad-dbus-last-val
                       'exlybar-workspaces--watch-xmonad-dbus-last-val)

@@ -50,8 +50,8 @@
 (require 'xcb-xembed)
 (require 'xcb-systemtray)
 
-(require 'exlybar-module)
 (require 'exlybar-log)
+(require 'exlybar-module-)
 
 (cl-defstruct (exlybar-tray--icon
                (:constructor exlybar-tray--icon-create))

@@ -53,7 +53,7 @@
 (require 'seq)
 
 (require 'exlybar-color)
-(require 'exlybar-module)
+(require 'exlybar-module-)
 
 (defgroup exlybar-wifi nil
   "An Exlybar wifi module."
