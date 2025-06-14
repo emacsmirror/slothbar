@@ -1,4 +1,4 @@
-;;; exlybar-render.el --- Slothbar XCB specific render fns -*- lexical-binding: t -*-
+;;; slothbar-render.el --- Slothbar XCB specific render fns -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
@@ -52,8 +52,8 @@
 (require 'xcb-renderutil)
 (require 'fontsloth-layout)
 
-(require 'exlybar-log)
-(require 'exlybar-util)
+(require 'slothbar-log)
+(require 'slothbar-util)
 
 (defun slothbar-render-create-pixmap (c id width height &optional depth)
   "Sent a request to create an symbol `xcb:Pixmap'.
@@ -260,5 +260,5 @@ GLYPH-POSITION the `fontsloth-layout-glyph-position'"
     ;;          )
     char-code))
 
-(provide 'exlybar-render)
-;;; exlybar-render.el ends here
+(provide 'slothbar-render)
+;;; slothbar-render.el ends here

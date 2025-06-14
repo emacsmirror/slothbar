@@ -1,4 +1,4 @@
-;;; exlybar-font.el --- Organize font data for eventual rendering -*- lexical-binding: t -*-
+;;; slothbar-font.el --- Organize font data for eventual rendering -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -44,7 +44,7 @@
 (require 'cl-lib)
 (require 'fontsloth)
 
-(require 'exlybar-log)
+(require 'slothbar-log)
 
 ;;; Try to use safe fallback font lists where possible
 
@@ -215,5 +215,5 @@ See `slothbar-font-candidates' for information about how fonts are
 configured."
   (aref slothbar-font--color-code-map font-index))
 
-(provide 'exlybar-font)
-;;; exlybar-font.el ends here
+(provide 'slothbar-font)
+;;; slothbar-font.el ends here

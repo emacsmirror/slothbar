@@ -1,4 +1,4 @@
-;;; exlybar-tray.el --- An slothbar system tray module  -*- lexical-binding: t -*-
+;;; slothbar-tray.el --- An slothbar system tray module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
@@ -50,8 +50,8 @@
 (require 'xcb-xembed)
 (require 'xcb-systemtray)
 
-(require 'exlybar-log)
-(require 'exlybar-module-)
+(require 'slothbar-log)
+(require 'slothbar-module-)
 
 (cl-defstruct (slothbar-tray--icon
                (:constructor slothbar-tray--icon-create))
@@ -560,5 +560,5 @@ This overrides the default module exit because system tray is special."
           slothbar-tray--module nil))
   (cl-call-next-method))
 
-(provide 'exlybar-tray)
-;;; exlybar-tray.el ends here
+(provide 'slothbar-tray)
+;;; slothbar-tray.el ends here

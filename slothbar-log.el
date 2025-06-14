@@ -1,4 +1,4 @@
-;;; exlybar-log.el --- Slothbar logging -*- lexical-binding: t -*-
+;;; slothbar-log.el --- Slothbar logging -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
@@ -65,6 +65,6 @@
      (list (completing-read "Level: " levels nil t "info"))))
   (slothbar--log-set-level (intern level)))
 
-(provide 'exlybar-log)
+(provide 'slothbar-log)
 
-;;; exlybar-log.el ends here
+;;; slothbar-log.el ends here

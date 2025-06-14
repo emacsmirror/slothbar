@@ -1,4 +1,4 @@
-;;; exlybar-module.el --- Base types and generics for modules  -*- lexical-binding: t -*-
+;;; slothbar-module.el --- Base types and generics for modules  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -44,7 +44,7 @@
 
 (require 'cl-lib)
 
-(require 'exlybar-util)
+(require 'slothbar-util)
 
 (defvar slothbar-module-min-width 10
   "Let modules have a min width so an empty module is visible.")
@@ -99,6 +99,6 @@
 
 (cl-defgeneric slothbar-module-exit (m) "Tear down module M.")
 
-(provide 'exlybar-module)
+(provide 'slothbar-module)
 
-;;; exlybar-module.el ends here
+;;; slothbar-module.el ends here

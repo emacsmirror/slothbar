@@ -1,4 +1,4 @@
-;;; exlybar-color.el --- Support color code formats similar to stumpwm's -*- lexical-binding: t -*-
+;;; slothbar-color.el --- Support color code formats similar to stumpwm's -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -44,10 +44,10 @@
 (require 'cl-lib)
 (require 's)
 
-(require 'exlybar-util)
-(require 'exlybar-log)
+(require 'slothbar-util)
+(require 'slothbar-log)
 ;; FIXME: store colors without relying on an xcb type
-(require 'exlybar-render)
+(require 'slothbar-render)
 
 ;;; foreground colors
 
@@ -301,5 +301,5 @@ If COLOR isn't a colorcode a list containing COLOR is returned."
                          (progn (setq resolve~? nil) (cons '(:pop) p))
                        p))))))))
 
-(provide 'exlybar-color)
-;;; exlybar-color.el ends here
+(provide 'slothbar-color)
+;;; slothbar-color.el ends here

@@ -1,4 +1,4 @@
-;;; exlybar-layout.el --- Slothbar layout helpers -*- lexical-binding: t -*-
+;;; slothbar-layout.el --- Slothbar layout helpers -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
@@ -53,7 +53,7 @@
 (require 'cl-lib)
 (require 'seq)
 
-(require 'exlybar-module)
+(require 'slothbar-module)
 
 (defun slothbar-layout (module-ins)
   "Layout modules horizontally given modules and optional layout instructions.
@@ -160,6 +160,6 @@ OLD as per `slothbar-layout-extents'"
                         (subtract-extents (cdr new) (cdr old) res))))))))
     (nreverse (subtract-extents new old nil))))
 
-(provide 'exlybar-layout)
+(provide 'slothbar-layout)
 
-;;; exlybar-layout.el ends here
+;;; slothbar-layout.el ends here

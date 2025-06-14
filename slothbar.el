@@ -1,4 +1,4 @@
-;;; exlybar.el --- Emacs X window manager status bar -*- lexical-binding: t -*-
+;;; slothbar.el --- Emacs X window manager status bar -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -44,7 +44,7 @@
 ;; An example configuration with use-package:
 ;;   (use-package slothbar
 ;;     :init
-;;     (require 'exlybar-module-requires)
+;;     (require 'slothbar-module-requires)
 ;;     (setq slothbar-modules
 ;;           '(:left
 ;;             slothbar-tray-create slothbar-date-create
@@ -63,11 +63,11 @@
 (require 'xcb-icccm)
 (require 'xcb-ewmh)
 
-(require 'exlybar-module)
-(require 'exlybar-util)
-(require 'exlybar-log)
+(require 'slothbar-module)
+(require 'slothbar-util)
+(require 'slothbar-log)
 
-(defgroup exlybar nil
+(defgroup slothbar nil
   "Slothbar is a status bar that displays as a dock window in X."
   :group 'display)
 
@@ -84,14 +84,14 @@ Defaults to the width obtained from `display-pixel-width'"
   :type 'integer
   :group 'slothbar)
 
-(require 'exlybar-layout)
+(require 'slothbar-layout)
 
 (defcustom slothbar-height 20
   "Slothbar height."
   :type 'integer
   :group 'slothbar)
 
-(require 'exlybar-font)
+(require 'slothbar-font)
 
 (add-hook 'slothbar-before-init-hook
           (lambda ()
@@ -149,7 +149,7 @@ E.g.: (:left
                          (function :tag "Module constructor or lambda"
                                    :value slothbar-date-create)))
   :group 'slothbar
-  :require 'exlybar-module-requires)
+  :require 'slothbar-module-requires)
 
 (defcustom slothbar-before-init-hook nil
   "Functions to run when before slothbar is initialized."
@@ -618,6 +618,6 @@ Initialize the connection, window, graphics context, and modules."
           slothbar--gc nil)
     (run-hook-with-args 'slothbar-after-exit-hook)))
 
-(provide 'exlybar)
+(provide 'slothbar)
 
-;;; exlybar.el ends here
+;;; slothbar.el ends here

@@ -1,4 +1,4 @@
-;;; exlybar-workspaces.el --- An slothbar workspaces module  -*- lexical-binding: t -*-
+;;; slothbar-workspaces.el --- An slothbar workspaces module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -49,7 +49,7 @@
 (require 'compat)
 (require 'rx)
 
-(require 'exlybar-module-)
+(require 'slothbar-module-)
 
 (defgroup slothbar-workspaces nil
   "An Slothbar workspaces module."
@@ -410,5 +410,5 @@ Note that the xmonad config must send dbus events. See the
 
 (add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-xmonad)
 
-(provide 'exlybar-workspaces)
-;;; exlybar-workspaces.el ends here
+(provide 'slothbar-workspaces)
+;;; slothbar-workspaces.el ends here

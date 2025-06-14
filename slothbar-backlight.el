@@ -48,8 +48,8 @@
 (require 'backlight)
 (require 'cl-lib)
 
-(require 'exlybar-color)
-(require 'exlybar-module-)
+(require 'slothbar-color)
+(require 'slothbar-module-)
 
 (defgroup slothbar-backlight nil
   "An Slothbar backlight module."
@@ -114,5 +114,5 @@ See `slothbar-color-zone'"
 (advice-add 'backlight--set-brightness
             :after #'slothbar-backlight--set-brightness-advice)
 
-(provide 'exlybar-backlight)
-;;; exlybar-backlight.el ends here
+(provide 'slothbar-backlight)
+;;; slothbar-backlight.el ends here

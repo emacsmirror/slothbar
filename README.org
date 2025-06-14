@@ -77,9 +77,9 @@ If you would like it to work on Emacs 27, please let me know.
 * Project organization
 Slothbar consists of five primary components:
 + Status bar xcb lifecycle, refresh, and event handling
-  Entry point: [[./exlybar.el]]
+  Entry point: [[./slothbar.el]]
 
-  This delegates to [[./exlybar-layout.el]] to decide which window areas to
+  This delegates to [[./slothbar-layout.el]] to decide which window areas to
   copy/clear during a refresh cycle.
 
   This provides two autoloaded interactive functions:
@@ -88,7 +88,7 @@ Slothbar consists of five primary components:
   + ~(slothbar-exit)~: exit the status bar
 
 + Logical layout helpers
-  Entry point: [[./exlybar-layout.el]]
+  Entry point: [[./slothbar-layout.el]]
 
   Currently this produces horizontal layouts supporting combination of left,
   right, and center alignments of modules. It supports x and y coordinate
@@ -99,7 +99,7 @@ Slothbar consists of five primary components:
   layout changes.
 
 + Port of Stumpwm like color command syntax
-  Entry point: [[./exlybar-color.el]]
+  Entry point: [[./slothbar-color.el]]
 
   These are stumpwm style color/font codes meaning that each module can have a
   format string to arrange its text/icon and allow control of fonts and colors
@@ -127,8 +127,8 @@ Slothbar consists of five primary components:
   *not yet finalized*
 
   Entry points:
-  + [[./exlybar-module.el]]
-  + [[./exlybar-module-.el]]
+  + [[./slothbar-module.el]]
+  + [[./slothbar-module-.el]]
 
   At present it consists of a cl-struct base type ~slothbar-module~ and a set
   of generic functions and default primary methods for dispatch on objects of
@@ -155,9 +155,9 @@ Slothbar consists of five primary components:
   provide module specific Emacs hooks.
 
 + Glyph rendering, loading, and compositing
-  Entry point: [[./exlybar-render.el]]
+  Entry point: [[./slothbar-render.el]]
 
-  This is used by exlybar-module.el to draw text. It relies on [[https://github.com/jollm/fontsloth][fontsloth]] for
+  This is used by slothbar-module.el to draw text. It relies on [[https://github.com/jollm/fontsloth][fontsloth]] for
   glyph rasterization and provides an implementation of glyph stream like
   functionality that is normally in xcb-render-util but is not included in xelb
   in order to support CompositeGlyphs32 requests for loaded glyphs.
@@ -168,7 +168,7 @@ It's tested in multi-monitor setups so far in EXWM and should work in
 herbstluftwm and xmonad.
 
 +It’s not great at helping to find fonts.+ See the
-=slothbar-font-candidates= docstring in [[./exlybar-color.el]].
+=slothbar-font-candidates= docstring in [[./slothbar-color.el]].
 
 It depends on fontsloth which is another project in very early stages; see the
 fontsloth README linked above for a list of tested fonts.
@@ -227,7 +227,7 @@ After installation:
 When using guix system/guix package manager to manage Emacs packages,
 the below linked package definitions should work from a local channel:
 
-[[./exlybar.scm.org][./exlybar.scm.org]]
+[[./exlybar.scm.org][./slothbar.scm.org]]
 
 Update commit references/tags to the desired revisions/tag names.
 
@@ -243,11 +243,11 @@ installation.
 ** Layout and display with modules
 #+begin_src emacs-lisp
   ;;; this demonstrates display for all modules provided so far
-  (require 'exlybar)
+  (require 'slothbar)
 
   ;; note: if you customize slothbar-modules, slothbar-module-requires
   ;; will be required automatically
-  (require 'exlybar-module-requires)
+  (require 'slothbar-module-requires)
 
   ;;; layout everything to the right
 
@@ -301,9 +301,9 @@ installation.
 #+begin_src emacs-lisp
   ;;; please note this is in an early phase and subject to change
 
-  (require 'exlybar)
+  (require 'slothbar)
 
-  (require 'exlybar-module-requires)
+  (require 'slothbar-module-requires)
 
   ;;; assume one of the layouts demonstrated above
 
@@ -339,7 +339,7 @@ installation.
   (use-package slothbar
     :defer t
     :config
-    (require 'exlybar-module-requires)
+    (require 'slothbar-module-requires)
     (setq slothbar-modules (list :left 'slothbar-tray-create 'slothbar-date-create
                                 'slothbar-workspaces-create
                                 :right 'slothbar-wifi-create 'slothbar-volume-create

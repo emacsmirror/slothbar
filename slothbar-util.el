@@ -1,4 +1,4 @@
-;;; exlybar-util.el --- Utility code useful in multiple places  -*- lexical-binding: t -*-
+;;; slothbar-util.el --- Utility code useful in multiple places  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -76,6 +76,6 @@
                       (xcb:get-setup slothbar--connection) 'roots))
                 'root)))
 
-(provide 'exlybar-util)
+(provide 'slothbar-util)
 
-;;; exlybar-util.el ends here
+;;; slothbar-util.el ends here

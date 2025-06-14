@@ -1,4 +1,4 @@
-;;; exlybar-module-requires.el --- Requiring this file requires all modules  -*- lexical-binding: t; -*-
+;;; slothbar-module-requires.el --- Requiring this file requires all modules  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -43,13 +43,13 @@
 
 ;;; Code:
 
-(require 'exlybar-backlight)
-(require 'exlybar-battery)
-(require 'exlybar-date)
-(require 'exlybar-volume)
-(require 'exlybar-tray)
-(require 'exlybar-wifi)
-(require 'exlybar-workspaces)
+(require 'slothbar-backlight)
+(require 'slothbar-battery)
+(require 'slothbar-date)
+(require 'slothbar-volume)
+(require 'slothbar-tray)
+(require 'slothbar-wifi)
+(require 'slothbar-workspaces)
 
-(provide 'exlybar-module-requires)
-;;; exlybar-module-requires.el ends here
+(provide 'slothbar-module-requires)
+;;; slothbar-module-requires.el ends here

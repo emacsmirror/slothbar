@@ -1,4 +1,4 @@
-;;; exlybar-volume.el --- An slothbar volume module  -*- lexical-binding: t -*-
+;;; slothbar-volume.el --- An slothbar volume module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -49,8 +49,8 @@
 (require 'cl-lib)
 (require 'f)
 
-(require 'exlybar-color)
-(require 'exlybar-module-)
+(require 'slothbar-color)
+(require 'slothbar-module-)
 
 (defgroup slothbar-volume nil
   "An Slothbar volume module."
@@ -125,5 +125,5 @@ See `slothbar-color-zone'"
 (advice-add 'volume-update :after #'slothbar-volume--refresh-advice)
 (advice-add 'volume-set :after #'slothbar-volume--refresh-advice)
 
-(provide 'exlybar-volume)
-;;; exlybar-volume.el ends here
+(provide 'slothbar-volume)
+;;; slothbar-volume.el ends here

@@ -1,4 +1,4 @@
-;;; exlybar-battery.el --- An slothbar battery module  -*- lexical-binding: t -*-
+;;; slothbar-battery.el --- An slothbar battery module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023 Jo Gay <jo.gay@mailfence.com>
 
@@ -50,9 +50,9 @@
 (require 'f)
 (require 'map)
 
-(require 'exlybar-log)
-(require 'exlybar-color)
-(require 'exlybar-module-)
+(require 'slothbar-log)
+(require 'slothbar-color)
+(require 'slothbar-module-)
 
 (defgroup slothbar-battery nil
   "An Slothbar battery module."
@@ -155,5 +155,5 @@ module text."
   "Set M's icon and update the text."
   (slothbar-module-update-status m))
 
-(provide 'exlybar-battery)
-;;; exlybar-battery.el ends here
+(provide 'slothbar-battery)
+;;; slothbar-battery.el ends here

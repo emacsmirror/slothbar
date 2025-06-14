@@ -1,4 +1,4 @@
-;;; exlybar-date.el --- An slothbar date/time module  -*- lexical-binding: t -*-
+;;; slothbar-date.el --- An slothbar date/time module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
@@ -50,8 +50,8 @@
 (require 'time-date)
 (require 'solar)
 
-(require 'exlybar-color)
-(require 'exlybar-module-)
+(require 'slothbar-color)
+(require 'slothbar-module-)
 
 (defgroup slothbar-date nil
   "An Slothbar date module."
@@ -147,5 +147,5 @@ ZONE-COLOR the color code as determined by `slothbar-color-zone'"
   "Set the M's icon and update the text."
   (slothbar-module-update-status m))
 
-(provide 'exlybar-date)
-;;; exlybar-date.el ends here
+(provide 'slothbar-date)
+;;; slothbar-date.el ends here

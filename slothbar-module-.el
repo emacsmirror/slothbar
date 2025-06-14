@@ -1,4 +1,4 @@
-;;; exlybar-module-.el --- Slothbar module lifecycle and display fns  -*- lexical-binding: t -*-
+;;; slothbar-module-.el --- Slothbar module lifecycle and display fns  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -51,12 +51,12 @@
 (require 'pcase)
 (require 'xcb-render)
 
-(require 'exlybar)
-(require 'exlybar-color)
-(require 'exlybar-font)
-(require 'exlybar-log)
-(require 'exlybar-module)
-(require 'exlybar-render)
+(require 'slothbar)
+(require 'slothbar-color)
+(require 'slothbar-font)
+(require 'slothbar-log)
+(require 'slothbar-module)
+(require 'slothbar-render)
 
 (defvar slothbar--connection)
 (defvar slothbar--window)
@@ -293,6 +293,6 @@ status."
         (slothbar-module-update-status m))
       (slothbar-refresh-modules))))
 
-(provide 'exlybar-module-)
+(provide 'slothbar-module-)
 
-;;; exlybar-module-.el ends here
+;;; slothbar-module-.el ends here

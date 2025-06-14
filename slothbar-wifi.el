@@ -1,4 +1,4 @@
-;;; exlybar-wifi.el --- An slothbar wifi module  -*- lexical-binding: t -*-
+;;; slothbar-wifi.el --- An slothbar wifi module  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Jo Gay <jo.gay@mailfence.com>
 
@@ -52,10 +52,10 @@
 (require 's)
 (require 'seq)
 
-(require 'exlybar-color)
-(require 'exlybar-module-)
+(require 'slothbar-color)
+(require 'slothbar-module-)
 
-(defgroup exlybar-wifi nil
+(defgroup slothbar-wifi nil
   "An Slothbar wifi module."
   :group 'slothbar)
 
@@ -163,5 +163,5 @@ QUAL is the wifi signal quality as a string"
   "Set the M's icon and update the text."
   (slothbar-module-update-status m))
 
-(provide 'exlybar-wifi)
-;;; exlybar-wifi.el ends here
+(provide 'slothbar-wifi)
+;;; slothbar-wifi.el ends here

@@ -1,4 +1,4 @@
-;;; exlybar-randr.el --- Slothbar randr event listeners -*- lexical-binding: t -*-
+;;; slothbar-randr.el --- Slothbar randr event listeners -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
@@ -45,8 +45,8 @@
 
 (require 'xcb-randr)
 
-(require 'exlybar)
-(require 'exlybar-util)
+(require 'slothbar)
+(require 'slothbar-util)
 
 (defgroup slothbar-randr nil
   "Slothbar RandR."
@@ -164,5 +164,5 @@ This is adapted from the EXWM RandR module."
           slothbar--geometry-changed? t)
     (run-at-time 0 nil #'slothbar-refresh-modules)))
 
-(provide 'exlybar-randr)
-;;; exlybar-randr.el ends here
+(provide 'slothbar-randr)
+;;; slothbar-randr.el ends here
