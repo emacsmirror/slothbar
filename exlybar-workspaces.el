@@ -325,6 +325,9 @@ functions to update module status on changes, otherwise remove."
 
 ;;; xmonad
 
+(defvar exlybar-workspaces--xmonad-dbus-last-val nil
+  "Holds the most recent dbus message from xmonad.")
+
 (defun exlybar-workspaces-generate-list-fn-xmonad ()
   "Implement `exlybar-workspaces-generate-list-fn' for xmonad.
 
@@ -359,9 +362,6 @@ myExlybarLogHook dbus = myLogHook <+> dynamicLogWithPP (exlybarHook dbus)
                                   t)))
              collect `(,name
                        (,(intern status))))))
-
-(defvar exlybar-workspaces--xmonad-dbus-last-val nil
-  "Holds the most recent dbus message from xmonad.")
 
 (defun exlybar-workspaces--watch-xmonad-dbus-last-val (_ _ oper where)
   "Refresh if the dbus message variable is modified with nil WHERE and OPER

@@ -347,6 +347,9 @@ NEW-EXTENTS the new layout extents"
                            :width width :height exlybar-height)))
       (exlybar-module-reposition (cadr m) x y))))
 
+(declare-function "exlybar-module-refresh" "exlybar-module" (m))
+(declare-function "exlybar-module-reposition" "exlybar-module" (m x y))
+
 (defvar exlybar--geometry-changed? nil "Held by `exlybar--on-Expose'.")
 (cl-defun exlybar-refresh-modules (&optional modules)
   "Ask the modules to refresh and see whether the layout has changed.
@@ -376,6 +379,9 @@ MODULES optional modules to refresh and compare with prev-extents"
         (exlybar--selectively-clear-areas prev-extents new-extents))
       (exlybar--copy-areas new-layout)))
   (xcb:flush exlybar--connection))
+
+(declare-function "exlybar-module-init" "exlybar-module" (m))
+(declare-function "exlybar-module-exit" "exlybar-module" (m))
 
 (defun exlybar--watch-modules (sym nval oper where)
   "Watcher for `exlybar--modules' to refresh modules with NVAL."

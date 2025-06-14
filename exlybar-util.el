@@ -67,9 +67,11 @@
   ;; also, is it possible to get current theme foreground directly?
   (frame-parameter (selected-frame) 'foreground-color))
 
+(defvar exlybar-connection)
+
 (defun exlybar-util--find-root-window-id ()
   "Attempt to find a root window."
-  (when exlybar--connection
+  (when (and (boundp 'exlybar--connection) exlybar--connection)
     (slot-value (car (slot-value
                       (xcb:get-setup exlybar--connection) 'roots))
                 'root)))

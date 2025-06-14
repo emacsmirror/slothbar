@@ -53,6 +53,7 @@
 (require 'fontsloth-layout)
 
 (require 'exlybar-log)
+(require 'exlybar-util)
 
 (defun exlybar-render-create-pixmap (c id width height &optional depth)
   "Sent a request to create an `xcb:Pixmap'.

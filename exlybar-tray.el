@@ -466,6 +466,9 @@ This overrides the default module init because system tray is special."
   (puthash 'prev-height exlybar-height (exlybar-module-cache m))
   (setq exlybar-tray--module m))
 
+(defvar exlybar-tray--should-map? nil
+  "Set to t during refresh if reposition should map the embedder window.")
+
 (cl-defmethod exlybar-module-layout ((m exlybar-tray))
   "Layout `exlybar-tray' module M.
 This overrides the default module layout because system tray is special."
@@ -494,9 +497,6 @@ This overrides the default module layout because system tray is special."
     (unless (eq x (gethash 'prev-width (exlybar-module-cache m)))
       (setq exlybar-tray--should-map? t))
     (puthash 'prev-width x (exlybar-module-cache m))))
-
-(defvar exlybar-tray--should-map? nil
-  "Set to t during refresh if reposition should map the embedder window.")
 
 (cl-defmethod exlybar-module-refresh ((_ exlybar-tray))
   "Refresh `exlybar-tray' module.

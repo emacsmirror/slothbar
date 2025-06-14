@@ -139,6 +139,8 @@ By default, CANDIDATES is the value of `exlybar-font-candidates'."
 There should be no need to recompute pixel sizes unless either the height or
 the fonts change.")
 
+(defvar exlybar-height)
+
 (defun exlybar-font--watch-px-size (sym nval oper where)
   "Update `exlybar-font-px-size' when a relevant change occurs."
   (exlybar--log-trace* "watch-px-size called %s %s %s %s" sym nval oper where)
