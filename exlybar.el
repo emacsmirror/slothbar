@@ -1,11 +1,11 @@
-;;; exlybar.el --- Emacs polybar-like thing -*- lexical-binding: t -*-
+;;; exlybar.el --- Emacs X window manager status bar -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Jo Gay <jo.gay@mailfence.com>
 
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.27.5
 ;; Homepage: https://github.com/jollm/exlybar
-;; Package-Requires: ((backlight "1.4") (compat "29.1") (dash "2.1.0") (f "0.20.0") (fontsloth "0.19.0") (log4e "0.3.3") (s "1.12.0") (volume "1.0") (xelb "0.18") (emacs "28.0"))
+;; Package-Requires: ((backlight "1.4") (compat "29.1") (dash "2.1.0") (f "0.20.0") (fontsloth "0.19.1") (log4e "0.3.3") (s "1.12.0") (volume "1.0") (xelb "0.18") (emacs "28.0"))
 ;; Keywords: window-manager, status-bar, exwm
 
 ;; This program is free software: you can redistribute it and/or modify it
@@ -38,13 +38,19 @@
 
 ;;; Commentary:
 
-;; This module uses xelb to build polybar like modules for displaying status
+;; This package uses xelb to build a dock bar for displaying status
 ;; information.
 
-;; *Please see the website for a detailed README.*
-
-;; To use this module, load and enable it as follows:
+;; An example configuration with use-package:
 ;;   (use-package exlybar
+;;     :init
+;;     (require 'exlybar-module-requires)
+;;     (setq exlybar-modules
+;;           '(:left
+;;             exlybar-tray-create exlybar-date-create
+;;             :right
+;;             exlybar-workspaces-create exlybar-wifi-create
+;;             exlybar-volume-create exlybar-battery))
 ;;     :config (exlybar))
 
 ;;; Code:
