@@ -84,7 +84,7 @@
   (needs-refresh? nil :type 'boolean)
   (update-timer nil :type 'timer))
 
-(cl-defgeneric exlybar-module-init (m) "Initialize module m.")
+(cl-defgeneric exlybar-module-init (m) "Initialize module M.")
 
 (cl-defgeneric exlybar-module-layout (m)
   "Give module M a layout.")

@@ -42,7 +42,7 @@
 ;; This module handles module layout for exlybar.
 ;;
 ;; Currently this produces horizontal layouts supporting combination of left,
-;; right, and center alignments of modules. It supports x and y coordinate
+;; right, and center alignments of modules.  It supports x and y coordinate
 ;; offsets.
 ;;
 ;; The extents fns exlybar-layout-extents and exlybar-layout-subtract-extents
@@ -58,8 +58,8 @@
 (defun exlybar-layout (module-ins)
   "Layout modules horizontally given modules and optional layout instructions.
 
-Valid instructions are `:left' `:right' `:center'. Default is `:right' given no
-instruction. `module-ins' is a flat list.
+Valid instructions are `:left' `:right' `:center'.  Default is
+`:right' given no instruction.  MODULE-INS is a flat list.
 e.g. (mfoo :left mbar) -> ((mbar) nil (mfoo))
 
 MODULE-INS the list of modules to layout with any instructions"

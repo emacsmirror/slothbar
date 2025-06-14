@@ -123,7 +123,9 @@ This should be deprecated in favor of something better."
                (:copier nil)))
 
 (defun exlybar-wifi--format-fn-spec (zone-color)
-  "Build the `format-spec' spec used by the format-fn."
+  "Build the `format-spec' spec used by the format-fn.
+
+ZONE-COLOR the color code as determined by `exlybar-color-zone'"
   `((?p . ,(format "^[%s%%p^]" zone-color))))
 
 (defun exlybar-wifi-format-format (m)

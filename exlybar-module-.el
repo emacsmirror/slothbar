@@ -64,7 +64,7 @@
 (cl-defmethod exlybar-module-init ((m exlybar-module))
   "Initialize module M.
 This default primary method gives M a graphics context, a pixmap, a glyphset,
-and a cache. The xcb ids are stored in the module xcb alist."
+and a cache.  The xcb ids are stored in the module xcb alist."
   (pcase-let* ((c exlybar--connection)
                (pmap (xcb:generate-id c))
                (gc (xcb:generate-id c))
@@ -111,7 +111,7 @@ and a cache. The xcb ids are stored in the module xcb alist."
   "Draw module M's text into its pixmap.
 
 If any color codes are present, the resulting text will be colorized
-accordingly. Currently only commands :push, :pop, and :fg are supported."
+accordingly.  Currently only commands :push, :pop, and :fg are supported."
   (pcase-let* (((cl-struct
                  exlybar-module cache text-layout xcb) m)
                ((map ('pixmap pixmap) ('gs gs)) xcb))

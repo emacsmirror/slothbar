@@ -69,7 +69,7 @@
 (defvar exlybar--window nil "The parent window.")
 (defvar exlybar--gc nil "The graphics context.")
 
-(defvar exlybar--enabled nil "t if exlybar is enabled.")
+(defvar exlybar--enabled nil "Non-nil if exlybar is enabled.")
 
 (defcustom exlybar-width (display-pixel-width)
   "Exlybar width.
@@ -115,17 +115,17 @@ Defaults to the width obtained from `display-pixel-width'"
 (defcustom exlybar-preferred-display "eDP-1"
   "If multiple displays are connected:
 
-- nil indicates to automatically choose one. If the exlybar-randr
+- nil indicates to automatically choose one.  If the exlybar-randr
   extension is enabled, this will be the primary display
- - string should be the display name as reported by
-  `(display-monitor-attributes-list)`"
+- string should be the display name as reported by
+  `display-monitor-attributes-list`"
   :type '(choice (const :tag "auto" nil)
 		 string)
   :group 'exlybar)
 
 (defcustom exlybar-is-bottom nil
   "True if exlybar is positioned at the bottom of the display, false
-  otherwise."
+otherwise."
   :type 'boolean
   :group 'exlybar)
 
@@ -195,6 +195,10 @@ immediately enabled or disabled."
   exlybar--enabled)
 
 (defun exlybar--find-display-geometry (&optional display)
+  "Find DISPLAY geometry as an alist of x-offset, y-offset, width, and height.
+
+If DISPLAY is not found, the value chosen is the first found in
+`display-monitor-attributes-list'."
   (let* ((all-attrs (display-monitor-attributes-list))
 	 (display-attrs
 	  (or (seq-some
@@ -279,7 +283,7 @@ immediately enabled or disabled."
   (xcb:flush exlybar--connection))
 
 (defun exlybar--on-DestroyNotify (data _synthetic)
-  "DestroyNotify
+  "DestroyNotify.
 DATA the event data"
   (exlybar--log-trace* "received destroynotify %s" data))
 
@@ -378,9 +382,8 @@ MODULES optional modules to refresh and compare with prev-extents"
       (exlybar--copy-areas new-layout)))
   (xcb:flush exlybar--connection))
 
-(defun exlybar--watch-modules (sym nval oper where)
-  "Watcher for `exlybar--modules' to refresh modules with NVAL."
-  (ignore sym)
+(defun exlybar--watch-modules (_ nval oper where)
+  "With OPER eq \\='set and nil WHERE, refresh `exlybar--modules' with NVAL."
   (when (and exlybar--enabled (not where) (eq 'set oper))
     ;; exit modules that have been removed
     (dolist (m exlybar--modules)
@@ -417,10 +420,9 @@ DATA the event data"
     (setq exlybar--geometry-changed? nil)
     (run-at-time 0 nil #'exlybar-refresh-modules)))
 
-(defun exlybar--watch-height (sym nval oper where)
-  "Watcher for `exlybar-height' to refresh modules when height changes."
-  (ignore sym)
-  (ignore nval)
+(defun exlybar--watch-height (_ _ oper where)
+  "With OPER eq \\='set and nil WHERE, refresh modules when
+`exlybar-height' changes."
   (when (and exlybar--enabled (not where) (eq 'set oper))
     (setq exlybar--geometry-changed? t)
     (run-at-time 0 nil #'exlybar-refresh-modules)))
@@ -442,8 +444,8 @@ DATA the event data"
                   exlybar-modules)))
 
 (defun exlybar--watch-exlybar-modules (_ _ oper where)
-  "Watcher for `exlybar-modules' to (re)construct modules when preferences
-change."
+  "With OPER eq \\='set and nil WHERE, (re)construct modules when
+`exlybar-modules' is modified."
   (when (and (not where) (eq 'set oper))
     (run-at-time 0 nil #'exlybar--construct-modules)))
 

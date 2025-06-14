@@ -161,12 +161,17 @@ FG t if a foreground color, nil if a background color"
 
 ;; TODO change these to keyword params
 (cl-defun exlybar-color-zone
-    (amount &optional (med 20) (hi 50) (crit 90) reverse local?)
-  "Return a color command based on the magnitude of the argument. If
-the limits for the levels aren't specified, they default to sensible
-values for a percentage. With reverse, lower numbers are more
-critical. With local? t, the color code is made local."
-  (cl-flet ((past (n) (funcall (if reverse #'<= #'>=) amount n)))
+    (amount &optional (med 20) (hi 50) (crit 90) reverse? local?)
+  "Return a color command based on the magnitude of the AMOUNT, an integer.
+
+If the limits MED, HI, and CRIT for the levels aren't specified, they
+default to sensible values for a percentage.  See
+`exlybar-color-zone-med', `exlybar-color-zone-hi', and
+`exlybar-color-zone-crit' to customize these defaults.
+
+With REVERSE? t, lower numbers are more critical.  With LOCAL? t, the
+color code is made local."
+  (cl-flet ((past (n) (funcall (if reverse? #'<= #'>=) amount n)))
     (let ((zone (cond ((past crit) exlybar-color-zone-crit)
                       ((past hi) exlybar-color-zone-hi)
                       ((past med) exlybar-color-zone-med)
@@ -208,8 +213,9 @@ codes, or a list of arguments excluding amount to pass to
 
 (defsubst exlybar-color-choose-icon (val icons)
   "Return first (cdr icon) for which (< VAL (car icon)) is t.
-ICONS is an alist of the form ((ival1 . icon1) ... (ivaln . iconn)). ivals are
-expected to be in ascending order."
+
+ICONS is an alist of the form ((ival1 . icon1) ... (ivaln . iconn)).
+ivals are expected to be in ascending order."
   (cdr (seq-find (pcase-lambda (`(,p . ,_)) (< val p)) icons)))
 
 (defvar exlybar-color--pattern
@@ -257,7 +263,7 @@ If COLOR isn't a colorcode a list containing COLOR is returned."
     (list color)))
 
 (defun exlybar-color-parse-string (string)
-  "Parse a color-coded string into a list of strings and color modifiers."
+  "Parse a color-coded STRING into a list of strings and color modifiers."
   ;; these two fns attempt to replicate cl ppcre:split
   (cl-labels ((expand-positions (pos length)
                 (if pos

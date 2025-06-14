@@ -73,7 +73,7 @@
   "Non-nil when the server does not support RandR 1.5 protocol.")
 
 (defun exlybar-randr--on-ScreenChangeNotify (data _synthetic)
-  "Handle `ScreenChangeNotify' event.
+  "Handle `ScreenChangeNotify' event with DATA.
 
 Run `exlybar-randr-screen-change-hook' (usually user scripts to
 configure RandR)."
@@ -85,7 +85,7 @@ configure RandR)."
         (run-hooks 'exlybar-randr-screen-change-hook)))))
 
 (defun exlybar-randr--on-Notify (data _synthetic)
-  "Handle `CrtcChangeNotify' and `OutputChangeNotify' events.
+  "Handle `CrtcChangeNotify' and `OutputChangeNotify' events with DATA.
 
 Refresh when any CRTC/output changes."
   (let ((evt (make-instance 'xcb:randr:NotifyData)))
@@ -99,7 +99,7 @@ Refresh when any CRTC/output changes."
             (setq exlybar-randr--last-timestamp timestamp)))))))
 
 (defun exlybar-randr--on-ConfigureNotify (data _synthetic)
-  "Handle `ConfigureNotify' event.
+  "Handle `ConfigureNotify' event with DATA.
 
 Refresh when any RandR 1.5 monitor changes."
   (let ((evt (make-instance 'xcb:ConfigureNotify)))

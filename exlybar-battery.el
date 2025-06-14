@@ -101,13 +101,16 @@ The color is decided based on battery percentage. See `exlybar-color-zone'."))
                (:copier nil)))
 
 (defun exlybar-battery--format-fn-spec (zone-color charging?)
-  "Build the `format-spec' spec used by the format-fn."
+  "Build the `format-spec' spec used by the format-fn.
+
+ZONE-COLOR the color code as determined by `exlybar-color-zone'
+CHARGING? t if battery status indicates charging, otherwise nil"
   (let ((icon-fmt (if charging? "^[^f3%s%%i^]" "%s%%i")))
     `((?i . ,(format icon-fmt zone-color))
       (?p . ,(format "%s%%p" zone-color)))))
 
 (defun exlybar-battery-format-format (m)
-  "This is the default format-fn that is applied to format."
+  "This is the default format-fn that is applied to module M's format."
   (let* ((default-directory (f-full "~")) ; ensure status checks don't remote
          (status (or (map-elt (exlybar-module-cache m) 'status)
                      (funcall battery-status-function)))
@@ -120,7 +123,8 @@ The color is decided based on battery percentage. See `exlybar-color-zone'."))
                  (exlybar-battery--format-fn-spec zone-color charging?) t)))
 
 (defun exlybar-battery--format-spec (status)
-  "Build the `format-spec' spec used to generate module text."
+  "Given battery STATUS, build the `format-spec' spec used to generate
+module text."
   (let* ((pct (if-let ((pct (map-elt status ?p))) (string-to-number pct) 100))
          (charging? (equal "+" (map-elt status ?b)))
          (icon (if charging? exlybar-battery-charge-icon

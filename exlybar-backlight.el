@@ -85,12 +85,12 @@ See `exlybar-color-zone'"
   `((?p . ,(exlybar-backlight-current-progress))))
 
 (defun exlybar-backlight-format-format (m)
-  "This is the default format-fn that is applied to format."
+  "This is the default format-fn applied to module M's format."
   (format-spec (exlybar-module-format m)
                (exlybar-backlight--format-fn-spec) t))
 
 (defun exlybar-backlight--format-spec (icon)
-  "Build the `format-spec' spec used to generate module text."
+  "Build the `format-spec' with ICON used to generate module text."
   `((?i . ,(string icon))))
 
 (cl-defmethod exlybar-module-update-status ((m exlybar-backlight))

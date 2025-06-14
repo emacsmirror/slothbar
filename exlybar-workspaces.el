@@ -59,7 +59,7 @@
   "A function generating a workspaces status list.
 
 E.g.:
-(lambda ()
+\(lambda ()
   \\='((\"0\" (:window))
     (\"1\" (:current))
     (\"2\" (:blankish))
@@ -74,8 +74,7 @@ would indicate:
 
 The possible status keywords are :window, :current, and :blankish. If
 :current appears in the status list for a workspace, it is expected at
-the head of the list.
-"
+the head of the list."
   :type 'function
   :group 'exlybar-workspaces)
 
@@ -191,7 +190,7 @@ NEW."
   "Implement `exlybar-workspaces-generate-list-fn' for EXWM.
 
 If the shorten library is available (from circe), the displayed names
-are shortened buffer names. Otherwise, names are the workspace numbers."
+are shortened buffer names.  Otherwise, names are the workspace numbers."
   (let ((not-empty (make-vector (exwm-workspace--count) nil))
         (shorts (exlybar-workspaces--shorten-frame-buffer-names-exwm)))
     (dolist (i exwm--id-buffer-alist)
@@ -262,7 +261,7 @@ functions to update module status on changes, otherwise remove."
                     ((rx (seq ?. (+ anychar))) '(:blankish)))))))))
 
 (defun exlybar-workspaces--make-herbstluft-events-filter ()
-  "Return a process filter for herbstclient -i that looks for tag changes."
+  "Return a process filter for herbstclient -i to look for tag changes."
   (let ((processed-lines 0))
     (lambda (proc string)
       (when (buffer-live-p (process-buffer proc))
@@ -351,8 +350,7 @@ exlybarHook dbus =
           , ppTitle           = wrapper \"title\" . shorten 90
           }
 
-myExlybarLogHook dbus = myLogHook <+> dynamicLogWithPP (exlybarHook dbus)
-"
+myExlybarLogHook dbus = myLogHook <+> dynamicLogWithPP (exlybarHook dbus)"
   (when (stringp exlybar-workspaces--xmonad-dbus-last-val)
     (cl-loop for (status name)
              in (mapcar 'string-split

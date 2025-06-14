@@ -117,12 +117,14 @@ See `exlybar-color-zone'"
       (apply #'exlybar-color-zone day exlybar-date-color-zones))))
 
 (defun exlybar-date--format-fn-spec (zone-color)
-  "Build the `format-spec' spec used by the format-fn."
+  "Build the `format-spec' spec used by the format-fn.
+
+ZONE-COLOR the color code as determined by `exlybar-color-zone'"
   `((?i . ,(format (concat exlybar-date-color-winter "%s%%i") zone-color))
     (?ζ . ,(exlybar-date--zone-color))))
 
 (defun exlybar-date-format-format (m)
-  "This is the default format-fn that is applied to format."
+  "This is the default format-fn that is applied to module M's format."
   (format-time-string
    (format-spec (exlybar-module-format m)
                 (exlybar-date--format-fn-spec (exlybar-date--zone-color)) t)))

@@ -88,7 +88,7 @@ See `exlybar-color-zone'"
   `((?p . ,(exlybar-volume-current-progress pct))))
 
 (defun exlybar-volume-format-format (m)
-  "This is the default format-fn that is applied to format."
+  "This is the default format-fn that is applied to module M's format."
   (let ((default-directory (f-full "~")))
     (format-spec (exlybar-module-format m)
 		 (exlybar-volume--format-fn-spec (exlybar-volume--get-status m)) t)))
@@ -100,7 +100,7 @@ See `exlybar-color-zone'"
     (volume-get)))
 
 (defun exlybar-volume--format-spec (m pct)
-  "Build the `format-spec' spec used to generate module text given PCT."
+  "Build M's `format-spec' spec used to generate module text given PCT."
   `((?i . ,(string (exlybar-color-choose-icon pct (exlybar-module-icon m))))))
 
 (cl-defmethod exlybar-module-update-status ((m exlybar-volume))

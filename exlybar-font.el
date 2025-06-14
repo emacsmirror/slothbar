@@ -77,8 +77,8 @@ code-point ranges."
 (declare-function font-info "font.c" (name &optional frame))
 
 (cl-defsubst exlybar-font--filename-search (font-name-list)
-  "Given FONT-NAME-LIST, return a file path to the first font found,
-  or nil or none are found."
+  "Given FONT-NAME-LIST, return a file path to the first font found, or nil
+or none are found."
   (seq-some #'(lambda (v) (when v v))
 	    (cl-mapcar #'(lambda (name)
 			   (when-let ((fuck (font-info name)))
@@ -106,9 +106,9 @@ By default, CANDIDATES is the value of `exlybar-font-candidates'."
   (make-vector 10 nil)
   "The font map corresponding to color codes ^f0-^f9.")
 
-(defun exlybar-font--watch-color-code-map (sym nval oper where)
-  "Update `exlybar-font--color-code-map' when a relevant change occurs."
-  (exlybar--log-trace* "watch-font-map called %s %s %s %s" sym nval oper where)
+(defun exlybar-font--watch-color-code-map (_ nval oper where)
+  "With OPER eq \\='set and nil WHERE, update
+`exlybar-font--color-code-map' with NVAL candidates."
   (when (and (not where) (eq 'set oper))
     (setq exlybar-font--color-code-map (exlybar-font-map-candidates nval))))
 
@@ -125,7 +125,9 @@ By default, CANDIDATES is the value of `exlybar-font-candidates'."
                                      #'exlybar-font--watch-color-code-map)))
 
 (cl-defun exlybar-font--precompute-px-sizes (height &optional font-map)
-  "Given a HEIGHT, compute pixel sizes for all fonts in the font map."
+  "Given a HEIGHT, compute pixel sizes for all fonts in the FONT-MAP.
+
+With no FONT-MAP argument, the value of `exlybar-font--color-code-map' is used."
   (exlybar--log-trace* "precompute-px-size called %s %s" height font-map)
   (apply
    #'vector
@@ -142,8 +144,9 @@ the fonts change.")
 (defvar exlybar-height)
 
 (defun exlybar-font--watch-px-size (sym nval oper where)
-  "Update `exlybar-font-px-size' when a relevant change occurs."
-  (exlybar--log-trace* "watch-px-size called %s %s %s %s" sym nval oper where)
+  "With OPER eq \\='set and nil WHERE, update `exlybar-font-px-size'
+appropriately for NVAL with SYM equal to exlybar-height or
+exlybar-font--color-code-map."
   (when (and (not where) (eq 'set oper))
     (let ((height (cl-case sym
                     (exlybar-height (when (/= (symbol-value sym) nval) nval))
@@ -192,14 +195,14 @@ with different metrics."
 (defvar exlybar-font-y-delta
   (exlybar-font--compute-y-delta exlybar-font-px-delta)
   "These deltas to adjust font y offsets.
-This is a companion to `exlybar-font-px-delta'. Note that
+This is a companion to `exlybar-font-px-delta'.  Note that
 changing this setting does not invalidate existing glyph position
-caches. This is automatically recomputed when
+caches.  This is automatically recomputed when
 `exlybar-font-px-delta' changes.")
 
-(defun exlybar-font--watch-px-delta (sym nval oper where)
-  "Update `exlybar-font-y-delta' when `exlybar-font-px-delta' is modified."
-  (ignore sym)
+(defun exlybar-font--watch-px-delta (_ nval oper where)
+  "With OPER eq \\='set and nil WHERE, update `exlybar-font-y-delta'
+computed from NVAL."
   (when (and (not where) (eq 'set oper))
     (setq exlybar-font-y-delta (exlybar-font--compute-y-delta nval))))
 
