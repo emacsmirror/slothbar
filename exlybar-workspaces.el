@@ -305,9 +305,11 @@ functions to update module status on changes, otherwise remove."
 
 (defun exlybar-workspaces--stop-herbstluft-event-listener ()
   "Start a process to listen for herbstluftwm events."
-  (when exlybar-workspaces--herbstluft-evt-listener-proc
+  (when (and exlybar-workspaces--herbstluft-evt-listener-proc
+             (process-live-p exlybar-workspaces--herbstluft-evt-listener-proc))
     (kill-process exlybar-workspaces--herbstluft-evt-listener-proc))
-  (when exlybar-workspaces--herbstluft-evt-listener-proc-stderr
+  (when (and exlybar-workspaces--herbstluft-evt-listener-proc-stderr
+             (process-live-p exlybar-workspaces--herbstluft-evt-listener-proc-stderr))
     (kill-process exlybar-workspaces--herbstluft-evt-listener-proc-stderr)))
 
 (defun exlybar-workspaces-setup-defaults-herbstluftwm ()
@@ -315,12 +317,11 @@ functions to update module status on changes, otherwise remove."
   (when (and (executable-find "herbstclient")
              (equal "herbstluftwm" (getenv "DESKTOP_SESSION")))
     (setq exlybar-workspaces-generate-list-fn
-          'exlybar-workspaces-generate-list-fn-herbstluftwm)
-    (add-hook 'exlybar-before-init-hook 'exlybar-workspaces--start-herbstluft-event-listener)
-    (add-hook 'exlybar-after-exit-hook 'exlybar-workspaces--stop-herbstluft-event-listener)))
+          #'exlybar-workspaces-generate-list-fn-herbstluftwm)
+    (exlybar-workspaces--start-herbstluft-event-listener)
+    (add-hook 'exlybar-after-exit-hook #'exlybar-workspaces--stop-herbstluft-event-listener)))
 
-(when (executable-find "herbstclient")
-  (add-hook 'exlybar-before-init-hook 'exlybar-workspaces-setup-defaults-herbstluftwm))
+(add-hook 'exlybar-before-init-hook #'exlybar-workspaces-setup-defaults-herbstluftwm)
 
 ;;; xmonad
 
