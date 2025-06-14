@@ -84,8 +84,8 @@ Default nil means to choose automatically"
 
 (defun exlybar-wifi-iw-essid ()
   "For now scrape iw <dev> info output.
-Doing this even though iw says 'Do NOT screenscrape this tool, we don't
-consider its output stable.' :(
+Doing this even though iw says \\='Do NOT screenscrape this tool, we don't
+consider its output stable.\\=' :(
 This should be deprecated in favor of something better."
   (let ((default-directory (f-full "~")) ; ensure status checks don't remote
         )
@@ -99,8 +99,8 @@ This should be deprecated in favor of something better."
 
 (defun exlybar-wifi-iw-quality ()
   "For now scrape iw <dev> link output.
-Doing this even though iw says 'Do NOT screenscrape this tool, we don't
-consider its output stable.' :(
+Doing this even though iw says \\='Do NOT screenscrape this tool, we don't
+consider its output stable.\\=' :(
 This should be deprecated in favor of something better."
   (let ((default-directory (f-full "~")) ; ensure status checks don't remote
         )
