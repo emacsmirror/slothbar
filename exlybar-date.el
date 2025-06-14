@@ -76,7 +76,8 @@ See `solar-equinoxes/solstices'"
     ,(exlybar-date--equinox-solstice-day 2) nil nil)
   "Days of the year indicating seasonal color changes.
 See `exlybar-color-zone'"
-  :type '(list float float float boolean boolean)
+  :type '(list (float :tag "Med") (float :tag "Hi") (float :tag "Crit")
+               (boolean :tag "Reverse?") (boolean :tag "Local?"))
   :group 'exlybar-date)
 
 (defcustom exlybar-date-color-spring "^7"

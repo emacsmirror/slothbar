@@ -61,10 +61,11 @@
   :type 'integer
   :group 'exlybar-volume)
 
-(defcustom exlybar-volume-color-zones '(20 50 80)
+(defcustom exlybar-volume-color-zones '(20 50 80 nil nil)
   "Volume percentages indicating progress color changes.
 See `exlybar-color-zone'"
-  :type 'list
+  :type '(list (integer :tag "Med") (integer :tag "Hi") (integer :tag "Crit")
+               (boolean :tag "Reverse?") (boolean :tag "Local?"))
   :group 'exlybar-volume)
 
 (cl-defstruct (exlybar-volume

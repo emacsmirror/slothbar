@@ -78,7 +78,8 @@ See `exlybar-color-choose-icon' for how it is used."
 (defcustom exlybar-battery-color-zones '(49 29 10 t t)
   "Battery percentages indicating icon color changes.
 See `exlybar-color-zone'"
-  :type 'list
+  :type '(list (integer :tag "Med") (integer :tag "Hi") (integer :tag "Crit")
+               (boolean :tag "Reverse?") (boolean :tag "Local?"))
   :group 'exlybar-battery)
 
 (cl-defstruct (exlybar-battery

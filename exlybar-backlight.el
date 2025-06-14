@@ -60,10 +60,11 @@
   :type 'integer
   :group 'exlybar-backlight)
 
-(defcustom exlybar-backlight-color-zones '(20 40 80)
+(defcustom exlybar-backlight-color-zones '(20 40 80 nil nil)
   "Backlight percentages indicating progress color changes.
 See `exlybar-color-zone'"
-  :type 'list
+  :type '(list (integer :tag "Med") (integer :tag "Hi") (integer :tag "Crit")
+               (boolean :tag "Reverse?") (boolean :tag "Local?"))
   :group 'exlybar-backlight)
 
 (cl-defstruct (exlybar-backlight

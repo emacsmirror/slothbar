@@ -59,10 +59,11 @@
   "An Exlybar wifi module."
   :group 'exlybar)
 
-(defcustom exlybar-wifi-qual-color-zones '(-40 -64 -70 t)
+(defcustom exlybar-wifi-qual-color-zones '(-40 -64 -70 t nil)
   "Wifi signal qualities indicating color changes.
 See `exlybar-color-zone'"
-  :type 'list
+  :type '(list (integer :tag "Med") (integer :tag "Hi") (integer :tag "Crit")
+               (boolean :tag "Reverse?") (boolean :tag "Local?"))
   :group 'exlybar-wifi)
 
 (defcustom exlybar-wifi-preferred-interface nil
