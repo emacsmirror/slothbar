@@ -79,10 +79,10 @@ code-point ranges."
 (cl-defsubst exlybar-font--filename-search (font-name-list)
   "Given FONT-NAME-LIST, return a file path to the first font found, or nil
 or none are found."
-  (seq-some #'(lambda (v) (when v v))
-	    (cl-mapcar #'(lambda (name)
-			   (when-let ((fuck (font-info name)))
-			     (elt fuck 12)))
+  (seq-some (lambda (v) (when v v))
+	    (cl-mapcar (lambda (name)
+			 (when-let ((fuck (font-info name)))
+			   (elt fuck 12)))
 		       font-name-list)))
 
 (defun exlybar-font-map-candidates (&optional candidates)

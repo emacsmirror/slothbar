@@ -81,7 +81,7 @@ the head of the list."
 (cl-defstruct (exlybar-workspaces
                (:include exlybar-module (name "workspaces") (icon ?󰯉)
                          (format "^f2^2^[^5^f4%i^]%w")
-                         (format-fn 'exlybar-workspaces-format-format))
+                         (format-fn #'exlybar-workspaces-format-format))
                (:constructor exlybar-workspaces-create)
                (:copier nil)))
 
@@ -217,13 +217,13 @@ are shortened buffer names.  Otherwise, names are the workspace numbers."
 functions to update module status on changes, otherwise remove."
   (if add?
       (progn (add-hook 'window-selection-change-functions
-                       'exlybar-workspaces--refresh-hook-fn)
+                       #'exlybar-workspaces--refresh-hook-fn)
              (add-hook 'window-buffer-change-functions
-                       'exlybar-workspaces--refresh-hook-fn))
+                       #'exlybar-workspaces--refresh-hook-fn))
     (remove-hook 'window-selection-change-functions
-                 'exlybar-workspaces--refresh-hook-fn)
+                 #'exlybar-workspaces--refresh-hook-fn)
     (remove-hook 'window-buffer-change-functions
-                 'exlybar-workspaces--refresh-hook-fn)))
+                 #'exlybar-workspaces--refresh-hook-fn)))
 
 (defvar exwm--connection)
 
@@ -234,14 +234,14 @@ functions to update module status on changes, otherwise remove."
                (locate-library "shorten"))
       (require 'shorten))
     (setq exlybar-workspaces-generate-list-fn
-          'exlybar-workspaces-generate-list-fn-exwm)
+          #'exlybar-workspaces-generate-list-fn-exwm)
     (add-hook 'exwm-workspace-switch-hook
-              'exlybar-workspaces--refresh-hook-fn)
+              #'exlybar-workspaces--refresh-hook-fn)
     (exlybar-workspaces--exwm-modify-change-functions
      exlybar-workspaces-exwm-add-change-functions)))
 
 (when (locate-library "exwm")
-  (add-hook 'exlybar-before-init-hook 'exlybar-workspaces-setup-defaults-exwm))
+  (add-hook 'exlybar-before-init-hook #'exlybar-workspaces-setup-defaults-exwm))
 
 ;;; herbstluftwm
 
@@ -369,7 +369,7 @@ myExlybarLogHook dbus = myLogHook <+> dynamicLogWithPP (exlybarHook dbus)"
     (run-with-timer 0 nil (lambda () (exlybar-module--refresh-all-by-name "workspaces")))))
 
 (add-variable-watcher 'exlybar-workspaces--xmonad-dbus-last-val
-                      'exlybar-workspaces--watch-xmonad-dbus-last-val)
+                      #'exlybar-workspaces--watch-xmonad-dbus-last-val)
 
 (defun exlybar-workspaces--xmonad-dbus-monitor (&optional workspaces)
   "The dbus monitor sets `exlybar-workspaces--xmonad-dbus-last-val' to the
@@ -400,15 +400,15 @@ Note that the xmonad config must send dbus events. See the
     (setq
      exlybar-workspaces--xmonad-dbus-object
      (dbus-register-monitor :session
-                            'exlybar-workspaces--xmonad-dbus-monitor
+                            #'exlybar-workspaces--xmonad-dbus-monitor
                             :path "/org/xmonad/Log"
                             :interface "org.xmonad.Log"
                             :member "Update")
      exlybar-workspaces-generate-list-fn
-     'exlybar-workspaces-generate-list-fn-xmonad)
-    (add-hook 'exlybar-after-exit-hook 'exlybar-workspaces--unregister-xmonad-dbus-monitor)))
+     #'exlybar-workspaces-generate-list-fn-xmonad)
+    (add-hook 'exlybar-after-exit-hook #'exlybar-workspaces--unregister-xmonad-dbus-monitor)))
 
-(add-hook 'exlybar-before-init-hook 'exlybar-workspaces-setup-defaults-xmonad)
+(add-hook 'exlybar-before-init-hook #'exlybar-workspaces-setup-defaults-xmonad)
 
 (provide 'exlybar-workspaces)
 ;;; exlybar-workspaces.el ends here

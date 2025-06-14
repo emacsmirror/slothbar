@@ -93,7 +93,7 @@ some versions of battery-status-function include the trailing W
 and some do not. `battery-linux-sysfs' where available appears
 more precise than e.g. `battery-upower'.")
                          (format-fn
-                          'exlybar-battery-format-format
+                          #'exlybar-battery-format-format
                           :documentation
                           "Pre-format %i in format to use zone colors.
 The color is decided based on battery percentage. See `exlybar-color-zone'."))

@@ -68,7 +68,7 @@
   (name nil :type 'string)
   (text nil :type 'string)
   (format "" :type 'string)
-  (format-fn nil :type 'symbol)
+  (format-fn nil :type 'function)
   (format-spec nil :type 'string)
   (text-layout nil :type 'list)
   (lpad 14 :type 'fixed)

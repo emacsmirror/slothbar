@@ -71,7 +71,7 @@ See `exlybar-color-zone'"
 (cl-defstruct (exlybar-volume
                (:include exlybar-module (name "volume") (icon '((33 . ?) (67 . ?) (110 . ?)))
                          (format "^8^f2^[^f1%i^]%p")
-                         (format-fn 'exlybar-volume-format-format))
+                         (format-fn #'exlybar-volume-format-format))
                (:constructor exlybar-volume-create)
                (:copier nil))
   (channel nil :type 'string
@@ -122,8 +122,8 @@ See `exlybar-color-zone'"
   "Refresh any module instances if the volume is adjusted in Emacs."
   (exlybar-module--refresh-all-by-name "volume"))
 
-(advice-add 'volume-update :after 'exlybar-volume--refresh-advice)
-(advice-add 'volume-set :after 'exlybar-volume--refresh-advice)
+(advice-add 'volume-update :after #'exlybar-volume--refresh-advice)
+(advice-add 'volume-set :after #'exlybar-volume--refresh-advice)
 
 (provide 'exlybar-volume)
 ;;; exlybar-volume.el ends here

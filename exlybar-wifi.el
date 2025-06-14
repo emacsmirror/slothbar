@@ -118,7 +118,7 @@ This should be deprecated in favor of something better."
 (cl-defstruct (exlybar-wifi
                (:include exlybar-module (name "wifi") (icon ?)
                          (format "^6^[^f1%i^]^[^2|^]%e^[^2|^]%p")
-                         (format-fn 'exlybar-wifi-format-format))
+                         (format-fn #'exlybar-wifi-format-format))
                (:constructor exlybar-wifi-create)
                (:copier nil)))
 

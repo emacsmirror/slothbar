@@ -70,7 +70,7 @@ See `exlybar-color-zone'"
 (cl-defstruct (exlybar-backlight
                (:include exlybar-module (name "backlight") (icon ?)
                          (format "^8^f2^[^f1%i^]%p")
-                         (format-fn 'exlybar-backlight-format-format))
+                         (format-fn #'exlybar-backlight-format-format))
                (:constructor exlybar-backlight-create)
                (:copier nil)))
 
@@ -112,7 +112,7 @@ See `exlybar-color-zone'"
   (exlybar-module--refresh-all-by-name "backlight"))
 
 (advice-add 'backlight--set-brightness
-            :after 'exlybar-backlight--set-brightness-advice)
+            :after #'exlybar-backlight--set-brightness-advice)
 
 (provide 'exlybar-backlight)
 ;;; exlybar-backlight.el ends here

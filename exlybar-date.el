@@ -102,7 +102,7 @@ See `exlybar-color-zone'"
                          (format (concat "^2^[^f1%i^] ^["
                                          exlybar-date-color-winter
                                          "%ζ%a, %h %e.^] %l:%M %#p %Z"))
-                         (format-fn 'exlybar-date-format-format))
+                         (format-fn #'exlybar-date-format-format))
                (:constructor exlybar-date-create)
                (:copier nil)))
 
