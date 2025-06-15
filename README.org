@@ -116,13 +116,13 @@ Ensure that *xauth* is installed.
 Install using [[https://github.com/quelpa/quelpa][quelpa]], [[https://github.com/radian-software/straight.el][straight.el]], or your favorite direct-from-source
 package manager.
 
-See the [[./slothbar.el]] Package-Requires header for a list of package
+See the [[./slothbar.el][./slothbar.el]] Package-Requires header for a list of package
 dependencies. All dependencies are available from either elpa or
 melpa.
 
 ** Fonts
 Check the default value of =slothbar-font-candidates= in
-[[./slothbar-font.el]] to determine a minimal set of fonts.
+[[./slothbar-font.el][./slothbar-font.el]] to determine a minimal set of fonts.
 
 E.g. if =slothbar-font-candidates= is:
 #+BEGIN_SRC emacs-lisp
@@ -202,9 +202,9 @@ installation.
 * Project organization
 Slothbar consists of five primary components:
 + Status bar xcb lifecycle, refresh, and event handling
-  Entry point: [[./slothbar.el]]
+  Entry point: [[./slothbar.el][./slothbar.el]]
 
-  This delegates to [[./slothbar-layout.el]] to decide which window areas to
+  This delegates to [[./slothbar-layout.el][./slothbar-layout.el]] to decide which window areas to
   copy/clear during a refresh cycle.
 
   This provides two autoloaded interactive functions:
@@ -213,7 +213,7 @@ Slothbar consists of five primary components:
   + ~(slothbar-exit)~: exit the status bar
 
 + Logical layout helpers
-  Entry point: [[./slothbar-layout.el]]
+  Entry point: [[./slothbar-layout.el][./slothbar-layout.el]]
 
   Currently this produces horizontal layouts supporting combination of left,
   right, and center alignments of modules. It supports x and y coordinate
@@ -224,7 +224,7 @@ Slothbar consists of five primary components:
   layout changes.
 
 + Port of Stumpwm like color command syntax
-  Entry point: [[./slothbar-color.el]]
+  Entry point: [[./slothbar-color.el][./slothbar-color.el]]
 
   These are stumpwm style color/font codes meaning that each module can have a
   format string to arrange its text/icon and allow control of fonts and colors
@@ -252,8 +252,8 @@ Slothbar consists of five primary components:
   *not yet finalized*
 
   Entry points:
-  + [[./slothbar-module.el]]
-  + [[./slothbar-module-.el]]
+  + [[./slothbar-module.el][./slothbar-module.el]]
+  + [[./slothbar-module-.el][./slothbar-module-.el]]
 
   At present it consists of a cl-struct base type ~slothbar-module~ and a set
   of generic functions and default primary methods for dispatch on objects of
@@ -286,7 +286,7 @@ Slothbar consists of five primary components:
   init/layout/refresh/exit cycle.
 
 + Glyph rendering, loading, and compositing
-  Entry point: [[./slothbar-render.el]]
+  Entry point: [[./slothbar-render.el][./slothbar-render.el]]
 
   This is used by slothbar-module.el to draw text. It relies on [[https://github.com/jollm/fontsloth][fontsloth]] for
   glyph rasterization and provides an implementation of glyph stream like
@@ -299,7 +299,7 @@ It's tested in multi-monitor setups so far in EXWM and should work in
 herbstluftwm and xmonad.
 
 +It’s not great at helping to find fonts.+ See the
-=slothbar-font-candidates= docstring in [[./slothbar-color.el]].
+=slothbar-font-candidates= docstring in [[./slothbar-color.el][./slothbar-color.el]].
 
 It depends on fontsloth which is another project in very early stages; see the
 fontsloth README linked above for a list of tested fonts.
