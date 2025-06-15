@@ -284,7 +284,6 @@ functions to update module status on changes, otherwise remove."
                 (slothbar-module--refresh-all-by-name "workspaces")))))))))
 
 (defvar slothbar-workspaces--herbstluft-evt-listener-proc nil)
-(defvar slothbar-workspaces--herbstluft-evt-listener-proc-stderr nil)
 
 (defun slothbar-workspaces--start-herbstluft-event-listener ()
   "Start a process to listen for herbstluftwm events."
@@ -294,23 +293,16 @@ functions to update module status on changes, otherwise remove."
                       :command '("herbstclient" "-i")
                       :buffer stdout
                       :filter (slothbar-workspaces--make-herbstluft-events-filter)
-                      :stderr stderr))
-         (stderr-process (get-buffer-process stderr)))
-    (unless (and process stderr-process)
+                      :stderr stderr)))
+    (unless process
       (error "Process unexpectedly nil"))
-    (setq slothbar-workspaces--herbstluft-evt-listener-proc
-          process
-          slothbar-workspaces--herbstluft-evt-listener-proc-stderr
-          stderr-process)))
+    (setq slothbar-workspaces--herbstluft-evt-listener-proc process)))
 
 (defun slothbar-workspaces--stop-herbstluft-event-listener ()
-  "Start a process to listen for herbstluftwm events."
+  "Stop process to listen for herbstluftwm events."
   (when (and slothbar-workspaces--herbstluft-evt-listener-proc
              (process-live-p slothbar-workspaces--herbstluft-evt-listener-proc))
-    (kill-process slothbar-workspaces--herbstluft-evt-listener-proc))
-  (when (and slothbar-workspaces--herbstluft-evt-listener-proc-stderr
-             (process-live-p slothbar-workspaces--herbstluft-evt-listener-proc-stderr))
-    (kill-process slothbar-workspaces--herbstluft-evt-listener-proc-stderr)))
+    (kill-process slothbar-workspaces--herbstluft-evt-listener-proc)))
 
 (defun slothbar-workspaces-setup-defaults-herbstluftwm ()
   "Configure slothbar-workspaces to display herbstluftwm tags."
