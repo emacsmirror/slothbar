@@ -95,7 +95,7 @@ Refresh when any CRTC/output changes."
       (when notify
         (with-slots (timestamp) notify
           (when (> timestamp slothbar-randr--last-timestamp)
-            (run-at-time 0 nil #'slothbar-randr--refresh)
+            (run-at-time 0 nil #'slothbar-refresh)
             (setq slothbar-randr--last-timestamp timestamp)))))))
 
 (defun slothbar-randr--on-ConfigureNotify (data _synthetic)
@@ -106,7 +106,7 @@ Refresh when any RandR 1.5 monitor changes."
     (xcb:unmarshal evt data)
     (with-slots (window) evt
       (when (eq window slothbar--window)
-        (slothbar-randr--refresh)))))
+        (slothbar-refresh)))))
 
 (defun slothbar-randr--init ()
   "Initialize RandR extension and slothbar RandR module.
@@ -149,20 +149,6 @@ This is adapted from the EXWM RandR module."
   (setq slothbar-randr--last-timestamp 0
         slothbar-randr--prev-screen-change-seqnum nil
         slothbar-randr--compatibility-mode nil))
-
-(defun slothbar-randr--refresh ()
-  "Refresh slothbar according to the updated RandR info."
-  (interactive)
-  (let ((geom (slothbar--find-display-geometry slothbar-preferred-display)))
-    (setq slothbar-offset-x (alist-get 'x-offset geom)
-	  slothbar-offset-y (if slothbar-is-bottom
-                               (- (+ (alist-get 'y-offset geom)
-                                     (alist-get 'height geom))
-                                  slothbar-height)
-                             (alist-get 'y-offset geom))
-	  slothbar-width (alist-get 'width geom)
-          slothbar--geometry-changed? t)
-    (run-at-time 0 nil #'slothbar-refresh-modules)))
 
 (provide 'slothbar-randr)
 ;;; slothbar-randr.el ends here

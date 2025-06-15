@@ -579,6 +579,20 @@ Initialize the connection, window, graphics context, and modules."
     (setq slothbar--enabled t)
     (run-hook-with-args 'slothbar-after-init-hook)))
 
+(defun slothbar-refresh ()
+  "Refresh slothbar according to geometry and settings."
+  (interactive)
+  (let ((geom (slothbar--find-display-geometry slothbar-preferred-display)))
+    (setq slothbar-offset-x (alist-get 'x-offset geom)
+	  slothbar-offset-y (if slothbar-is-bottom
+                                (- (+ (alist-get 'y-offset geom)
+                                      (alist-get 'height geom))
+                                   slothbar-height)
+                              (alist-get 'y-offset geom))
+	  slothbar-width (alist-get 'width geom)
+          slothbar--geometry-changed? t)
+    (run-at-time 0 nil #'slothbar-refresh-modules)))
+
 ;;;###autoload
 (defun slothbar ()
   "Start slothbar."
