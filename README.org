@@ -164,7 +164,7 @@ installation.
 
 + Help to locate/suggest/select compatible fonts to try (as of 0.26.0)
 
-* Not currently supported (but planned)
+** Not currently supported (but planned)
 + Easy and meaningful integration with screen readers
 + Multiple bars and gaps like in Polybar
 + Configurable transparency
