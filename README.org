@@ -234,7 +234,7 @@ Slothbar consists of five primary components:
 
   Currently the following color code commands are supported:
   - :font, shorthand ^f[0-9]
-    ~slothbar-font-map~ is customizable and maps 0-9 to font paths
+    ~slothbar-font-candidates~ is customizable and maps 0-9 to font paths
   - :fg, shorthand ^[0-9]~?  ~slothbar-color-map-fg~ is customizable and maps
     0-9 to xcb colors The optional ~ suffix (not in stumpwm) indicates to apply
     the color locally, meaning only to non color commands preceding the next
@@ -299,7 +299,7 @@ It's tested in multi-monitor setups so far in EXWM and should work in
 herbstluftwm and xmonad.
 
 +It’s not great at helping to find fonts.+ See the
-=slothbar-font-candidates= docstring in [[./slothbar-color.el][./slothbar-color.el]].
+=slothbar-font-candidates= docstring in [[./slothbar-font.el][./slothbar-font.el]].
 
 It depends on fontsloth which is another project in very early stages; see the
 fontsloth README linked above for a list of tested fonts.
