@@ -106,23 +106,28 @@ By default, CANDIDATES is the value of `slothbar-font-candidates'."
   (make-vector 10 nil)
   "The font map corresponding to color codes ^f0-^f9.")
 
-(defun slothbar-font--watch-color-code-map (_ nval oper where)
+(defun slothbar-font--watch-font-candidates (_ nval oper where)
   "With OPER eq \\='set and nil WHERE, update
 `slothbar-font--color-code-map' with NVAL candidates."
   (when (and (not where) (eq 'set oper))
-    (setq slothbar-font--color-code-map (slothbar-font-map-candidates nval))))
+    (let ((candidates (slothbar-font-map-candidates nval)))
+      (fontsloth-async-load-and-cache-fonts
+       candidates
+       :finish-func
+       (lambda (_)
+         (setq slothbar-font--color-code-map candidates))))))
 
 (add-hook 'slothbar-before-init-hook
           (lambda ()
             (setq slothbar-font--color-code-map
                   (slothbar-font-map-candidates))
             (add-variable-watcher 'slothbar-font-candidates
-                                  #'slothbar-font--watch-color-code-map)))
+                                  #'slothbar-font--watch-font-candidates)))
 
 (add-hook 'slothbar-after-exit-hook
           (lambda ()
             (remove-variable-watcher 'slothbar-font-candidates
-                                     #'slothbar-font--watch-color-code-map)))
+                                     #'slothbar-font--watch-font-candidates)))
 
 (cl-defun slothbar-font--precompute-px-sizes (height &optional font-map)
   "Given a HEIGHT, compute pixel sizes for all fonts in the FONT-MAP.
