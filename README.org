@@ -328,7 +328,7 @@ and Font Awesome 5 (the one that comes with all-the-icons) for icons:
 
 * Attribution
 This project is heavily inspired by daviwil’s [[https://systemcrafters.cc/][System Crafters]] presentations on
-Emacs and Exwm as well as [[https://github.com/ch11ng/exwm][Exwm]] itself along with numerous others whom I will
+Emacs and Exwm as well as [[https://github.com/emacs-exwm/exwm][Exwm]] itself along with numerous others whom I will
 attempt to list as the project develops further.  See also attributions for
 fontsloth.
 
