@@ -120,6 +120,29 @@ See the [[./slothbar.el]] Package-Requires header for a list of package
 dependencies. All dependencies are available from either elpa or
 melpa.
 
+** Fonts
+Check the default value of =slothbar-font-candidates= in
+[[./slothbar-font.el]] to determine a minimal set of fonts.
+
+E.g. if =slothbar-font-candidates= is:
+#+BEGIN_SRC emacs-lisp
+  '(("Aporetic Sans" "IBM Plex Serif" "Deja Vu Serif" "Cantarell")
+    ("Font Awesome")
+    ("Aporetic Sans Mono" "IBM Plex Mono" "DejaVu Sans Mono:style=Book")
+    ("all-the-icons")
+    ("Symbols Nerd Font Mono"))
+#+END_SRC
+then for module format strings using:
++ =^f0= ensure one of Aporetic Sans, IBM Plex Serif, Deja Vu Serif, or
+  Cantarell is installed
++ =^f1= install the free version of font awesome
++ =^f2= ensure one of Aporetic Sans Mono, IBM Plex Mono, or Deja Vu Sans
+  Mono is installed
++ =^f3= run =M-x all-the-icons-install-fonts= (or install another way)
++ =^f4= run =M-x nerd-icons-install-fonts= (or install another way)
+
+Customize this variable if you prefer other fonts.
+
 ** With Guix
 
 When using guix system/guix package manager to manage Emacs packages,
