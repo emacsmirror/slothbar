@@ -101,11 +101,12 @@ and a cache.  The xcb ids are stored in the module xcb alist."
                      key (parent char-code) (user-data font-idx)) pos)
                    (cache-key (map-elt cache char-code)))
         (unless (equal cache-key key)
-          (slothbar-render-load-glyph
-           slothbar--connection gs
-           (fontsloth-load-font (slothbar-font-find font-idx))
-           pos)
-          (map-put! cache char-code key))))))
+          (when-let ((font-path (slothbar-font-find font-idx)))
+            (slothbar-render-load-glyph
+             slothbar--connection gs
+             (fontsloth-load-font font-path)
+             pos)
+            (map-put! cache char-code key)))))))
 
 (defun slothbar-module--draw-text (m)
   "Draw module M's text into its pixmap.
@@ -159,13 +160,17 @@ LPAD is the module left padding"
            then (if ls (max prev-x (fontsloth-layout-current-pos (car ls)))
                   prev-x) collect
            (if (stringp part)
-               (let* ((txt (format-spec part spec t))
-                      (font (fontsloth-load-font (slothbar-font-find fidx)))
-                      (px (+ (aref slothbar-font-px-size fidx)
-                             (aref slothbar-font-px-delta fidx)))
-                      (l (slothbar-module--create-layout
-                          txt font fidx px prev-x)))
-                 (push l ls) l)
+               (if-let ((font-path (slothbar-font-find fidx)))
+                   (let* ((txt (format-spec part spec t))
+                          (font (fontsloth-load-font font-path))
+                          (px (+ (aref slothbar-font-px-size fidx)
+                                 (aref slothbar-font-px-delta fidx)))
+                          (l (slothbar-module--create-layout
+                              txt font fidx px prev-x)))
+                     (push l ls) l)
+                 (let ((empty-layout (fontsloth-layout-create
+                                      :current-pos (1+ prev-x))))
+                   (push empty-layout ls) empty-layout))
              (cl-case (car part)
                (:push (push fidx font-stack) part)
                (:pop (setq fidx (pop font-stack)) part)
