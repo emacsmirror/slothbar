@@ -42,16 +42,23 @@
 ;; information.
 
 ;; An example configuration with use-package:
-;;   (use-package slothbar
-;;     :init
-;;     (require 'slothbar-module-requires)
-;;     (setq slothbar-modules
-;;           '(:left
-;;             slothbar-tray-create slothbar-date-create
-;;             :right
-;;             slothbar-workspaces-create slothbar-wifi-create
-;;             slothbar-volume-create slothbar-battery))
-;;     :config (slothbar))
+
+;; (use-package slothbar
+;;   :config
+;;   (require 'slothbar-module-requires)
+;;   (setq slothbar-modules '(:left
+;;                            slothbar-tray-create slothbar-date-create
+;;                            slothbar-workspaces-create
+;;                            :right
+;;                            slothbar-wifi-create slothbar-volume-create
+;;                            slothbar-backlight-create
+;;                            slothbar-battery-create))
+;;   ;; to enable multi-screen support
+;;   (slothbar-randr-mode))
+
+;; then M-x: slothbar
+;; To exit:
+;; M-x: slothbar-exit
 
 ;;; Code:
 

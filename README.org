@@ -1,11 +1,11 @@
 #+TITLE: slothbar
 
-Slothbar is an “Emacs Polybar like thing”.
+Slothbar is an X window manager status bar that runs within Emacs.
 
-It aims to act as an X window manager agnostic status bar and system tray that
-is written completely in elisp and fully configurable in Emacs.
+It is window manager agnostic, written completely in elisp, and fully
+configurable in Emacs.
 
-The most apparent usage scenario at present is to pair it with [[https://github.com/ch11ng/exwm][Exwm]].
+It has been tested with [[https://github.com/emacs-exwm/exwm][Exwm]], [[https://xmonad.org][xmonad]], and [[https://herbstluftwm.org][herbstluftwm]].
 
 It is currently pre version 1.0 and the API is not yet stable.
 
@@ -16,24 +16,126 @@ Current version: *0.27.5*
 Note: *At present this requires Emacs 28.0*
 If you would like it to work on Emacs 27, please let me know.
 
-* Contents                                                              :TOC:
-- [[#synopsis-of-work-in-progress][Synopsis of work in progress]]
-  - [[#now-supported][Now supported]]
-- [[#not-currently-supported-but-planned][Not currently supported (but planned)]]
-- [[#project-organization][Project organization]]
-- [[#usage-caveats][Usage caveats]]
-- [[#installation][Installation]]
-  - [[#install-directly][Install directly]]
-  - [[#install-with-use-package][Install with use-package]]
-  - [[#update-to-latest-git-commit][Update to latest git commit]]
-- [[#guix-installation][Guix Installation]]
-- [[#usage][Usage]]
-  - [[#layout-and-display-with-modules][Layout and display with modules]]
-  - [[#configure][Configure]]
-  - [[#with-use-package][With use-package]]
-- [[#screens][Screen(s)]]
-- [[#attribution][Attribution]]
-- [[#contact][Contact]]
+* Usage
+
+To start slothbar, run =M-x slothbar=. On first run, expect a delay of
+around twenty to thirty seconds (more or less depending on which fonts
+are chosen). During this time, available fonts configured in
+=slothbar-font-candidates= are loaded and cached in a background process
+for future reference.
+
+At first there is an empty bar without any modules. The background
+color will match the current Emacs background color.
+
+** Displaying modules
+
+The customizable variable =slothbar-modules= is a list of either
+functions that return modules or one or more of the layout
+instructions =:left=, =:right=, and =:center=. A module must satisfy the
+predicate =slothbar-module-p=.
+
+The following displays all the built-in modules with default settings:
+
+#+begin_src emacs-lisp
+  (require 'slothbar-module-requires)
+
+  ;;; layout tray, date, and workspaces to the left, and wifi, volume,
+  ;;; backlight, and battery to the right
+  (setq slothbar-modules
+        '(:left
+          slothbar-tray-create slothbar-date-create
+          slothbar-workspaces-create
+          :right
+          slothbar-wifi-create slothbar-volume-create
+          slothbar-backlight-create slothbar-battery-create))
+#+end_src
+
+Eval the code above with slothbar running to see the results soon after.
+
+Customizing slothbar-modules will automatically require
+slothbar-module-requires.
+
+Multiple instances of the same module may coexist. The following adds
+an additional volume module to control microphone volume:
+
+#+BEGIN_SRC emacs-lisp
+  (setq slothbar-modules
+        '(:left
+          slothbar-tray-create slothbar-date-create
+          slothbar-workspaces-create
+          :right
+          slothbar-wifi-create slothbar-volume-create
+          (lambda ()
+            (slothbar-volume-create :icon '((1 . ?󰍭) (110 . ?󰍬))
+                                    :channel "Capture"
+                                    :format "^8^f2^[^f4%i^]%p"))
+          slothbar-backlight-create slothbar-battery-create))
+#+END_SRC
+
+** Fun or tiresome things to configure
+
++ =slothbar-height= the desired height in pixels
++ =slothbar-font-candidates= a list of lists where each inner element is
+  a font name, highest preference first, and each outer element
+  corresponds to format color codes =^f0=-=^f9=
++ =slothbar-is-bottom= set to =t= to position the bar on the bottom of the
+  display
++ =slothbar-margin-y= margin in pixels for the gap between bar and struts
++ =slothbar-preferred-display= the name of the preferred display or nil
+  to use the primary display
++ ~(slothbar-randr-mode)~ to enable multi-screen support
+
+Modifications to height and font-candidates will reflect automatically
+while slothbar is running.
+
+Modifications to is-bottom, margin-y, and preferred-display take
+effect with =M-x slothbar-refresh=.
+
+** Minimal use-package
+
+#+begin_src emacs-lisp
+  (use-package slothbar
+    :config
+    (require 'slothbar-module-requires)
+    (setq slothbar-modules '(:left slothbar-tray-create slothbar-date-create
+                             slothbar-workspaces-create
+                             :right slothbar-wifi-create slothbar-volume-create
+                             slothbar-backlight-create slothbar-battery-create))
+    ;; to enable multi-screen support
+    (slothbar-randr-mode))
+
+  ;;; then M-x: slothbar
+  ;;; To exit:
+  ;;; M-x: slothbar-exit
+#+end_src
+
+* Installation
+
+Ensure that *xauth* is installed.
+
+Install using [[https://github.com/quelpa/quelpa][quelpa]], [[https://github.com/radian-software/straight.el][straight.el]], or your favorite direct-from-source
+package manager.
+
+See the [[./slothbar.el]] Package-Requires header for a list of package
+dependencies. All dependencies are available from either elpa or
+melpa.
+
+** With Guix
+
+When using guix system/guix package manager to manage Emacs packages,
+the below linked package definitions should work from a local channel:
+
+[[./slothbar.scm.org][./slothbar.scm.org]]
+
+Update commit references/tags to the desired revisions/tag names.
+
+To compute the base32 hash, use a command like =guix hash -S nar .=
+after checking out the desired revision.
+
+Once the channel definition is updated, run =guix pull=.
+
+Then, =guix install emacs-slothbar= should suffice to complete
+installation.
 
 * Synopsis of work in progress
 ** Now supported
@@ -135,24 +237,30 @@ Slothbar consists of five primary components:
   that type.
 
   Generic functions (default primary method descriptions):
-  + ~(slothbar-module-init (m slothbar-module))~: gives an xcb pixmap, graphics
-    context, a glyphset, a cache, and fills a rectangle with the background
-    color.
+  + ~(slothbar-module-init (m slothbar-module))~: gives an xcb pixmap,
+    graphics context, a glyphset, a cache, and fills a rectangle with
+    the background color. Generally it is not necessary to override
+    the default primary method. It may be helpful to provide before or
+    after methods.
 
-  + ~(slothbar-module-layout-text (m slothbar-module))~: relies on
-    ~fontsloth-layout~ and ~slothbar-color~ to produce a sequence of color
-    commands and glyph positions
+  + ~(slothbar-module-layout (m slothbar-module))~: relies on
+    ~fontsloth-layout~, ~slothbar-color~, and ~slothbar-font~ to produce a
+    sequence of color commands and glyph positions
 
   + ~(slothbar-module-refresh (m slothbar-module))~: if the module requests a
     refresh, draw the text using glyph positions and color commands
+
+  + ~(slothbar-module-update-status (m slothbar-module))~: for modules
+    that need to poll status information, if a module defines a
+    primary method for this, it will run on a repeat timer until the
+    module exits
 
   + ~(slothbar-module-exit (m slothbar-module))~: free xcb assets and clear
     module state
 
   Module implementations can provide specific :before and/or :after methods of
   the above as well as overrides to hook into the module
-  init/layout/refresh/exit cycle. These should also allow module devs to
-  provide module specific Emacs hooks.
+  init/layout/refresh/exit cycle.
 
 + Glyph rendering, loading, and compositing
   Entry point: [[./slothbar-render.el]]
@@ -175,180 +283,6 @@ fontsloth README linked above for a list of tested fonts.
 
 *The module and layout APIs are not yet finalized as such configuration
 procedures and customization options may change prior to a 1.0 release.*
-
-* Installation
-First follow the instructions to install
-[[https://github.com/jollm/fontsloth][fontsloth]] (from MELPA).
-
-Pending upload to MELPA, install using [[https://github.com/quelpa/quelpa][quelpa]].
-
-Quelpa allows an installation directly from this repo that is then managed the
-usual way via package.el. Quelpa can be installed from MELPA or bootstrapped
-directly from source if desired.
-
-After a successful installation on Emacs 28, ~M-x: slothbar~ should display an
-empty status bar docked at the top of the screen. If it does not, please open
-an issue. To configure the bar to display one or more of the available modules,
-see [[*Usage][Usage]] below.
-
-** Install directly
-#+BEGIN_SRC emacs-lisp
-  ;;; after installing quelpa
-
-  ;; note this uses a MELPA recipe, so the usual MELPA options also apply
-  (quelpa '(slothbar :fetcher codeberg :repo "agnes-li/slothbar"
-                     :branch "focal"))
-#+END_SRC
-
-** Install with use-package
-First install [[https://github.com/quelpa/quelpa-use-package][quelpa-use-package]] (either with quelpa or from MELPA).
-
-Note: [[https://github.com/radian-software/straight.el][straight.el]] is another option, either standalone or with
-use-package.
-
-#+BEGIN_SRC emacs-lisp
-  ;; if quelpa use-package is installed, this should install slothbar
-  (use-package slothbar
-    :quelpa ((slothbar :fetcher codeberg :repo "agnes-li/slothbar"
-                       :branch "focal")))
-
-  ;; if you want to auto-check for upgrades
-  (use-package slothbar
-    :quelpa ((slothbar :fetcher codeberg :repo "agnes-li/slothbar"
-                      :branch "focal") :upgrade t))
-#+END_SRC
-
-** Update to latest git commit
-After installation:
-~M-x: quelpa-upgrade~
-
-* Guix Installation
-
-When using guix system/guix package manager to manage Emacs packages,
-the below linked package definitions should work from a local channel:
-
-[[./exlybar.scm.org][./slothbar.scm.org]]
-
-Update commit references/tags to the desired revisions/tag names.
-
-To compute the base32 hash, use a command like =guix hash -S nar .=
-after checking out the desired revision.
-
-Once the channel definition is updated, run =guix pull=.
-
-Then, =guix install emacs-slothbar= should suffice to complete
-installation.
-
-* Usage
-** Layout and display with modules
-#+begin_src emacs-lisp
-  ;;; this demonstrates display for all modules provided so far
-  (require 'slothbar)
-
-  ;; note: if you customize slothbar-modules, slothbar-module-requires
-  ;; will be required automatically
-  (require 'slothbar-module-requires)
-
-  ;;; layout everything to the right
-
-  (push 'slothbar-date-create slothbar-modules)
-
-  (push 'slothbar-workspaces-create slothbar-modules)
-
-  (push 'slothbar-battery-create slothbar-modules)
-
-  (push 'slothbar-backlight-create slothbar-modules)
-
-  (push 'slothbar-tray-create slothbar-modules)
-
-  (push 'slothbar-volume-create slothbar-modules)
-
-  ;; microphone volume
-  (push '(slothbar-volume-create :icon ((1 . ?) (110 . ?))
-                                :channel "Capture")
-        slothbar-modules)
-
-  (push 'slothbar-wifi-create slothbar-modules)
-
-  (slothbar)
-
-  ;;; re-layout everything current displayed to the left
-
-  (push :left slothbar-modules)
-
-  ;;; re-layout everything in the center
-
-  (setq slothbar-modules (cdr slothbar-modules))
-  (push :center slothbar-modules)
-
-  ;;; layout tray, date, and workspaces to the left, and wifi, volume,
-  ;;; backlight, and battery to the right
-  (setq slothbar-modules
-        '(:left
-          slothbar-tray-create slothbar-date-create
-          slothbar-workspaces-create
-          :right
-          slothbar-wifi-create slothbar-volume-create
-          slothbar-backlight-create slothbar-battery-create))
-
-  ;;; exit (exit doesn’t modify layout for next time)
-
-  (slothbar-exit)
-
-#+end_src
-
-** Configure
-#+begin_src emacs-lisp
-  ;;; please note this is in an early phase and subject to change
-
-  (require 'slothbar)
-
-  (require 'slothbar-module-requires)
-
-  ;;; assume one of the layouts demonstrated above
-
-  ;;; display the bar
-  (slothbar)
-
-  ;;; make it taller
-  (setq slothbar-height 25)
-
-  ;;; make it shorter
-  (setq slothbar-height 16)
-
-  ;;; swap wifi signal quality and essid
-  (slothbar-module-format my/wifi) ;; show the current format
-  ;; it is "^6^[^f1%i^]^[^2|^]%e^[^2|^]%p"
-  (setf (slothbar-module-format my/wifi) "^6^[^f1%i^]^[^2|^]%p^[^2|^]%e")
-
-  ;;; change battery default color to default
-  (slothbar-module-format my/battery) ;; show the current format
-  ;; it is "^6^[^f1%i^] %b%p%% ^[^2|^] %t ^[^2|^] %r"
-  (setf (slothbar-module-format my/battery) "^0^[^f1%i^] %b%p%% ^[^2|^] %t ^[^2|^] %r")
-
-  ;;; change battery percentage thresholds for icon and percent color change
-  (setq slothbar-battery-color-zones '(40 20 7 t t))
-  ;; see ~slothbar-color-zone~ for an explanation of the list elements
-
-  ;;; see custom group ~slothbar~ and subgroups for current options
-
-#+end_src
-
-** With use-package
-#+begin_src emacs-lisp
-  (use-package slothbar
-    :defer t
-    :config
-    (require 'slothbar-module-requires)
-    (setq slothbar-modules (list :left 'slothbar-tray-create 'slothbar-date-create
-                                'slothbar-workspaces-create
-                                :right 'slothbar-wifi-create 'slothbar-volume-create
-                                'slothbar-backlight-create 'slothbar-battery-create)))
-
-  ;;; then M-x: slothbar
-  ;;; To exit:
-  ;;; M-x: slothbar-exit
-#+end_src
 
 * Screen(s)
 These are using Bookerly-Regular for variable text, IBMPlexMono for monospace,
