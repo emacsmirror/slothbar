@@ -123,8 +123,7 @@ CHARGING? t if battery status indicates charging, otherwise nil"
                  (slothbar-battery--format-fn-spec zone-color charging?) t)))
 
 (defun slothbar-battery--format-spec (status)
-  "Given battery STATUS, build the `format-spec' spec used to generate
-module text."
+  "Given STATUS, build the `format-spec' spec used to generate module text."
   (let* ((pct (if-let ((pct (map-elt status ?p))) (string-to-number pct) 100))
          (charging? (equal "+" (map-elt status ?b)))
          (icon (if charging? slothbar-battery-charge-icon

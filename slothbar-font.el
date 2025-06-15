@@ -43,6 +43,7 @@
 
 (require 'cl-lib)
 (require 'fontsloth)
+(require 'seq)
 
 (require 'slothbar-log)
 
@@ -59,16 +60,17 @@
      "DejaVu Sans Mono:style=Book")
     ("all-the-icons")
     ("Symbols Nerd Font Mono"))
-  "A list of lists of candidate fonts for color codes ^f0-^f9, where
-elements of the outer list correspond to ^f0, ^f1, and so on.
+  "A list of lists of candidate fonts for color codes ^f0-^f9.
 
-Elements of the inner lists are ordered highest preference first. Each
+Elements of the outer list correspond to ^f0, ^f1, and so on.
+
+Elements of the inner lists are ordered highest preference first.  Each
 candidate should be a font name as in `font-family-list'.
 
 In deciding whether a font should be grouped with others or a separate
 entry, consider whether the fonts have a similar purpose and cover
-similar code-point ranges. For example, it may make sense to have
-separate entries grouping variable pitch and monospace fonts. Some icon
+similar code-point ranges.  For example, it may make sense to have
+separate entries grouping variable pitch and monospace fonts.  Some icon
 fonts may make sense to group and others may not depending on their
 code-point ranges."
   :type '(repeat (repeat string))
@@ -77,8 +79,7 @@ code-point ranges."
 (declare-function font-info "font.c" (name &optional frame))
 
 (cl-defsubst slothbar-font--filename-search (font-name-list)
-  "Given FONT-NAME-LIST, return a file path to the first font found, or nil
-or none are found."
+  "Return a path to the first found in FONT-NAME-LIST or nil if none."
   (seq-some (lambda (v) (when v v))
 	    (cl-mapcar (lambda (name)
 			 (when-let ((fuck (font-info name)))
@@ -86,9 +87,10 @@ or none are found."
 		       font-name-list)))
 
 (defun slothbar-font-map-candidates (&optional candidates)
-  "Given a list of lists of font names CANDIDATES, generate a vector where
-each slot value is a file path corresponding to the best match for each
-font name list.
+  "Return a vector with file paths to the best matches for CANDIDATES.
+
+CANDIDATES should be a list of lists of font names.  See
+`slothbar-font-candidates'.
 
 Typically each element in the result vector would correspond to a color
 code ^f0-^f9.
@@ -107,8 +109,9 @@ By default, CANDIDATES is the value of `slothbar-font-candidates'."
   "The font map corresponding to color codes ^f0-^f9.")
 
 (defun slothbar-font--watch-font-candidates (_ nval oper where)
-  "With OPER eq \\='set and nil WHERE, update
-`slothbar-font--color-code-map' with NVAL candidates."
+  "Update `slothbar-font--color-code-map' with NVAL candidates.
+
+Do this only when OPER eq \\='set and WHERE is nil."
   (when (and (not where) (eq 'set oper))
     (let ((candidates (slothbar-font-map-candidates nval)))
       (fontsloth-async-load-and-cache-fonts
@@ -149,9 +152,12 @@ the fonts change.")
 (defvar slothbar-height)
 
 (defun slothbar-font--watch-px-size (sym nval oper where)
-  "With OPER eq \\='set and nil WHERE, update `slothbar-font-px-size'
-appropriately for NVAL with SYM equal to slothbar-height or
-slothbar-font--color-code-map."
+  "Update `slothbar-font-px-size' appropriately for NVAL.
+
+Do this only when OPER eq \\='set and WHERE is nil.
+
+The operation chosen depends on whether SYM is equal to `slothbar-height'
+or `slothbar-font--color-code-map'."
   (when (and (not where) (eq 'set oper))
     (let ((height (cl-case sym
                     (slothbar-height (when (/= (symbol-value sym) nval) nval))
@@ -206,8 +212,9 @@ caches.  This is automatically recomputed when
 `slothbar-font-px-delta' changes.")
 
 (defun slothbar-font--watch-px-delta (_ nval oper where)
-  "With OPER eq \\='set and nil WHERE, update `slothbar-font-y-delta'
-computed from NVAL."
+  "Update `slothbar-font-y-delta' computed from NVAL.
+
+Do this only when OPER eq \\='set and WHERE is nil."
   (when (and (not where) (eq 'set oper))
     (setq slothbar-font-y-delta (slothbar-font--compute-y-delta nval))))
 

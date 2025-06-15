@@ -159,20 +159,24 @@ If shorten is not available, return nil."
 (declare-function exwm-workspace--position "exwm-workspace" (frame))
 
 (defcustom slothbar-workspaces-exwm-shorten-names t
-  "Non-nil to display shortened buffer names (if the shorten library is
-available) or nil to display workspace numbers."
+  "Non-nil to display shortened buffer names or nil for numbers.
+
+This only happens if the shorten library is available and the particular
+window manager integration supports it."
   :type 'boolean
   :group 'slothbar-workspaces)
 
 (defcustom slothbar-workspaces-exwm-add-change-functions nil
-  "Non-nil to ensure immediate status update when changing the window
-selection or window buffer or nil to update lazily."
+  "Non-nil to update when changing the window selection or buffer.
+
+Nil to update lazily."
   :type 'boolean
   :group 'slothbar-workspaces)
 
 (defun slothbar-workspaces--watch-exwm-add-change-functions (_ new oper where)
-  "Watch variable `slothbar-workspaces-exwm-add-change-functions' and if
-ever OPER is equal to \\='set and the NEW value is not a buffer local
+  "Watch variable `slothbar-workspaces-exwm-add-change-functions'.
+
+If ever OPER is equal to \\='set and the NEW value is not a buffer local
 value indicated by WHERE, call
 `slothbar-workspaces--exwm-modify-change-functions' with the value of
 NEW."
@@ -213,8 +217,8 @@ are shortened buffer names.  Otherwise, names are the workspace numbers."
                     '(:blankish)))))))
 
 (defun slothbar-workspaces--exwm-modify-change-functions (add?)
-  "If ADD? is non-nil, add window buffer and window selection change
-functions to update module status on changes, otherwise remove."
+  "Add window buffer and selection change functions when ADD? is non-nil.
+Remove chnage functions when ADD? is non-nil."
   (if add?
       (progn (add-hook 'window-selection-change-functions
                        #'slothbar-workspaces--refresh-hook-fn)
@@ -261,7 +265,7 @@ functions to update module status on changes, otherwise remove."
                     ((rx (seq ?. (+ anychar))) '(:blankish)))))))))
 
 (defun slothbar-workspaces--make-herbstluft-events-filter ()
-  "Return a process filter for herbstclient -i to look for tag changes."
+  "Return a process filter for herbstclient -i to monitor tags."
   (let ((processed-lines 0))
     (lambda (proc string)
       (when (buffer-live-p (process-buffer proc))
@@ -355,8 +359,9 @@ mySlothbarLogHook dbus = myLogHook <+> dynamicLogWithPP (slothbarHook dbus)"
                        (,(intern status))))))
 
 (defun slothbar-workspaces--watch-xmonad-dbus-last-val (_ _ oper where)
-  "Refresh if the dbus message variable is modified with nil WHERE and OPER
-\\='set."
+  "Refresh if the dbus message variable is modified.
+
+Only do this when WHERE is nil and OPER eq \\='set."
   (when (and (not where) (eq 'set oper))
     (run-with-timer 0 nil (lambda () (slothbar-module--refresh-all-by-name "workspaces")))))
 
@@ -364,8 +369,9 @@ mySlothbarLogHook dbus = myLogHook <+> dynamicLogWithPP (slothbarHook dbus)"
                       #'slothbar-workspaces--watch-xmonad-dbus-last-val)
 
 (defun slothbar-workspaces--xmonad-dbus-monitor (&optional workspaces)
-  "The dbus monitor sets `slothbar-workspaces--xmonad-dbus-last-val' to the
-value of WORKSPACES for
+  "Set `slothbar-workspaces--xmonad-dbus-last-val' to the value of WORKSPACES.
+
+This is intended as a dbus monitor to set a value for
 `slothbar-workspaces-generate-list-fn-xmonad' to parse."
   (when workspaces
     (setq slothbar-workspaces--xmonad-dbus-last-val workspaces)))
@@ -382,10 +388,11 @@ value of WORKSPACES for
 (declare-function dbus-register-monitor "dbus")
 
 (defun slothbar-workspaces-setup-defaults-xmonad ()
-  "When in xmonad, try to start a dbus monitor and set
-`slothbar-workspaces-generate-list-fn'.
+  "Try to start a dbus monitor and set `slothbar-workspaces-generate-list-fn'.
 
-Note that the xmonad config must send dbus events. See the
+This checks DESKTOP_SESSION to determine if xmonad is the current session.
+
+Note that the xmonad config must send dbus events.  See the
 `slothbar-workspaces-generate-list-fn-xmonad' docstring for an example."
   (when (and (locate-library "dbus")
              (equal "xmonad" (getenv "DESKTOP_SESSION")))

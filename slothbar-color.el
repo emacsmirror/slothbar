@@ -42,7 +42,9 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'pcase)
 (require 's)
+(require 'seq)
 
 (require 'slothbar-util)
 (require 'slothbar-log)

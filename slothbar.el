@@ -138,20 +138,18 @@ Defaults to the width obtained from `display-pixel-width'"
   :group 'slothbar)
 
 (defcustom slothbar-is-bottom nil
-  "True if slothbar is positioned at the bottom of the display, false
-otherwise."
+  "Non-nil to position slothbar at the bottom of the display and nil for top."
   :type 'boolean
   :group 'slothbar)
 
 (defcustom slothbar-modules nil
-  "List of slothbar module constructor names with optional layout
-instructions.
+  "List of slothbar module constructor names with optional layout instructions.
 
 E.g.: (:left
-       slothbar-tray-create slothbar-date-create
+       `slothbar-tray-create' `slothbar-date-create'
        :right
-       slothbar-wifi-create slothbar-volume-create
-       slothbar-backlight-create slothbar-battery-create)"
+       `slothbar-wifi-create' `slothbar-volume-create'
+       `slothbar-backlight-create' `slothbar-battery-create')"
   :type '(repeat (choice (radio :tag "Layout instruction keyword" :value :left
                                 (const :left) (const :right) (const :center))
                          (function :tag "Module constructor or lambda"
@@ -436,8 +434,9 @@ DATA the event data"
     (run-at-time 0 nil #'slothbar-refresh-modules)))
 
 (defun slothbar--watch-height (_ _ oper where)
-  "With OPER eq \\='set and nil WHERE, refresh modules when
-`slothbar-height' changes."
+  "Refresh modules when changing `slothbar-height'.
+
+Refresh only when OPER eq \\='set and WHERE is nil."
   (when (and slothbar--enabled (not where) (eq 'set oper))
     (setq slothbar--geometry-changed? t)
     (run-at-time 0 nil #'slothbar-refresh-modules)))
@@ -459,8 +458,9 @@ DATA the event data"
                   slothbar-modules)))
 
 (defun slothbar--watch-slothbar-modules (_ _ oper where)
-  "With OPER eq \\='set and nil WHERE, (re)construct modules when
-`slothbar-modules' is modified."
+  "(Re)construct modules when `slothbar-modules' is modified.
+
+Do this only when OPER eq \\='set and WHERE is nil."
   (when (and (not where) (eq 'set oper))
     (run-at-time 0 nil #'slothbar--construct-modules)))
 
