@@ -178,9 +178,10 @@ E.g.: (:left
 
 (defmacro slothbar--global-minor-mode-body (name &optional init exit)
   "Global minor mode body for mode with NAME.
+
 The INIT and EXIT functions are added to `slothbar-after-init-hook' and
-`slothbar-before-exit-hook' respectively.  If an X connection exists, the mode is
-immediately enabled or disabled."
+`slothbar-before-exit-hook' respectively.  If an X connection exists,
+the mode is immediately enabled or disabled."
   (declare (indent 1) (debug t))
   (let* ((mode (intern (format "slothbar-%s-mode" name)))
          (init (or init (intern (format "slothbar-%s--init" name))))
