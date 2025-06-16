@@ -50,7 +50,7 @@
   "Convert COLOR to PIXEL (index in TrueColor colormap)."
   (when (and color
              (eq (x-display-visual-class) 'true-color))
-    (let ((rgb (x-color-values color)))
+    (let ((rgb (color-values color)))
       (logior (ash (ash (pop rgb) -8) 16)
               (ash (ash (pop rgb) -8) 8)
               (ash (pop rgb) -8)))))
