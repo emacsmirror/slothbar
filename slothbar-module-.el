@@ -116,23 +116,24 @@ accordingly.  Currently only commands :push, :pop, and :fg are supported."
   (pcase-let* (((cl-struct
                  slothbar-module cache text-layout xcb) m)
                ((map ('pixmap pixmap) ('gs gs)) xcb))
-    (slothbar-module--load-glyphs text-layout gs cache)
-    (cl-flet ((draw (layout color)
-                (slothbar-render-draw-text
-                 slothbar--connection pixmap gs layout color)))
-      (cl-loop for pos in text-layout
-               with fgidx = 0 with fg-stack = nil with next = nil do
-               (if (fontsloth-layout-glyph-position-p pos)
-                   (push pos next)
-                 (cl-case (car pos)
-                   (:push (push fgidx fg-stack))
-                   (:pop (draw (nreverse next) (slothbar-color-find fgidx t))
-                         (setq fgidx (pop fg-stack))
-                         (setq next nil))
-                   (:fg (draw (nreverse next) (slothbar-color-find fgidx t))
-                        (setq fgidx (cadr pos))
-                        (setq next nil))))
-               finally (draw (nreverse next) (slothbar-color-find fgidx t))))))
+    (when (and pixmap gs)
+      (slothbar-module--load-glyphs text-layout gs cache)
+      (cl-flet ((draw (layout color)
+                  (slothbar-render-draw-text
+                   slothbar--connection pixmap gs layout color)))
+        (cl-loop for pos in text-layout
+                 with fgidx = 0 with fg-stack = nil with next = nil do
+                 (if (fontsloth-layout-glyph-position-p pos)
+                     (push pos next)
+                   (cl-case (car pos)
+                     (:push (push fgidx fg-stack))
+                     (:pop (draw (nreverse next) (slothbar-color-find fgidx t))
+                           (setq fgidx (pop fg-stack))
+                           (setq next nil))
+                     (:fg (draw (nreverse next) (slothbar-color-find fgidx t))
+                          (setq fgidx (cadr pos))
+                          (setq next nil))))
+                 finally (draw (nreverse next) (slothbar-color-find fgidx t)))))))
 
 (defun slothbar-module--create-layout (text font fidx px x)
   "Create a `fontsloth-layout' for TEXT, FONT, at size PX and offset x.
