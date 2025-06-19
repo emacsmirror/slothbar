@@ -535,7 +535,7 @@ Initialize the connection, window, graphics context, and modules."
                        :x slothbar-offset-x
                        :y y
                        :width 1
-                       :height (+ slothbar-height)
+                       :height slothbar-height
                        :border-width 1
                        :class xcb:WindowClass:InputOutput
                        :visual 0
@@ -658,6 +658,11 @@ Initialize the connection, window, graphics context, and modules."
       (xcb:+request slothbar--connection
           (make-instance 'xcb:FreeGC
                          :gc slothbar--gc)))
+    (when slothbar--window
+      (xcb:+request-checked+request-check slothbar--connection
+          (make-instance 'xcb:DestroyWindow
+                         :window slothbar--window)))
+    (xcb:flush slothbar--connection)
     (xcb:disconnect slothbar--connection)
     (setq slothbar--connection nil
           slothbar--window nil
