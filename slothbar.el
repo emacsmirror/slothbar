@@ -487,6 +487,25 @@ Do this only when OPER eq \\='set and WHERE is nil."
   (when (and (not where) (eq 'set oper))
     (run-at-time 0 nil #'slothbar--construct-modules)))
 
+(defun slothbar--ensure-event-mask (win event)
+  "Ensure WIN event mask has mask EVENT."
+  (with-slots (your-event-mask)
+      (xcb:+request-unchecked+reply slothbar--connection
+          (make-instance 'xcb:GetWindowAttributes :window win))
+    (xcb:+request-checked+request-check slothbar--connection
+        (make-instance 'xcb:ChangeWindowAttributes
+                       :window win
+                       :value-mask xcb:CW:EventMask
+                       :event-mask (logior event your-event-mask)))))
+
+(defun slothbar--clear-event-mask (win)
+  "Clear event mask from WIN."
+  (xcb:+request-checked+request-check slothbar--connection
+      (make-instance 'xcb:ChangeWindowAttributes
+                     :window win
+                     :value-mask xcb:CW:EventMask
+                     :event-mask xcb:EventMask:NoEvent)))
+
 (defun slothbar--start ()
   "Start slothbar.
 Initialize the connection, window, graphics context, and modules."
@@ -508,6 +527,8 @@ Initialize the connection, window, graphics context, and modules."
   (setq slothbar--connection (xcb:connect))
   ;; apparently ewmh initializes icccm automatically
   (xcb:ewmh:init slothbar--connection)
+  (slothbar--ensure-event-mask (slothbar-util--find-root-window-id)
+                               xcb:EventMask:PropertyChange)
   ;; (xcb:icccm:init slothbar--connection)
   (set-process-query-on-exit-flag (slot-value slothbar--connection
                                               'process)
