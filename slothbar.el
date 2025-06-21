@@ -185,6 +185,11 @@ E.g.: (:left
   :type 'hook
   :group 'slothbar)
 
+(defcustom slothbar-before-module-init-hook nil
+  "Functions to run before modules are initialized."
+  :type 'hook
+  :group 'slothbar)
+
 (defcustom slothbar-after-init-hook nil
   "Functions to run when after slothbar is initialized."
   :type 'hook
@@ -208,9 +213,10 @@ E.g.: (:left
 (defmacro slothbar--global-minor-mode-body (name &optional init exit)
   "Global minor mode body for mode with NAME.
 
-The INIT and EXIT functions are added to `slothbar-after-init-hook' and
-`slothbar-before-exit-hook' respectively.  If an X connection exists,
-the mode is immediately enabled or disabled."
+The INIT and EXIT functions are added to
+`slothbar-before-module-init-hook' and `slothbar-before-exit-hook'
+respectively.  If an X connection exists, the mode is immediately
+enabled or disabled."
   (declare (indent 1) (debug t))
   (let* ((mode (intern (format "slothbar-%s-mode" name)))
          (init (or init (intern (format "slothbar-%s--init" name))))
@@ -218,11 +224,11 @@ the mode is immediately enabled or disabled."
     `(progn
        (cond
         (,mode
-         (add-hook 'slothbar-after-init-hook #',init)
+         (add-hook 'slothbar-before-module-init-hook #',init)
          (add-hook 'slothbar-before-exit-hook #',exit)
          (when slothbar--connection (,init)))
         (t
-         (remove-hook 'slothbar-after-init-hook #',init)
+         (remove-hook 'slothbar-before-module-init-hook #',init)
          (remove-hook 'slothbar-before-exit-hook #',exit)
          (when slothbar--connection (,exit)))))))
 
@@ -609,6 +615,7 @@ Initialize the connection, window, graphics context, and modules."
     ;; initialize modules
     (slothbar--construct-modules)
     (add-variable-watcher 'slothbar-modules #'slothbar--watch-slothbar-modules)
+    (run-hooks 'slothbar-before-module-init-hook)
     (dolist (m slothbar--modules)
       (when (slothbar-module-p m)
         (slothbar-module-init m)))
