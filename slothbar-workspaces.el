@@ -51,6 +51,7 @@
 (require 'xcb)
 (require 'xcb-ewmh)
 
+(require 'slothbar-ewmh)
 (require 'slothbar-log)
 (require 'slothbar-module-)
 
@@ -90,9 +91,9 @@ the head of the list."
                (:constructor slothbar-workspaces-create)
                (:copier nil)))
 
-(defcustom slothbar-workspaces-before-init-hook nil
-  "Hook to run before module init."
-  :type 'hook
+(defcustom slothbar-workspaces-ensure-ewmh nil
+  "Non-nil to ensure ewmh mode if it is not already enabled."
+  :type 'boolean
   :group 'slothbar-workspaces)
 
 (defun slothbar-workspaces--format-fn-spec (ws-list)
@@ -141,17 +142,77 @@ WS-LIST."
 
 (cl-defmethod slothbar-module-init :before ((m slothbar-workspaces))
   "Set the M's icon and update the text."
-  (run-hooks 'slothbar-workspaces-before-init-hook)
   (slothbar-module-update-status m))
 
 (defun slothbar-workspaces--refresh-hook-fn (&rest _)
   "Refresh all workspaces modules, suitable for hooks."
   (slothbar-module--refresh-all-by-name "workspaces"))
 
+(defvar slothbar-workspaces--generate-list-fn-prev (lambda () '())
+  "To hold a previous value of `slothbar-workspaces--generate-list-fn'.")
 
 ;;; Begin slothbar-workspaces-generate-list-fn implementations
 
 (declare-function shorten-strings "shorten" (lst &optional tail-count))
+
+;;; ewmh (extended window manager hints)
+
+(defun slothbar-workspaces-generate-list-fn-ewmh ()
+  "Implement `slothbar-workspaces-generate-list-fn' for ewmh.
+
+Extended window manager hints are intended as a standard mechanism for
+window manager to communicate about workspaces, viewports, etc."
+  (cl-loop for i from 0
+           for name in slothbar-ewmh--desktop-names
+           collect
+           `(,name
+             (,@(cond ((= i slothbar-ewmh--current-desktop)
+                       '(:current))
+                      ((cl-find i slothbar-ewmh--urgent-desktops)
+                       '(:urgent))
+                      ((cl-find i (map-values slothbar-ewmh--client-desktop-map))
+                       '(:window))
+                      (t '(:blankish)))))))
+
+(defun slothbar-workspaces--ewmh-on-change (sym _)
+  "Hook function for `slothbar-ewmh--on-change-hook'.
+
+SYM is a symbol for a variable defined in slothbar-ewmh.el.
+
+This will refresh any instances of the module when a relevant variable changes."
+  (when (memq sym '(slothbar-ewmh--num-desktops
+                    slothbar-ewmh--desktop-names
+                    slothbar-ewmh--current-desktop
+                    slothbar-ewmh--client-desktop-map
+                    slothbar-ewmh--urgent-desktops))
+    (slothbar-module--refresh-all-by-name "workspaces")))
+
+(defun slothbar-workspaces--ewmh-toggle ()
+  "Toggle workspaces status update using ewmh (extended window manager hints)."
+  (if slothbar-ewmh-mode
+      (progn
+        (unless (eql slothbar-workspaces--generate-list-fn-prev
+                     #'slothbar-workspaces-generate-list-fn-ewmh)
+          (setq slothbar-workspaces--generate-list-fn-prev
+                slothbar-workspaces-generate-list-fn))
+        (setq slothbar-workspaces-generate-list-fn
+              #'slothbar-workspaces-generate-list-fn-ewmh)
+        (add-hook 'slothbar-ewmh--on-change-hook
+                  #'slothbar-workspaces--ewmh-on-change))
+    (remove-hook 'slothbar-ewmh--on-change-hook
+                 #'slothbar-workspaces--ewmh-on-change)
+    (setq slothbar-workspaces-generate-list-fn
+          slothbar-workspaces--generate-list-fn-prev)))
+
+(defun slothbar-workspaces--setup-defaults-ewmh ()
+  "Configure slothbar-workspaces to display workspaces using ewmh data."
+  (when (and slothbar-workspaces-ensure-ewmh (not slothbar-ewmh-mode))
+    (slothbar-ewmh-mode)))
+
+(add-hook 'slothbar-ewmh-mode-hook #'slothbar-workspaces--ewmh-toggle)
+(add-hook 'slothbar-before-init-hook
+          #'slothbar-workspaces--setup-defaults-ewmh
+          -1)
 
 ;;; EXWM
 
@@ -245,7 +306,9 @@ Remove chnage functions when ADD? is non-nil."
 
 (defun slothbar-workspaces-setup-defaults-exwm ()
   "Configure slothbar-workspaces to display EXWM workspaces."
-  (when (and (boundp 'exwm--connection) exwm--connection)
+  (when (and (not slothbar-ewmh-mode)
+             (boundp 'exwm--connection)
+             exwm--connection)
     (when (and slothbar-workspaces-exwm-shorten-names
                (locate-library "shorten"))
       (require 'shorten))
@@ -256,8 +319,18 @@ Remove chnage functions when ADD? is non-nil."
     (slothbar-workspaces--exwm-modify-change-functions
      slothbar-workspaces-exwm-add-change-functions)))
 
+(defun slothbar-workspaces-remove-hooks-exwm ()
+  "Remove exwm related hooks for slothbar-workspaces."
+  (remove-hook 'exwm-workspace-switch-hook
+               #'slothbar-workspaces--refresh-hook-fn)
+  (slothbar-workspaces--exwm-modify-change-functions nil))
+
 (when (locate-library "exwm")
-  (add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-exwm))
+  (add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-exwm)
+  (add-hook 'slothbar-ewmh-mode-hook
+            (lambda ()
+              (when slothbar-ewmh-mode
+                (slothbar-workspaces-remove-hooks-exwm)))))
 
 ;;; herbstluftwm
 
@@ -322,7 +395,8 @@ Remove chnage functions when ADD? is non-nil."
 
 (defun slothbar-workspaces-setup-defaults-herbstluftwm ()
   "Configure slothbar-workspaces to display herbstluftwm tags."
-  (when (and (executable-find "herbstclient")
+  (when (and (not slothbar-ewmh-mode)
+             (executable-find "herbstclient")
              (equal "herbstluftwm" (getenv "DESKTOP_SESSION")))
     (setq slothbar-workspaces-generate-list-fn
           #'slothbar-workspaces-generate-list-fn-herbstluftwm)
@@ -406,7 +480,8 @@ This checks DESKTOP_SESSION to determine if xmonad is the current session.
 
 Note that the xmonad config must send dbus events.  See the
 `slothbar-workspaces-generate-list-fn-xmonad' docstring for an example."
-  (when (and (locate-library "dbus")
+  (when (and (not slothbar-ewmh-mode)
+             (locate-library "dbus")
              (equal "xmonad" (getenv "DESKTOP_SESSION")))
     (setq
      slothbar-workspaces--xmonad-dbus-object
@@ -420,129 +495,6 @@ Note that the xmonad config must send dbus events.  See the
     (add-hook 'slothbar-after-exit-hook #'slothbar-workspaces--unregister-xmonad-dbus-monitor)))
 
 (add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-xmonad)
-
-;;; stumpwm
-
-(defcustom slothbar-workspaces-stumpwm-log-prop-name "_STUMPWM_LOG"
-  "The name for a root window property containing the stumpwm log."
-  :type 'string
-  :group 'slothbar-workspaces)
-
-(defvar slothbar-workspaces--stumpwm-log-atom nil
-  "Holds the numeric value for the interned _stumpwm_log atom.")
-
-(defun slothbar-workspaces--intern-stumpwm-log-atom ()
-  "Intern and the atom for the _stumpwm_log property.
-
-Set `slothbar-workspaces--stumpwm-log-atom' to hold its value."
-  (when-let ((slothbar--connection)
-             (prop-name slothbar-workspaces-stumpwm-log-prop-name))
-    (unless slothbar-workspaces--stumpwm-log-atom
-      (setq slothbar-workspaces--stumpwm-log-atom
-            (slot-value (xcb:+request-unchecked+reply slothbar--connection
-                            (make-instance 'xcb:InternAtom
-                                           :only-if-exists 0
-                                           :name-len (length "_STUMPWM_LOG")
-                                           :name "_STUMPWM_LOG"))
-                        'atom)))))
-
-(defun slothbar-workspaces--read-stumpwm-log-prop ()
-  "Read the current value of the _stumpwm_log root window property if any.
-
-Returns nil if no property is found or if an error occurs reading the
-value as an s-expression."
-  (slothbar-workspaces--intern-stumpwm-log-atom)
-  (when slothbar--connection
-    (when-let* ((req (make-instance
-                      'xcb:ewmh:-GetProperty-utf8
-                      :window (slothbar-util--find-root-window-id)
-                      :property slothbar-workspaces--stumpwm-log-atom))
-                (log (xcb:+request-unchecked+reply slothbar--connection req))
-                (val (slot-value log 'value)))
-      (condition-case err
-          (car (read-from-string val))
-        (error (slothbar--log-warn*
-                "slothbar-workspaces: failed to read %s as sexp: %s"
-                val err))))))
-
-(defvar slothbar-workspaces--stumpwm-group-status-rx
-  (rx (seq (group (seq (? (any ?- ?+))
-                       (+ digit)))
-           (group (any ?* ?= ?+ ?-))
-           (group (+ (not space)))))
-  "A regular expression to match the expected value of a group status entry.
-
-See `slothbar-workspaces-generate-list-fn-stumpwm' for the expected
-structure of the root window property value.")
-
-(defvar slothbar-workspaces--stumpwm-log-last-val nil
-  "To store the last read value of the _stumpwm_log property.")
-
-(defun slothbar-workspaces-generate-list-fn-stumpwm ()
-  "Implement `slothbar-workspaces-generate-list-fn' for stumpwm.
-
-This expects a root window property called _STUMPWM_LOG to contain a
-utf-8 string representation of a list of strings.  Each element of the
-list should be of the format <number>status><name>.
-
-Number is the group number.
-
-Status is a single char indicator \\='*' for current, \\='=' for hidden
-with window, and \\='-' for hidden with no windows.  It is expected that
-\\='*' and \\='=' take precedence over \\='+' for previously selected
-group.
-
-Name is the group name."
-  (cl-loop for group-info in slothbar-workspaces--stumpwm-log-last-val
-           when (string-match
-                 slothbar-workspaces--stumpwm-group-status-rx
-                 group-info)
-           collect
-           `(,(concat (match-string 1 group-info)
-                      " " (match-string 3 group-info))
-             (,@(pcase (match-string 2 group-info)
-                ("*" '(:current))
-                ("=" '(:window))
-                ((or "-" "+") '(:blankish)))))))
-
-(defun slothbar-workspaces--on-property-notify-stumpwm (data _synthetic)
-  "Listen for PropertyNotify events for the _stumpwm_log root window property.
-
-DATA contains the marshalled event data.
-
-If the event is for the root window and the _stumpwm_log property, set
-`slothbar-workspaces--stumpwm-log-last-val' to the current property
-value and refresh all instances of the workspaces module."
-  (let ((obj (make-instance 'xcb:PropertyNotify))
-        atom id)
-    (xcb:unmarshal obj data)
-    (setq id (slot-value obj 'window)
-          atom (slot-value obj 'atom))
-    (when (and (= id (slothbar-util--find-root-window-id))
-               (= atom slothbar-workspaces--stumpwm-log-atom))
-      (setq slothbar-workspaces--stumpwm-log-last-val
-            (slothbar-workspaces--read-stumpwm-log-prop))
-      (slothbar-module--refresh-all-by-name "workspaces"))))
-
-(defun slothbar-workspaces-setup-defaults-stumpwm ()
-  "If in stumpwm, set `slothbar-workspaces-generate-list-fn' and add a listener.
-
-The event listener listens for PropertyNotify events.
-
-This checks DESKTOP_SESSION to determine if stumpwm is the current session."
-  (when (equal "stumpwm" (getenv "DESKTOP_SESSION"))
-    (setq slothbar-workspaces-generate-list-fn
-          #'slothbar-workspaces-generate-list-fn-stumpwm)
-    (add-hook 'slothbar-workspaces-before-init-hook
-              (lambda ()
-                (setq slothbar-workspaces--stumpwm-log-last-val
-                      (slothbar-workspaces--read-stumpwm-log-prop))
-                (xcb:+event
-                 slothbar--connection
-                 'xcb:PropertyNotify
-                 #'slothbar-workspaces--on-property-notify-stumpwm)))))
-
-(add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-stumpwm)
 
 (provide 'slothbar-workspaces)
 ;;; slothbar-workspaces.el ends here
