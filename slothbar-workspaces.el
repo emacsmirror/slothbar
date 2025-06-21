@@ -67,13 +67,15 @@ E.g.:
     (\"1\" (:current))
     (\"2\" (:blankish))
     (\"3\" (:current :blankish))
-    (\"4\" (:current :window))))
+    (\"4\" (:current :window))
+    (\"5\" (:urgent))))
 would indicate:
 - that a workspace named 0 is not current, but has a window
 - workspace 1 is current and may or may not have a window
 - workspace 2 is not current and is blank(ish)
 - workspace 3 is current and is blank(ish)
 - workspace 4 is current and has a window
+- workspace 5 is not current and has an urgent window
 
 The possible status keywords are :window, :current, and :blankish. If
 :current appears in the status list for a workspace, it is expected at
@@ -107,6 +109,7 @@ WS-LIST."
                       (pcase status
                         ((or '(:current) '(:current :window))
                          (concat "^[^1 [" ws-safe "]^]"))
+                        ('(:urgent) (concat "^[^3 " ws-safe "^]"))
                         ((or '(:window) `(:window ,_))
                          (concat "^[^1 " ws-safe "^]"))
                         (`(:current ,_) (concat "^[^0 [" ws-safe "]^]"))
