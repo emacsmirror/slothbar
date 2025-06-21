@@ -54,57 +54,93 @@
 ;;; foreground colors
 
 (defcustom slothbar-color-fg
-  '(:red #xeeee :green #xffff :blue #xffff :alpha #xeeee)
+  '(dark
+    (:red #xeeee :green #xffff :blue #xffff :alpha #xeeee)
+    light
+    (:red #x4f4f :green #x2020 :blue #x4f4f :alpha #xeeee))
   "The default text color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 (defcustom slothbar-color-notice
-  '(:red #xc3c3 :green #xe8e8 :blue #x8d8d :alpha #xeeee)
+  '(dark
+    (:red #xc3c3 :green #xe8e8 :blue #x8d8d :alpha #xeeee)
+    light
+    (:red #x0a0a :green #x7a7a :blue #x1a1a :alpha #xeeee))
   "The default notice color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 (defcustom slothbar-color-diminish
-  '(:red #x6767 :green #x6e6e :blue #x9595 :alpha #xeeee)
+  '(dark
+    (:red #x6767 :green #x6e6e :blue #x9595 :alpha #xeeee)
+    light
+    (:red #x6f6f :green #x6868 :blue #x7777 :alpha #xeeee))
   "The default diminish color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 (defcustom slothbar-color-warning
-  '(:red #xffff :green #xcbcb :blue #x6b6b :alpha #xeeee)
+  '(dark
+    (:red #xffff :green #xcbcb :blue #x6b6b :alpha #xeeee)
+    light
+    (:red #xa0a0 :green #x5959 :blue #x0000 :alpha #xeeee))
   "The default warning color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 (defcustom slothbar-color-critical
-  '(:red #xffff :green #x5353 :blue #x7070 :alpha #xeeee)
+  '(dark
+    (:red #xffff :green #x5353 :blue #x7070 :alpha #xeeee)
+    light
+    (:red #xa7a7 :green #x3030 :blue #x8080 :alpha #xeeee))
   "The default critical color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 (defcustom slothbar-color-blueish
-  '(:red #x8282 :green #xaaaa :blue #xffff :alpha #xeeee)
+  '(dark
+    (:red #x8282 :green #xaaaa :blue #xffff :alpha #xeeee)
+    light
+    (:red #x2626 :green #x5f5f :blue #xbfbf :alpha #xeeee))
   "A blueish color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 (defcustom slothbar-color-amaranthish
-  '(:red #xc7c7 :green #x9292 :blue #xeaea :alpha #xeeee)
+  '(dark
+    (:red #xc7c7 :green #x9292 :blue #xeaea :alpha #xeeee)
+    light
+    (:red #xe5e5 :green #x2b2b :blue #x5050 :alpha #xeeee))
   "A purplish color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 (defcustom slothbar-color-pinkish
-  '(:red #xffff :green #x6e6e :blue #xb4b4 :alpha #xeeee)
+  '(dark
+    (:red #xffff :green #x6e6e :blue #xb4b4 :alpha #xeeee)
+    light
+    (:red #xffff :green #x6e6e :blue #xb4b4 :alpha #xeeee))
   "A pinkish color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 (defcustom slothbar-color-orangeish
-  '(:red #xf7f7 :green #x8c8c :blue #x6c6c :alpha #xeeee)
+  '(dark
+    (:red #xf7f7 :green #x8c8c :blue #x6c6c :alpha #xeeee)
+    light
+    (:red #xb2b2 :green #x1f1f :blue #x0000 :alpha #xeeee))
   "An orangeish color."
-  :type '(list symbol natnum symbol natnum symbol natnum symbol natnum)
+  :type '(plist :value-type
+                (list symbol natnum symbol natnum symbol natnum symbol natnum))
   :group 'slothbar)
 
 ;;; background colors
@@ -120,18 +156,28 @@
 
 ;;; color maps
 
-(defcustom slothbar-color-map-fg
-  (vector
-   (apply #'slothbar-render-create-color slothbar-color-fg)
-   (apply #'slothbar-render-create-color slothbar-color-notice)
-   (apply #'slothbar-render-create-color slothbar-color-diminish)
-   (apply #'slothbar-render-create-color slothbar-color-warning)
-   (apply #'slothbar-render-create-color slothbar-color-critical)
-   (apply #'slothbar-render-create-color slothbar-color-blueish)
-   (apply #'slothbar-render-create-color slothbar-color-amaranthish)
-   (apply #'slothbar-render-create-color slothbar-color-pinkish)
-   (apply #'slothbar-render-create-color slothbar-color-orangeish)
-   (apply #'slothbar-render-create-color slothbar-color-fg))
+(defun slothbar-color--gen-color-map ()
+  "Generate the ^0-^9 color map."
+  (let ((color-key (or (frame-parameter nil 'background-mode) 'dark)))
+    (cl-loop with colors = (list slothbar-color-fg
+                                 slothbar-color-notice
+                                 slothbar-color-diminish
+                                 slothbar-color-warning
+                                 slothbar-color-critical
+                                 slothbar-color-blueish
+                                 slothbar-color-amaranthish
+                                 slothbar-color-pinkish
+                                 slothbar-color-orangeish
+                                 slothbar-color-fg)
+             with vec = (make-vector (length colors) nil)
+             for i from 0
+             for color-map in colors
+             do (aset vec i
+                      (apply #'slothbar-render-create-color
+                             (plist-get color-map color-key)))
+             finally return vec)))
+
+(defcustom slothbar-color-map-fg (slothbar-color--gen-color-map)
   "The color map corresponding to color codes ^0-^9."
   :type '(vector sexp sexp sexp sexp sexp sexp sexp sexp sexp sexp)
   :group 'slothbar)

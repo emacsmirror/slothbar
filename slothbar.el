@@ -94,6 +94,7 @@
 (require 'xcb-icccm)
 (require 'xcb-ewmh)
 
+(require 'slothbar-color)
 (require 'slothbar-module)
 (require 'slothbar-util)
 (require 'slothbar-log)
@@ -272,6 +273,14 @@ If DISPLAY is not found, the value chosen is the first found in
   (xcb:+request slothbar--connection
       (make-instance 'xcb:MapWindow
                      :window slothbar--window))
+  (xcb:+request slothbar--connection
+      (make-instance 'xcb:ChangeWindowAttributes
+                     :window slothbar--window
+                     :value-mask (logior xcb:CW:BackPixmap
+                                         xcb:CW:BackPixel)
+                     :background-pixmap xcb:BackPixmap:ParentRelative
+                     :background-pixel (slothbar-util--color->pixel
+                                        (slothbar-util--find-background-color))))
   (xcb:flush slothbar--connection)
   ;; configure struts
   (pcase-let* (((eieio (height root-window-height))
@@ -319,10 +328,18 @@ If DISPLAY is not found, the value chosen is the first found in
                        :bottom-end-x (if slothbar-is-bottom
                                          (1- (+ slothbar-offset-x slothbar-width))
                                        0))))
-  ;; (xcb:+request slothbar--connection
-  ;;     (make-instance 'xcb:MapWindow
-  ;;                    :window slothbar--window))
   (xcb:flush slothbar--connection))
+
+(defun slothbar--on-theme-change (_)
+  "A function to run when the Emacs theme changes.
+
+It will remap colors and refresh the display."
+  (setq slothbar-color-map-fg (slothbar-color--gen-color-map))
+  (when (slothbar-enabled-p)
+    (slothbar--refresh)))
+
+(add-hook 'enable-theme-functions #'slothbar--on-theme-change)
+(add-hook 'disable-theme-functions #'slothbar--on-theme-change)
 
 (defun slothbar--on-DestroyNotify (data _synthetic)
   "DestroyNotify.
