@@ -555,11 +555,13 @@ DATA the event data"
     (setq slothbar--geometry-changed? nil)
     (run-at-time 0 nil #'slothbar-refresh-modules)))
 
-(defun slothbar--watch-height (_ _ oper where)
+(defun slothbar--watch-height (_ nval oper where)
   "Refresh modules when changing `slothbar-height'.
 
-Refresh only when OPER eq \\='set and WHERE is nil."
-  (when (and slothbar--enabled (not where) (eq 'set oper))
+Refresh only when OPER eq \\='set and WHERE is nil.
+NVAL is check against the existing value for any changes."
+  (when (and slothbar--enabled (not where) (eq 'set oper)
+             (not (eql nval slothbar-height)))
     (setq slothbar--geometry-changed? t)
     (run-at-time 0 nil #'slothbar-refresh-modules)))
 
@@ -579,11 +581,13 @@ Refresh only when OPER eq \\='set and WHERE is nil."
                      (t (error "Unsupported type in slothbar-modules: %s" val))))
                   slothbar-modules)))
 
-(defun slothbar--watch-slothbar-modules (_ _ oper where)
+(defun slothbar--watch-slothbar-modules (_ nval oper where)
   "(Re)construct modules when `slothbar-modules' is modified.
 
-Do this only when OPER eq \\='set and WHERE is nil."
-  (when (and (not where) (eq 'set oper))
+Do this only when OPER eq \\='set and WHERE is nil.
+NVAL is check against the existing value for any changes."
+  (when (and (not where) (eq 'set oper)
+             (not (equal nval slothbar-modules)))
     (run-at-time 0 nil #'slothbar--construct-modules)))
 
 (defun slothbar--ensure-event-mask (win event)

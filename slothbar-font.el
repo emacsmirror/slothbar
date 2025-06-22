@@ -112,7 +112,8 @@ By default, CANDIDATES is the value of `slothbar-font-candidates'."
   "Update `slothbar-font--color-code-map' with NVAL candidates.
 
 Do this only when OPER eq \\='set and WHERE is nil."
-  (when (and (not where) (eq 'set oper))
+  (when (and (not where) (eq 'set oper)
+             (not (equal nval slothbar-font-candidates)))
     (let ((candidates (slothbar-font-map-candidates nval)))
       (fontsloth-async-load-and-cache-fonts
        candidates
