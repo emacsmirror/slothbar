@@ -235,12 +235,20 @@ This default primary method redraws the text if it has changed."
   ;; (message "running super before refresh")
   (when (slothbar-module-needs-refresh? m)
     (slothbar-module-layout m)
-    (let ((c slothbar--connection)
-          (xcb (slothbar-module-xcb m))
-          (width (slothbar-module-width m)))
+    (pcase-let* ((c slothbar--connection)
+                 ((cl-struct slothbar-module width colors xcb) m))
       (when (map-elt xcb 'pixmap)
         (xcb:+request c
             (make-instance 'xcb:FreePixmap :pixmap (map-elt xcb 'pixmap)))
+        (xcb:+request-checked+request-check c
+            (make-instance 'xcb:ChangeGC
+                           :gc (map-elt xcb 'gc)
+                           :value-mask (logior xcb:GC:Background
+                                               xcb:GC:Foreground)
+                           :background (slothbar-module-rgb-background-color
+                                        colors)
+                           :foreground (slothbar-module-rgb-background-color
+                                        colors)))
         (let ((pmap (xcb:generate-id c)))
           (slothbar-render-create-pixmap c pmap width slothbar-height)
           (map-put! (slothbar-module-xcb m) 'pixmap pmap)
