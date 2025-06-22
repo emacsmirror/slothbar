@@ -62,7 +62,7 @@
 ;; M-x: slothbar-exit
 
 ;; On first run, expect a delay of around twenty to thirty seconds
-;; (more or less depending on which fonts are chosen). During this
+;; (more or less depending on which fonts are chosen).  During this
 ;; time, available fonts configured in slothbar-font-candidates are
 ;; loaded and cached in a background process for future reference.
 
@@ -91,6 +91,7 @@
 (require 'pcase)
 (require 'seq)
 (require 'xcb)
+(require 'xcb-keysyms)
 (require 'xcb-icccm)
 (require 'xcb-ewmh)
 
@@ -211,6 +212,9 @@ E.g.: (:left
 (defvar slothbar--modules nil
   "List of slothbar modules with optional layout instructions.")
 
+(defvar slothbar--visible nil
+  "Non-nil if the bar is visible.")
+
 (defmacro slothbar--global-minor-mode-body (name &optional init exit)
   "Global minor mode body for mode with NAME.
 
@@ -253,11 +257,83 @@ If DISPLAY is not found, the value chosen is the first found in
       (width . ,(caddr geom))
       (height . ,(cadddr geom)))))
 
-(defun slothbar--refresh ()
-  "Refresh the bar."
+(defun slothbar--do-struts
+    (top bottom left top-start-x top-end-x bottom-start-x bottom-end-x)
+  "Do requests for struts.
+
+TOP the top strut
+BOTTOM the bottom strut
+LEFT the left strut
+TOP-START-X x coordinate of the top strut
+TOP-END-X end x coordinate of the top strut
+BOTTOM-START-X x coordinate of the bottom strut
+BOTTOM-END-X end x coordinate of the bottom strut"
+  (xcb:+request slothbar--connection
+      (make-instance 'xcb:ewmh:set-_NET_WM_STRUT
+                     :window slothbar--window
+                     :left left
+                     :right 0
+                     :top top
+                     :bottom bottom))
+  (xcb:+request slothbar--connection
+      (make-instance 'xcb:ewmh:set-_NET_WM_STRUT_PARTIAL
+                     :window slothbar--window
+                     :left left
+                     :right 0
+                     :top top
+                     :bottom bottom
+                     :left-start-y 0
+                     :left-end-y 0
+                     :right-start-y 0
+                     :right-end-y 0
+                     :top-start-x top-start-x
+                     :top-end-x top-end-x
+                     :bottom-start-x bottom-start-x
+                     :bottom-end-x bottom-end-x)))
+
+(defun slothbar--configure-struts (&optional hide?)
+  "Configure the struts.
+
+If HIDE? is non-nil, configure struts to make the bar invisible."
+  (if hide?
+      (slothbar--do-struts 0 0 0 0 0 0 0)
+    (pcase-let* (((eieio (height root-window-height))
+                  (xcb:+request-unchecked+reply
+                      slothbar--connection
+                      (make-instance 'xcb:GetGeometry
+                                     :drawable (slothbar-util--find-root-window-id))))
+                 ((map ('y-offset mon-y-offset) ('height mon-height))
+                  (slothbar--find-display-geometry slothbar-preferred-display))
+                 (bottom-strut (if slothbar-is-bottom
+                                   (+ slothbar-height slothbar-margin-y
+                                      (- root-window-height
+                                         (+ mon-y-offset mon-height)))
+                                 0)))
+      (slothbar--do-struts
+       (if slothbar-is-bottom 0
+         (+ slothbar-height slothbar-offset-y slothbar-margin-y))
+       bottom-strut
+       slothbar-offset-x
+       (if slothbar-is-bottom 0
+         slothbar-offset-x)
+       (if slothbar-is-bottom 0
+         (1- (+ slothbar-offset-x slothbar-width)))
+       (if slothbar-is-bottom slothbar-offset-x
+         0)
+       (if slothbar-is-bottom (1- (+ slothbar-offset-x slothbar-width))
+         0))))
+  (setq slothbar--visible (not hide?)))
+
+(defun slothbar-hide ()
+  "Hide slothbar."
+  (slothbar--configure-struts t)
   (xcb:+request slothbar--connection
       (make-instance 'xcb:UnmapWindow
                      :window slothbar--window))
+  (xcb:flush slothbar--connection))
+
+(defun slothbar--configure-geom ()
+  "Configure the window geometry."
   (let ((ecw (xcb:+request-checked+request-check slothbar--connection
                  (make-instance 'xcb:ConfigureWindow
                                 :window slothbar--window
@@ -268,67 +344,77 @@ If DISPLAY is not found, the value chosen is the first found in
                                 :x slothbar-offset-x
                                 :y slothbar-offset-y
                                 :width slothbar-width
-                                :height (+ slothbar-height)))))
-    (slothbar--log-debug* "slothbar-refresh: configure window errors: %s" ecw))
-  (xcb:+request slothbar--connection
-      (make-instance 'xcb:MapWindow
-                     :window slothbar--window))
+                                :height slothbar-height))))
+    (slothbar--log-debug* "slothbar-refresh: configure window errors: %s" ecw)))
+
+(defun slothbar--configure-pos ()
+  "Configure the window position."
+  (let ((ecw (xcb:+request-checked+request-check slothbar--connection
+                 (make-instance 'xcb:ConfigureWindow
+                                :window slothbar--window
+                                :value-mask (logior xcb:ConfigWindow:X
+						    xcb:ConfigWindow:Y)
+                                :x slothbar-offset-x
+                                :y slothbar-offset-y))))
+    (slothbar--log-debug* "slothbar-refresh: configure window errors: %s" ecw)))
+
+(defun slothbar--change-background (&optional color)
+  "Change the background pixel attribute with optional COLOR.
+
+The default color is from `slothbar-util--find-background-color'."
   (xcb:+request slothbar--connection
       (make-instance 'xcb:ChangeWindowAttributes
                      :window slothbar--window
                      :value-mask (logior xcb:CW:BackPixmap
                                          xcb:CW:BackPixel)
                      :background-pixmap xcb:BackPixmap:ParentRelative
-                     :background-pixel (slothbar-util--color->pixel
-                                        (slothbar-util--find-background-color))))
-  (xcb:flush slothbar--connection)
-  ;; configure struts
-  (pcase-let* (((eieio (height root-window-height))
-                (xcb:+request-unchecked+reply
-                    slothbar--connection
-                    (make-instance 'xcb:GetGeometry
-                                   :drawable (slothbar-util--find-root-window-id))))
-               ((map ('y-offset mon-y-offset) ('height mon-height))
-                (slothbar--find-display-geometry slothbar-preferred-display))
-               (bottom-strut (if slothbar-is-bottom
-                                   (+ slothbar-height slothbar-margin-y
-                                      (- root-window-height
-                                         (+ mon-y-offset mon-height)))
-                                 0)))
-    (xcb:+request slothbar--connection
-        (make-instance 'xcb:ewmh:set-_NET_WM_STRUT
-                       :window slothbar--window
-                       :left slothbar-offset-x
-                       :right 0
-                       :top (if slothbar-is-bottom
-                                0
-                              (+ slothbar-height slothbar-offset-y
-                                 slothbar-margin-y))
-                       :bottom bottom-strut))
-    (xcb:+request slothbar--connection
-        (make-instance 'xcb:ewmh:set-_NET_WM_STRUT_PARTIAL
-                       :window slothbar--window
-                       :left slothbar-offset-x
-                       :right 0
-                       :top (if slothbar-is-bottom 0
-                              (+ slothbar-height slothbar-offset-y
-                                 slothbar-margin-y))
-                       :bottom bottom-strut
-                       :left-start-y 0
-                       :left-end-y 0
-                       :right-start-y 0
-                       :right-end-y 0
-                       :top-start-x (if slothbar-is-bottom 0
-                                      slothbar-offset-x)
-                       :top-end-x (if slothbar-is-bottom 0
-                                    (1- (+ slothbar-offset-x slothbar-width)))
-                       :bottom-start-x (if slothbar-is-bottom
-                                           slothbar-offset-x
-                                         0)
-                       :bottom-end-x (if slothbar-is-bottom
-                                         (1- (+ slothbar-offset-x slothbar-width))
-                                       0))))
+                     :background-pixel
+                     (or color
+                         (slothbar-util--color->pixel
+                          (slothbar-util--find-background-color))))))
+
+(defun slothbar--configure-wm-hints ()
+  "Configure icccm and ewmh hints."
+  (xcb:+request-checked slothbar--connection
+      (make-instance 'xcb:icccm:set-WM_SIZE_HINTS
+                     :window slothbar--window
+                     :data (xcb:icccm:-WM_SIZE_HINTS
+                            :x slothbar-offset-x
+                            :y slothbar-offset-y
+                            :width slothbar-width
+                            :height slothbar-height)))
+  (xcb:+request-checked slothbar--connection
+      (make-instance 'xcb:ewmh:set-_NET_WM_DESKTOP
+                     :window slothbar--window
+                     :data #xFFFFFFFF)))
+
+(defun slothbar-show ()
+  "Show slothbar."
+  (slothbar--configure-geom)
+  (slothbar--change-background)
+  (slothbar--configure-struts)
+  (slothbar--configure-wm-hints)
+  (xcb:+request slothbar--connection
+      (make-instance 'xcb:MapWindow
+                     :window slothbar--window))
+  (slothbar--configure-pos)
   (xcb:flush slothbar--connection))
+
+(defun slothbar-toggle ()
+  "Toggle slothbar visibility."
+  (interactive)
+  (if slothbar--visible
+      (slothbar-hide)
+    (slothbar-show)))
+
+(defun slothbar--refresh (&optional unmap?)
+  "Refresh the bar.
+
+If UNMAP? is non-nil, first unmap the window."
+  (when slothbar--visible
+    (when unmap?
+      (slothbar-hide))
+    (slothbar-show)))
 
 (defun slothbar--on-theme-change (_)
   "A function to run when the Emacs theme changes.
@@ -336,7 +422,7 @@ If DISPLAY is not found, the value chosen is the first found in
 It will remap colors and refresh the display."
   (setq slothbar-color-map-fg (slothbar-color--gen-color-map))
   (when (slothbar-enabled-p)
-    (slothbar--refresh)))
+    (slothbar--refresh t)))
 
 (add-hook 'enable-theme-functions #'slothbar--on-theme-change)
 (add-hook 'disable-theme-functions #'slothbar--on-theme-change)
@@ -367,22 +453,12 @@ DATA the event data"
   (slothbar--log-trace* "received clientmessage %s" data))
 
 (defun slothbar--on-KeyPress (data _synthetic)
-  "Forward all KeyPress events to Emacs frame.
-DATA the event data"
-  ;; This function a workspace frame has the input focus and the pointer is
-  ;; over a tray icon.
-  (let ((dest (frame-parameter (selected-frame) 'exwm-outer-id))
-        (obj (make-instance 'xcb:KeyPress)))
-    (xcb:unmarshal obj data)
-    (setf (slot-value obj 'event) dest)
-    (xcb:+request slothbar--connection
-        (make-instance 'xcb:SendEvent
-                       :propagate 0
-                       :destination dest
-                       :event-mask xcb:EventMask:NoEvent
-                       :event (xcb:marshal obj slothbar--connection)))
-    (slothbar--log-trace* "key press %s" obj))
-  (xcb:flush slothbar--connection))
+  "TODO: do something useful with keypress DATA."
+  (let ((keypress (make-instance 'xcb:KeyPress)))
+    (xcb:unmarshal keypress data)
+    (with-slots (detail state) keypress
+      (let ((keysym (xcb:keysyms:keycode->keysym slothbar--connection detail state)))
+        (slothbar--log-debug* "keypress: %s" keysym)))))
 
 (defun slothbar--selectively-clear-areas (prev-extents new-extents)
   "Clear old areas that the new extents do not cover.
@@ -652,6 +728,7 @@ Initialize the connection, window, graphics context, and modules."
                 #'slothbar--on-KeyPress)
     (xcb:+event slothbar--connection 'xcb:Expose
                 #'slothbar--on-Expose)
+    (setq slothbar--visible t)
     (slothbar--refresh)
     (setq slothbar--enabled t)
     (run-hook-with-args 'slothbar-after-init-hook)))

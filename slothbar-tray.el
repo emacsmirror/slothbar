@@ -358,8 +358,6 @@ This overrides the default module init because system tray is special."
           (make-instance 'xcb:GetSelectionOwner
                          :selection xcb:Atom:_NET_SYSTEM_TRAY_S0))
     (when (/= owner xcb:Window:None)
-      ;; (xcb:disconnect exwm-systemtray--connection)
-      ;; (setq exwm-systemtray--connection nil)
       (warn "[slothbar-tray] Other system tray detected")
       (cl-return-from slothbar-module-init)))
   (let ((id (xcb:generate-id slothbar-tray--connection))
