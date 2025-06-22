@@ -107,6 +107,7 @@
 (defvar slothbar--connection nil "The X connection.")
 (defvar slothbar--window nil "The parent window.")
 (defvar slothbar--gc nil "The graphics context.")
+(defvar slothbar--pixmap nil "The background pixmap.")
 
 (defvar slothbar--enabled nil "Non-nil if slothbar is enabled.")
 
@@ -371,7 +372,19 @@ The default color is from `slothbar-util--find-background-color'."
                      :background-pixel
                      (or color
                          (slothbar-util--color->pixel
-                          (slothbar-util--find-background-color))))))
+                          (slothbar-util--find-background-color)))))
+  (xcb:+request-checked+request-check slothbar--connection
+      (make-instance 'xcb:ChangeGC
+                     :gc slothbar--gc
+                     :value-mask (logior xcb:GC:Background
+                                         xcb:GC:Foreground)
+                     :background (slothbar-util--color->pixel
+                                  (slothbar-util--find-background-color))
+                     :foreground (slothbar-util--color->pixel
+                                  (slothbar-util--find-background-color))))
+  (slothbar-render-fill-rectangle slothbar--connection
+                                  slothbar--gc slothbar--pixmap
+                                  slothbar-width slothbar-height))
 
 (defun slothbar--configure-wm-hints ()
   "Configure icccm and ewmh hints."
@@ -482,6 +495,14 @@ NEW-EXTENTS the new layout extents"
 
 (defun slothbar--copy-areas (layout)
   "Copy a LAYOUT's modules' pixmaps into their respective areas."
+  ;; first copy the background pixmap
+  (xcb:+request slothbar--connection
+      (make-instance 'xcb:CopyArea
+                     :src-drawable slothbar--pixmap
+                     :dst-drawable slothbar--window
+                     :gc slothbar--gc
+                     :src-x 0 :src-y 0 :dst-x 0 :dst-y 0
+                     :width slothbar-width :height slothbar-height))
   (dolist (m layout)
     (pcase-let ((`((,x ,y) ,(cl-struct slothbar-module width xcb)) m))
       (when (alist-get 'pixmap xcb)
@@ -704,6 +725,9 @@ Initialize the connection, window, graphics context, and modules."
                                ,xcb:Atom:_NET_WM_STATE_ABOVE)))
     ;; create gc
     (setq slothbar--gc (xcb:generate-id slothbar--connection))
+    (setq slothbar--pixmap (xcb:generate-id slothbar--connection))
+    (slothbar-render-create-pixmap slothbar--connection slothbar--pixmap
+                                   slothbar-width slothbar-height)
     (let ((egc
            (xcb:+request-checked+request-check slothbar--connection
                (make-instance 'xcb:CreateGC
@@ -716,6 +740,9 @@ Initialize the connection, window, graphics context, and modules."
                               :foreground (slothbar-util--color->pixel
                                            (slothbar-util--find-foreground-color))))))
       (slothbar--log-debug* "slothbar init create gc errors: %s" egc))
+    (slothbar-render-fill-rectangle slothbar--connection
+                                    slothbar--gc slothbar--pixmap
+                                    slothbar-width slothbar-height)
     ;; initialize modules
     (slothbar--construct-modules)
     (add-variable-watcher 'slothbar-modules #'slothbar--watch-slothbar-modules)
