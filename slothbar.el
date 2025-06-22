@@ -422,7 +422,14 @@ If UNMAP? is non-nil, first unmap the window."
 It will remap colors and refresh the display."
   (setq slothbar-color-map-fg (slothbar-color--gen-color-map))
   (when (slothbar-enabled-p)
-    (slothbar--refresh t)))
+    (dolist (m slothbar--modules)
+      (when (slothbar-module-p m)
+        (setf (slothbar-module-rgb-background-color
+               (slothbar-module-colors m))
+              (slothbar-util--color->pixel
+               (slothbar-util--find-background-color)))
+        (setf (slothbar-module-needs-refresh? m) t)))
+    (run-with-idle-timer 0 nil (lambda () (slothbar--refresh t)))))
 
 (add-hook 'enable-theme-functions #'slothbar--on-theme-change)
 (add-hook 'disable-theme-functions #'slothbar--on-theme-change)
