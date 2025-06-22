@@ -340,123 +340,125 @@ SHOULD-REFRESH? optional (defaults to t) nil to forgo module refresh"
 (cl-defmethod slothbar-module-init ((m slothbar-tray))
   "Initialize `slothbar-tray' module M.
 This overrides the default module init because system tray is special."
-  (slothbar--log-debug* "initializing tray %s" m)
-  (cl-assert (not slothbar-tray--connection))
-  (cl-assert (not slothbar-tray--list))
-  (cl-assert (not slothbar-tray--selection-owner-window))
-  (cl-assert (not slothbar-tray--embedder-window))
-  ;; Create a new connection.
-  (setq slothbar-tray--connection (xcb:connect))
-  (set-process-query-on-exit-flag
-   (slot-value slothbar-tray--connection 'process) nil)
-  ;; Initialize XELB modules.
-  (xcb:xembed:init slothbar-tray--connection t)
-  (xcb:systemtray:init slothbar-tray--connection t)
-  ;; Acquire the manager selection _NET_SYSTEM_TRAY_S0.
-  (with-slots (owner)
-      (xcb:+request-unchecked+reply slothbar-tray--connection
-          (make-instance 'xcb:GetSelectionOwner
-                         :selection xcb:Atom:_NET_SYSTEM_TRAY_S0))
-    (when (/= owner xcb:Window:None)
-      (warn "[slothbar-tray] Other system tray detected")
-      (cl-return-from slothbar-module-init)))
-  (let ((id (xcb:generate-id slothbar-tray--connection))
-        (root (slothbar-util--find-root-window-id)))
-    (setq slothbar-tray--selection-owner-window id)
-    (xcb:+request slothbar-tray--connection
-        (make-instance 'xcb:CreateWindow
-                       :depth 0
-                       :wid id
-                       :parent root
-                       :x 0
-                       :y 0
-                       :width 1
-                       :height 1
-                       :border-width 0
-                       :class xcb:WindowClass:InputOnly
-                       :visual 0
-                       :value-mask xcb:CW:OverrideRedirect
-                       :override-redirect 1))
-    ;; Get the selection ownership.
-    (xcb:+request slothbar-tray--connection
-        (make-instance 'xcb:SetSelectionOwner
-                       :owner id
-                       :selection xcb:Atom:_NET_SYSTEM_TRAY_S0
-                       :time xcb:Time:CurrentTime))
-    ;; Send a client message to announce the selection.
-    (xcb:+request slothbar-tray--connection
-        (make-instance 'xcb:SendEvent
-                       :propagate 0
-                       :destination root
-                       :event-mask xcb:EventMask:StructureNotify
-                       :event (xcb:marshal
-                               (make-instance 'xcb:systemtray:-ClientMessage
-                                              :window root
-                                              :time xcb:Time:CurrentTime
-                                              :selection
-                                              xcb:Atom:_NET_SYSTEM_TRAY_S0
-                                              :owner id)
-                               slothbar-tray--connection)))
-    ;; Set _NET_WM_NAME.
-    (xcb:+request slothbar-tray--connection
-        (make-instance 'xcb:ewmh:set-_NET_WM_NAME
-                       :window id
-                       :data "slothbar: slothbar-tray--selection-owner-window"))
-    ;; Set the _NET_SYSTEM_TRAY_ORIENTATION property.
-    (xcb:+request slothbar-tray--connection
-        (make-instance 'xcb:xembed:set-_NET_SYSTEM_TRAY_ORIENTATION
-                       :window id
-                       :data xcb:systemtray:ORIENTATION:HORZ)))
-  ;; Create the embedder.
-  (let* ((id (xcb:generate-id slothbar-tray--connection))
-         (background-pixel
-          (slothbar-util--color->pixel slothbar-tray-background-color))
-        (parent slothbar--window)
-        (depth (slot-value (xcb:+request-unchecked+reply
-                               slothbar-tray--connection
-                               (make-instance 'xcb:GetGeometry
-                                              :drawable parent))
-                           'depth))
-        (y 0))
-    (setq slothbar-tray--embedder-window id)
-    (xcb:+request slothbar-tray--connection
-        (make-instance 'xcb:CreateWindow
-                       :depth depth
-                       :wid id
-                       :parent parent
-                       :x 0
-                       :y y
-                       :width 1
-                       :height slothbar-height
-                       :border-width 0
-                       :class xcb:WindowClass:InputOutput
-                       :visual 0
-                       :value-mask (logior xcb:CW:BackPixmap
-                                           (if background-pixel
-                                               xcb:CW:BackPixel 0)
-                                           xcb:CW:EventMask)
-                       :background-pixmap xcb:BackPixmap:ParentRelative
-                       :background-pixel background-pixel
-                       :event-mask xcb:EventMask:SubstructureNotify))
-    ;; Set _NET_WM_NAME.
-    (xcb:+request slothbar-tray--connection
-        (make-instance 'xcb:ewmh:set-_NET_WM_NAME
-                       :window id
-                       :data "slothbar: slothbar-tray--embedder-window")))
-  (xcb:flush slothbar-tray--connection)
-  ;; Attach event listeners.
-  (xcb:+event slothbar-tray--connection 'xcb:DestroyNotify
-              #'slothbar-tray--on-DestroyNotify)
-  (xcb:+event slothbar-tray--connection 'xcb:ReparentNotify
-              #'slothbar-tray--on-ReparentNotify)
-  (xcb:+event slothbar-tray--connection 'xcb:ResizeRequest
-              #'slothbar-tray--on-ResizeRequest)
-  (xcb:+event slothbar-tray--connection 'xcb:PropertyNotify
-              #'slothbar-tray--on-PropertyNotify)
-  (xcb:+event slothbar-tray--connection 'xcb:ClientMessage
-              #'slothbar-tray--on-ClientMessage)
-  ;; we don't need xcb since it is all managed here
-  (push '(unused . unused) (slothbar-module-xcb m)))
+  (cl-block 'other-tray
+    (slothbar--log-debug* "initializing tray %s" m)
+    (cl-assert (not slothbar-tray--connection))
+    (cl-assert (not slothbar-tray--list))
+    (cl-assert (not slothbar-tray--selection-owner-window))
+    (cl-assert (not slothbar-tray--embedder-window))
+    ;; Create a new connection.
+    (setq slothbar-tray--connection (xcb:connect))
+    (set-process-query-on-exit-flag
+     (slot-value slothbar-tray--connection 'process) nil)
+    ;; Initialize XELB modules.
+    (xcb:xembed:init slothbar-tray--connection t)
+    (xcb:systemtray:init slothbar-tray--connection t)
+    ;; Acquire the manager selection _NET_SYSTEM_TRAY_S0.
+    (with-slots (owner)
+        (xcb:+request-unchecked+reply slothbar-tray--connection
+            (make-instance 'xcb:GetSelectionOwner
+                           :selection xcb:Atom:_NET_SYSTEM_TRAY_S0))
+      (when (/= owner xcb:Window:None)
+        (warn "[slothbar-tray] Other system tray detected")
+        (slothbar-module-exit m)
+        (cl-return-from 'other-tray)))
+    (let ((id (xcb:generate-id slothbar-tray--connection))
+          (root (slothbar-util--find-root-window-id)))
+      (setq slothbar-tray--selection-owner-window id)
+      (xcb:+request slothbar-tray--connection
+          (make-instance 'xcb:CreateWindow
+                         :depth 0
+                         :wid id
+                         :parent root
+                         :x 0
+                         :y 0
+                         :width 1
+                         :height 1
+                         :border-width 0
+                         :class xcb:WindowClass:InputOnly
+                         :visual 0
+                         :value-mask xcb:CW:OverrideRedirect
+                         :override-redirect 1))
+      ;; Get the selection ownership.
+      (xcb:+request slothbar-tray--connection
+          (make-instance 'xcb:SetSelectionOwner
+                         :owner id
+                         :selection xcb:Atom:_NET_SYSTEM_TRAY_S0
+                         :time xcb:Time:CurrentTime))
+      ;; Send a client message to announce the selection.
+      (xcb:+request slothbar-tray--connection
+          (make-instance 'xcb:SendEvent
+                         :propagate 0
+                         :destination root
+                         :event-mask xcb:EventMask:StructureNotify
+                         :event (xcb:marshal
+                                 (make-instance 'xcb:systemtray:-ClientMessage
+                                                :window root
+                                                :time xcb:Time:CurrentTime
+                                                :selection
+                                                xcb:Atom:_NET_SYSTEM_TRAY_S0
+                                                :owner id)
+                                 slothbar-tray--connection)))
+      ;; Set _NET_WM_NAME.
+      (xcb:+request slothbar-tray--connection
+          (make-instance 'xcb:ewmh:set-_NET_WM_NAME
+                         :window id
+                         :data "slothbar: slothbar-tray--selection-owner-window"))
+      ;; Set the _NET_SYSTEM_TRAY_ORIENTATION property.
+      (xcb:+request slothbar-tray--connection
+          (make-instance 'xcb:xembed:set-_NET_SYSTEM_TRAY_ORIENTATION
+                         :window id
+                         :data xcb:systemtray:ORIENTATION:HORZ)))
+    ;; Create the embedder.
+    (let* ((id (xcb:generate-id slothbar-tray--connection))
+           (background-pixel
+            (slothbar-util--color->pixel slothbar-tray-background-color))
+          (parent slothbar--window)
+          (depth (slot-value (xcb:+request-unchecked+reply
+                                 slothbar-tray--connection
+                                 (make-instance 'xcb:GetGeometry
+                                                :drawable parent))
+                             'depth))
+          (y 0))
+      (setq slothbar-tray--embedder-window id)
+      (xcb:+request slothbar-tray--connection
+          (make-instance 'xcb:CreateWindow
+                         :depth depth
+                         :wid id
+                         :parent parent
+                         :x 0
+                         :y y
+                         :width 1
+                         :height slothbar-height
+                         :border-width 0
+                         :class xcb:WindowClass:InputOutput
+                         :visual 0
+                         :value-mask (logior xcb:CW:BackPixmap
+                                             (if background-pixel
+                                                 xcb:CW:BackPixel 0)
+                                             xcb:CW:EventMask)
+                         :background-pixmap xcb:BackPixmap:ParentRelative
+                         :background-pixel background-pixel
+                         :event-mask xcb:EventMask:SubstructureNotify))
+      ;; Set _NET_WM_NAME.
+      (xcb:+request slothbar-tray--connection
+          (make-instance 'xcb:ewmh:set-_NET_WM_NAME
+                         :window id
+                         :data "slothbar: slothbar-tray--embedder-window")))
+    (xcb:flush slothbar-tray--connection)
+    ;; Attach event listeners.
+    (xcb:+event slothbar-tray--connection 'xcb:DestroyNotify
+                #'slothbar-tray--on-DestroyNotify)
+    (xcb:+event slothbar-tray--connection 'xcb:ReparentNotify
+                #'slothbar-tray--on-ReparentNotify)
+    (xcb:+event slothbar-tray--connection 'xcb:ResizeRequest
+                #'slothbar-tray--on-ResizeRequest)
+    (xcb:+event slothbar-tray--connection 'xcb:PropertyNotify
+                #'slothbar-tray--on-PropertyNotify)
+    (xcb:+event slothbar-tray--connection 'xcb:ClientMessage
+                #'slothbar-tray--on-ClientMessage)
+    ;; we don't need xcb since it is all managed here
+    (push '(unused . unused) (slothbar-module-xcb m))))
 
 (cl-defmethod slothbar-module-init :before ((m slothbar-tray))
   "Before initialize `slothbar-tray' module M."
@@ -475,59 +477,62 @@ This overrides the default module layout because system tray is special."
     (xcb:+request slothbar-tray--connection
         (make-instance 'xcb:UnmapWindow
                        :window slothbar-tray--embedder-window)))
-  (let ((x (+ (slothbar-module-lpad m) slothbar-tray-icon-gap)))
-    (dolist (pair slothbar-tray--list)
-      (unless (eq slothbar-height
-                  (gethash 'prev-height (slothbar-module-cache m)))
-        (slothbar--log-debug*
-         "tray new height %s, resizing icon %s" slothbar-height (cdr pair))
-        (slothbar-tray--resize-icon
-         (car pair)
-         (slothbar-tray--icon-width (cdr pair))
-         (slothbar-tray--icon-height (cdr pair))))
-      (when (slothbar-tray--icon-visible (cdr pair))
-        (setq x (+ x (slothbar-tray--icon-width (cdr pair))
-                   slothbar-tray-icon-gap))))
-    (puthash 'prev-height slothbar-height (slothbar-module-cache m))
-    (slothbar--log-debug* "setting tray new width to %s" x)
-    (setf (slothbar-module-width m) (+ (- (slothbar-module-rpad m)
-                                         slothbar-tray-icon-gap) x))
-    (unless (eq x (gethash 'prev-width (slothbar-module-cache m)))
-      (setq slothbar-tray--should-map? t))
-    (puthash 'prev-width x (slothbar-module-cache m))))
+  (when slothbar-tray--connection
+    (let ((x (+ (slothbar-module-lpad m) slothbar-tray-icon-gap)))
+      (dolist (pair slothbar-tray--list)
+        (unless (eq slothbar-height
+                    (gethash 'prev-height (slothbar-module-cache m)))
+          (slothbar--log-debug*
+           "tray new height %s, resizing icon %s" slothbar-height (cdr pair))
+          (slothbar-tray--resize-icon
+           (car pair)
+           (slothbar-tray--icon-width (cdr pair))
+           (slothbar-tray--icon-height (cdr pair))))
+        (when (slothbar-tray--icon-visible (cdr pair))
+          (setq x (+ x (slothbar-tray--icon-width (cdr pair))
+                     slothbar-tray-icon-gap))))
+      (puthash 'prev-height slothbar-height (slothbar-module-cache m))
+      (slothbar--log-debug* "setting tray new width to %s" x)
+      (setf (slothbar-module-width m) (+ (- (slothbar-module-rpad m)
+                                           slothbar-tray-icon-gap) x))
+      (unless (eq x (gethash 'prev-width (slothbar-module-cache m)))
+        (setq slothbar-tray--should-map? t))
+      (puthash 'prev-width x (slothbar-module-cache m)))))
 
 (cl-defmethod slothbar-module-refresh ((_ slothbar-tray))
   "Refresh `slothbar-tray' module.
 This overrides the default module refresh because system tray is special."
-  (let ((x slothbar-tray-icon-gap))
-    (dolist (pair slothbar-tray--list)
-      (when (slothbar-tray--icon-visible (cdr pair))
-        (xcb:+request slothbar-tray--connection
-            (make-instance 'xcb:ConfigureWindow
-                           :window (car pair)
-                           :value-mask xcb:ConfigWindow:X
-                           :x x))
-        (setq x (+ x (slothbar-tray--icon-width (cdr pair))
-                   slothbar-tray-icon-gap))
-        (setq slothbar-tray--should-map? t)))))
+  (when slothbar-tray--connection
+    (let ((x slothbar-tray-icon-gap))
+      (dolist (pair slothbar-tray--list)
+        (when (slothbar-tray--icon-visible (cdr pair))
+          (xcb:+request slothbar-tray--connection
+              (make-instance 'xcb:ConfigureWindow
+                             :window (car pair)
+                             :value-mask xcb:ConfigWindow:X
+                             :x x))
+          (setq x (+ x (slothbar-tray--icon-width (cdr pair))
+                     slothbar-tray-icon-gap))
+          (setq slothbar-tray--should-map? t))))))
 
 (cl-defmethod slothbar-module-reposition ((m slothbar-tray) x y)
   "Reposition `slothbar-tray' M to X,Y."
   (slothbar--log-debug* "tray reposition %s,%s %s" x y (slothbar-module-width m))
-  (xcb:+request slothbar-tray--connection
-      (make-instance 'xcb:ConfigureWindow
-                     :window slothbar-tray--embedder-window
-                     :value-mask (logior xcb:ConfigWindow:X
-                                         xcb:ConfigWindow:Width
-                                         xcb:ConfigWindow:Height)
-                     :x x
-                     :width (slothbar-module-width m)
-                     :height slothbar-height))
-  (when slothbar-tray--should-map?
+  (when slothbar-tray--connection
     (xcb:+request slothbar-tray--connection
-        (make-instance 'xcb:MapWindow :window slothbar-tray--embedder-window))
-    (setq slothbar-tray--should-map? nil)
-    (xcb:flush slothbar-tray--connection)))
+        (make-instance 'xcb:ConfigureWindow
+                       :window slothbar-tray--embedder-window
+                       :value-mask (logior xcb:ConfigWindow:X
+                                           xcb:ConfigWindow:Width
+                                           xcb:ConfigWindow:Height)
+                       :x x
+                       :width (slothbar-module-width m)
+                       :height slothbar-height))
+    (when slothbar-tray--should-map?
+      (xcb:+request slothbar-tray--connection
+          (make-instance 'xcb:MapWindow :window slothbar-tray--embedder-window))
+      (setq slothbar-tray--should-map? nil)
+      (xcb:flush slothbar-tray--connection))))
 
 (cl-defmethod slothbar-module-exit ((_ slothbar-tray))
   "Exit `slothbar-tray' module.
