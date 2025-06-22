@@ -71,7 +71,7 @@
   "Corresponds to property _NET_CURRENT_DESKTOP.")
 (defvar slothbar-ewmh--client-list nil
   "Corresponds to property _NET_CLIENT_LIST.")
-(defvar slothbar-ewmh--client-desktop-map nil
+(defvar slothbar-ewmh--client-desktop-map (make-hash-table :size 20)
   "A map from client id to desktop number.")
 (defvar slothbar-ewmh--active-window nil
   "Corresponds to property _NET_ACTIVE_WINDOW.")
@@ -171,7 +171,8 @@ the stringified desktop numbers."
                                           'xcb:ewmh:get-_NET_WM_DESKTOP
                                           :window client))
                                      'value)
-           collect `(,client . ,desktop)))
+           collect `(,client . ,desktop) into result
+           finally return (map-into result 'hash-table)))
 
 (defun slothbar-ewmh--update-current-desktop ()
   "Update the value of `slothbar-ewmh--current-desktop'."
@@ -230,9 +231,7 @@ the stringified desktop numbers."
                          'xcb:ewmh:get-_NET_WM_DESKTOP
                          :window id)))
               (desktop (slot-value reply 'value)))
-    (if slothbar-ewmh--client-desktop-map
-        (map-put! slothbar-ewmh--client-desktop-map id desktop)
-      (setq slothbar-ewmh--client-desktop-map `((,id . ,desktop))))))
+    (map-put! slothbar-ewmh--client-desktop-map id desktop)))
 
 (defun slothbar-ewmh--on-PropertyNotify (data _synthetic)
   "A listener for ewmh related events.
