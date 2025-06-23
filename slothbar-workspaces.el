@@ -418,7 +418,7 @@ slothbarHook dbus =
 mySlothbarLogHook dbus = myLogHook <+> dynamicLogWithPP (slothbarHook dbus)"
   (when (stringp slothbar-workspaces--xmonad-dbus-last-val)
     (cl-loop for (status name)
-             in (mapcar 'string-split
+             in (mapcar #'string-split
                         (butlast (string-split
                                   slothbar-workspaces--xmonad-dbus-last-val
                                   " \\. "
