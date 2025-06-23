@@ -200,8 +200,8 @@
    ;; to enable multi-screen support
    (slothbar-randr-mode))
 
- then M-x: slothbar
+ then M-x: slothbar-mode
  To exit:
- M-x: slothbar-exit")
+ M-x: slothbar-mode")
      (license license:gpl3+)))
 #+END_SRC

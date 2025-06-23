@@ -18,9 +18,9 @@ If you would like it to work on Emacs 27, please let me know.
 
 * Usage
 
-To start slothbar, run =M-x slothbar=. On first run, expect a delay of
-around twenty to thirty seconds (more or less depending on which fonts
-are chosen). During this time, available fonts configured in
+To start slothbar, run =M-x slothbar-mode=. On first run, expect a delay
+of around twenty to thirty seconds (more or less depending on which
+fonts are chosen). During this time, available fonts configured in
 =slothbar-font-candidates= are loaded and cached in a background process
 for future reference.
 
@@ -207,10 +207,9 @@ Slothbar consists of five primary components:
   This delegates to [[./slothbar-layout.el][./slothbar-layout.el]] to decide which window areas to
   copy/clear during a refresh cycle.
 
-  This provides two autoloaded interactive functions:
-  + ~(slothbar)~: display the status bar
+  This provides a minor mode, =slothbar-mode=
+  + =M-x: slothbar-mode=: display/exit the status bar
 
-  + ~(slothbar-exit)~: exit the status bar
 
 + Logical layout helpers
   Entry point: [[./slothbar-layout.el][./slothbar-layout.el]]

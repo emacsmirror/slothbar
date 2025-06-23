@@ -57,9 +57,9 @@
 ;;   ;; to enable multi-screen support
 ;;   (slothbar-randr-mode))
 
-;; then M-x: slothbar
+;; then M-x: slothbar-mode
 ;; To exit:
-;; M-x: slothbar-exit
+;; M-x: slothbar-mode
 
 ;; On first run, expect a delay of around twenty to thirty seconds
 ;; (more or less depending on which fonts are chosen).  During this
