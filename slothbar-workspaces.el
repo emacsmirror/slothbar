@@ -140,10 +140,6 @@ WS-LIST."
             (slothbar-module-text m) txt
             (slothbar-module-needs-refresh? m) t))))
 
-(cl-defmethod slothbar-module-init :before ((m slothbar-workspaces))
-  "Set the M's icon and update the text."
-  (slothbar-module-update-status m))
-
 (defun slothbar-workspaces--refresh-hook-fn (&rest _)
   "Refresh all workspaces modules, suitable for hooks."
   (slothbar-module--refresh-all-by-name "workspaces"))
@@ -208,11 +204,6 @@ This will refresh any instances of the module when a relevant variable changes."
   "Configure slothbar-workspaces to display workspaces using ewmh data."
   (when (and slothbar-workspaces-ensure-ewmh (not slothbar-ewmh-mode))
     (slothbar-ewmh-mode)))
-
-(add-hook 'slothbar-ewmh-mode-hook #'slothbar-workspaces--ewmh-toggle)
-(add-hook 'slothbar-before-init-hook
-          #'slothbar-workspaces--setup-defaults-ewmh
-          -1)
 
 ;;; EXWM
 
@@ -325,13 +316,6 @@ Remove chnage functions when ADD? is non-nil."
                #'slothbar-workspaces--refresh-hook-fn)
   (slothbar-workspaces--exwm-modify-change-functions nil))
 
-(when (locate-library "exwm")
-  (add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-exwm)
-  (add-hook 'slothbar-ewmh-mode-hook
-            (lambda ()
-              (when slothbar-ewmh-mode
-                (slothbar-workspaces-remove-hooks-exwm)))))
-
 ;;; herbstluftwm
 
 (defun slothbar-workspaces-generate-list-fn-herbstluftwm ()
@@ -402,8 +386,6 @@ Remove chnage functions when ADD? is non-nil."
           #'slothbar-workspaces-generate-list-fn-herbstluftwm)
     (slothbar-workspaces--start-herbstluft-event-listener)
     (add-hook 'slothbar-after-exit-hook #'slothbar-workspaces--stop-herbstluft-event-listener)))
-
-(add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-herbstluftwm)
 
 ;;; xmonad
 
@@ -494,7 +476,19 @@ Note that the xmonad config must send dbus events.  See the
      #'slothbar-workspaces-generate-list-fn-xmonad)
     (add-hook 'slothbar-after-exit-hook #'slothbar-workspaces--unregister-xmonad-dbus-monitor)))
 
-(add-hook 'slothbar-before-init-hook #'slothbar-workspaces-setup-defaults-xmonad)
+(cl-defmethod slothbar-module-init :before ((m slothbar-workspaces))
+  "Configure M and its initial icon and text."
+  (slothbar-workspaces--setup-defaults-ewmh)
+  (add-hook 'slothbar-ewmh-mode-hook #'slothbar-workspaces--ewmh-toggle)
+  (when (locate-library "exwm")
+    (slothbar-workspaces-setup-defaults-exwm)
+    (add-hook 'slothbar-ewmh-mode-hook
+              (lambda ()
+                (when slothbar-ewmh-mode
+                  (slothbar-workspaces-remove-hooks-exwm)))))
+  (slothbar-workspaces-setup-defaults-herbstluftwm)
+  (slothbar-workspaces-setup-defaults-xmonad)
+  (slothbar-module-update-status m))
 
 (provide 'slothbar-workspaces)
 ;;; slothbar-workspaces.el ends here
