@@ -121,18 +121,6 @@ Do this only when OPER eq \\='set and WHERE is nil."
        (lambda (_)
          (setq slothbar-font--color-code-map candidates))))))
 
-(add-hook 'slothbar-before-init-hook
-          (lambda ()
-            (setq slothbar-font--color-code-map
-                  (slothbar-font-map-candidates))
-            (add-variable-watcher 'slothbar-font-candidates
-                                  #'slothbar-font--watch-font-candidates)))
-
-(add-hook 'slothbar-after-exit-hook
-          (lambda ()
-            (remove-variable-watcher 'slothbar-font-candidates
-                                     #'slothbar-font--watch-font-candidates)))
-
 (cl-defun slothbar-font--precompute-px-sizes (height &optional font-map)
   "Given a HEIGHT, compute pixel sizes for all fonts in the FONT-MAP.
 
@@ -172,16 +160,6 @@ or `slothbar-font--color-code-map'."
         (setq slothbar-font-px-size
               (slothbar-font--precompute-px-sizes
                (or height slothbar-height) (or font-map slothbar-font--color-code-map)))))))
-
-(add-hook 'slothbar-before-init-hook
-          (lambda ()
-            (add-variable-watcher 'slothbar-font--color-code-map
-                                  #'slothbar-font--watch-px-size)))
-
-(add-hook 'slothbar-after-exit-hook
-          (lambda ()
-            (remove-variable-watcher 'slothbar-font--color-code-map
-                                     #'slothbar-font--watch-px-size)))
 
 (defcustom slothbar-font-px-delta
   [0.0

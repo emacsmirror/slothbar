@@ -127,16 +127,6 @@ Defaults to the width obtained from `display-pixel-width'"
 
 (require 'slothbar-font)
 
-(add-hook 'slothbar-before-init-hook
-          (lambda ()
-            (add-variable-watcher 'slothbar-height
-                                  #'slothbar-font--watch-px-size)))
-
-(add-hook 'slothbar-after-exit-hook
-          (lambda ()
-            (remove-variable-watcher 'slothbar-height
-                                     #'slothbar-font--watch-px-size)))
-
 (defcustom slothbar-offset-x 0
   "Bar display x offset in pixels."
   :type 'integer
@@ -444,9 +434,6 @@ It will remap colors and refresh the display."
         (setf (slothbar-module-needs-refresh? m) t)))
     (run-with-idle-timer 0 nil (lambda () (slothbar--refresh t)))))
 
-(add-hook 'enable-theme-functions #'slothbar--on-theme-change)
-(add-hook 'disable-theme-functions #'slothbar--on-theme-change)
-
 (defun slothbar--on-DestroyNotify (data _synthetic)
   "DestroyNotify.
 DATA the event data"
@@ -640,6 +627,15 @@ NVAL is check against the existing value for any changes."
 (defun slothbar--start ()
   "Start slothbar.
 Initialize the connection, window, graphics context, and modules."
+  (add-variable-watcher 'slothbar-height #'slothbar-font--watch-px-size)
+  (add-hook 'enable-theme-functions #'slothbar--on-theme-change)
+  (add-hook 'disable-theme-functions #'slothbar--on-theme-change)
+  (setq  slothbar-color-map-fg (slothbar-color--gen-color-map)
+         slothbar-font--color-code-map (slothbar-font-map-candidates))
+  (add-variable-watcher 'slothbar-font-candidates
+                        #'slothbar-font--watch-font-candidates)
+  (add-variable-watcher 'slothbar-font--color-code-map
+                        #'slothbar-font--watch-px-size)
   (run-hook-with-args 'slothbar-before-init-hook)
   (cl-assert (not slothbar--connection))
   (cl-assert (not slothbar--window))
@@ -799,6 +795,8 @@ Initialize the connection, window, graphics context, and modules."
 (defun slothbar-exit ()
   "Exit slothbar."
   (interactive)
+  (remove-hook 'enable-theme-functions #'slothbar--on-theme-change)
+  (remove-hook 'disable-theme-functions #'slothbar--on-theme-change)
   (run-hook-with-args 'slothbar-before-exit-hook)
   ;; exit modules
   (when slothbar--module-refresh-timer
@@ -827,6 +825,11 @@ Initialize the connection, window, graphics context, and modules."
     (setq slothbar--connection nil
           slothbar--window nil
           slothbar--gc nil)
+    (remove-variable-watcher 'slothbar-height #'slothbar-font--watch-px-size)
+    (remove-variable-watcher 'slothbar-font-candidates
+                             #'slothbar-font--watch-font-candidates)
+    (remove-variable-watcher 'slothbar-font--color-code-map
+                             #'slothbar-font--watch-px-size)
     (run-hook-with-args 'slothbar-after-exit-hook)))
 
 (provide 'slothbar)
