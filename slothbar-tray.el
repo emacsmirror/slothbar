@@ -70,8 +70,8 @@
                (:copier nil))
   "A system tray module.")
 
-;;; we need this extension to handle client message
-(defclass xcb:systemtray:-ClientMessage
+;;; We need this extension to handle client message
+(defclass slothbar-tray--ClientMessage
   (xcb:icccm:--ClientMessage xcb:ClientMessage)
   ((format :initform 32)
    (type :initform 'xcb:Atom:MANAGER)
@@ -135,7 +135,7 @@ This should be a color, or nil for transparent background."
 
 (defvar slothbar-tray--module nil "The tray module (there can only be one).")
 
-(defvar xcb:Atom:_NET_SYSTEM_TRAY_S0 "This is the tray selection atom.")
+(defvar xcb:Atom:_NET_SYSTEM_TRAY_S0)
 
 (defun slothbar-tray--embed (icon)
   "Embed ICON."
@@ -392,7 +392,7 @@ This overrides the default module init because system tray is special."
                          :destination root
                          :event-mask xcb:EventMask:StructureNotify
                          :event (xcb:marshal
-                                 (make-instance 'xcb:systemtray:-ClientMessage
+                                 (make-instance 'slothbar-tray--ClientMessage
                                                 :window root
                                                 :time xcb:Time:CurrentTime
                                                 :selection
