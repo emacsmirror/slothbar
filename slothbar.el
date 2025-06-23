@@ -403,8 +403,8 @@ The default color is from `slothbar-util--find-background-color'."
   (slothbar--configure-pos)
   (xcb:flush slothbar--connection))
 
-(defun slothbar-toggle ()
-  "Toggle slothbar visibility."
+(defun slothbar-hide-show ()
+  "Hide slothbar if visible and show if hidden."
   (interactive)
   (if slothbar--visible
       (slothbar-hide)
@@ -627,15 +627,6 @@ NVAL is check against the existing value for any changes."
 (defun slothbar--start ()
   "Start slothbar.
 Initialize the connection, window, graphics context, and modules."
-  (add-variable-watcher 'slothbar-height #'slothbar-font--watch-px-size)
-  (add-hook 'enable-theme-functions #'slothbar--on-theme-change)
-  (add-hook 'disable-theme-functions #'slothbar--on-theme-change)
-  (setq  slothbar-color-map-fg (slothbar-color--gen-color-map)
-         slothbar-font--color-code-map (slothbar-font-map-candidates))
-  (add-variable-watcher 'slothbar-font-candidates
-                        #'slothbar-font--watch-font-candidates)
-  (add-variable-watcher 'slothbar-font--color-code-map
-                        #'slothbar-font--watch-px-size)
   (run-hook-with-args 'slothbar-before-init-hook)
   (cl-assert (not slothbar--connection))
   (cl-assert (not slothbar--window))
@@ -784,7 +775,6 @@ Initialize the connection, window, graphics context, and modules."
 ;;;###autoload
 (defun slothbar ()
   "Start slothbar."
-  (interactive)
   (if (and (display-graphic-p) (eq 'x window-system))
       (fontsloth-async-load-and-cache-fonts
        (slothbar-font-map-candidates)
@@ -794,9 +784,6 @@ Initialize the connection, window, graphics context, and modules."
 ;;;###autoload
 (defun slothbar-exit ()
   "Exit slothbar."
-  (interactive)
-  (remove-hook 'enable-theme-functions #'slothbar--on-theme-change)
-  (remove-hook 'disable-theme-functions #'slothbar--on-theme-change)
   (run-hook-with-args 'slothbar-before-exit-hook)
   ;; exit modules
   (when slothbar--module-refresh-timer
@@ -825,12 +812,33 @@ Initialize the connection, window, graphics context, and modules."
     (setq slothbar--connection nil
           slothbar--window nil
           slothbar--gc nil)
+    (run-hook-with-args 'slothbar-after-exit-hook)))
+
+;;;###autoload
+(define-minor-mode slothbar-mode
+  "Slothbar-mode provides an X window manager status bar."
+  :global t
+  :lighter " 🦥"
+  (when (and slothbar-mode (not (slothbar-enabled-p)))
+    (add-variable-watcher 'slothbar-height #'slothbar-font--watch-px-size)
+    (add-hook 'enable-theme-functions #'slothbar--on-theme-change)
+    (add-hook 'disable-theme-functions #'slothbar--on-theme-change)
+    (setq  slothbar-color-map-fg (slothbar-color--gen-color-map)
+           slothbar-font--color-code-map (slothbar-font-map-candidates))
+    (add-variable-watcher 'slothbar-font-candidates
+                          #'slothbar-font--watch-font-candidates)
+    (add-variable-watcher 'slothbar-font--color-code-map
+                          #'slothbar-font--watch-px-size)
+    (slothbar))
+  (when (and (not slothbar-mode) (slothbar-enabled-p))
+    (remove-hook 'enable-theme-functions #'slothbar--on-theme-change)
+    (remove-hook 'disable-theme-functions #'slothbar--on-theme-change)
+    (slothbar-exit)
     (remove-variable-watcher 'slothbar-height #'slothbar-font--watch-px-size)
     (remove-variable-watcher 'slothbar-font-candidates
                              #'slothbar-font--watch-font-candidates)
     (remove-variable-watcher 'slothbar-font--color-code-map
-                             #'slothbar-font--watch-px-size)
-    (run-hook-with-args 'slothbar-after-exit-hook)))
+                             #'slothbar-font--watch-px-size)))
 
 (provide 'slothbar)
 
