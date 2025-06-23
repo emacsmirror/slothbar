@@ -5,7 +5,7 @@
 ;; Author: Jo Gay <jo.gay@mailfence.com>
 ;; Version: 0.28.2
 ;; Homepage: https://codeberg.org/agnes-li/slothbar
-;; Keywords: window-manager, status-bar, exwm
+;; Keywords: frames, hardware
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free

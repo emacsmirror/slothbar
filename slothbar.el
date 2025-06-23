@@ -6,8 +6,8 @@
 ;;         Agnes Li <agnes.li@mailfence.com>
 ;; Version: 0.28.2
 ;; Homepage: https://codeberg.org/agnes-li/slothbar
-;; Package-Requires: ((all-the-icons "5.0.0") (backlight "1.4") (compat "29.1") (dash "2.1.0") (f "0.20.0") (fontsloth "0.19.1") (log4e "0.3.3") (nerd-icons "0.1.0") (s "1.12.0") (volume "1.0") (xelb "0.18") (emacs "28.0"))
-;; Keywords: window-manager, status-bar, exwm
+;; Package-Requires: ((all-the-icons "5.0.0") (backlight "1.4") (compat "29.1") (dash "2.1.0") (f "0.20.0") (fontsloth "0.19.1") (log4e "0.3.3") (nerd-icons "0.1.0") (s "1.12.0") (volume "1.0") (xelb "0.18") (emacs "28.1"))
+;; Keywords: frames, hardware
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
