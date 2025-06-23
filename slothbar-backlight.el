@@ -103,16 +103,20 @@ See `slothbar-color-zone'"
             (slothbar-module-text m) txt
             (slothbar-module-needs-refresh? m) t))))
 
-(cl-defmethod slothbar-module-init :before ((m slothbar-backlight))
-  "Set the M's icon and update the text."
-  (slothbar-module-update-status m))
-
 (defun slothbar-backlight--set-brightness-advice (&rest _)
   "A function to update status when the brightness is changed in Emacs."
   (slothbar-module--refresh-all-by-name "backlight"))
 
-(advice-add 'backlight--set-brightness
-            :after #'slothbar-backlight--set-brightness-advice)
+(cl-defmethod slothbar-module-init :before ((m slothbar-backlight))
+  "Set the M's icon and update the text."
+  (advice-add 'backlight--set-brightness
+              :after #'slothbar-backlight--set-brightness-advice)
+  (slothbar-module-update-status m))
+
+(cl-defmethod slothbar-module-exit :after ((_ slothbar-backlight))
+  "Tear down module M."
+  (advice-remove 'backlight--set-brightness
+                 #'slothbar-backlight--set-brightness-advice))
 
 (provide 'slothbar-backlight)
 ;;; slothbar-backlight.el ends here

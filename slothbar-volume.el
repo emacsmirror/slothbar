@@ -114,16 +114,20 @@ See `slothbar-color-zone'"
             (slothbar-module-text m) txt
             (slothbar-module-needs-refresh? m) t))))
 
-(cl-defmethod slothbar-module-init :before ((m slothbar-volume))
-  "Set the M's icon and update the text."
-  (slothbar-module-update-status m))
-
 (defun slothbar-volume--refresh-advice (&rest _)
   "Refresh any module instances if the volume is adjusted in Emacs."
   (slothbar-module--refresh-all-by-name "volume"))
 
-(advice-add 'volume-update :after #'slothbar-volume--refresh-advice)
-(advice-add 'volume-set :after #'slothbar-volume--refresh-advice)
+(cl-defmethod slothbar-module-init :before ((m slothbar-volume))
+  "Set the M's icon and update the text."
+  (advice-add 'volume-update :after #'slothbar-volume--refresh-advice)
+  (advice-add 'volume-set :after #'slothbar-volume--refresh-advice)
+  (slothbar-module-update-status m))
+
+(cl-defmethod slothbar-module-exit :after ((_ slothbar-volume))
+  "Tear down module M."
+  (advice-remove 'volume-update #'slothbar-volume--refresh-advice)
+  (advice-remove 'volume-set #'slothbar-volume--refresh-advice))
 
 (provide 'slothbar-volume)
 ;;; slothbar-volume.el ends here
