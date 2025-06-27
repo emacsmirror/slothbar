@@ -311,20 +311,31 @@ procedures and customization options may change prior to a 1.0 release.*
 These are using Bookerly-Regular for variable text, IBMPlexMono for monospace,
 and Font Awesome 5 (the one that comes with all-the-icons) for icons:
 
-#+CAPTION: a screenshot of the backlight module
+#+CAPTION: screenshots of the backlight module
 [[./screen-backlight.png]]
+[[./screen-backlight-2.png]]
 
-#+CAPTION: a screenshot of the battery module
+#+CAPTION: screenshots of the battery module
 [[./screen-battery.png]]
+[[./screen-battery-2.png]]
 
-#+CAPTION: a screenshot of the date module
+#+CAPTION: screenshots of the date module
 [[./screen-date.png]]
+[[./screen-date-2.png]]
 
-#+CAPTION: a screenshot of the volume module
+#+CAPTION: screenshots of the volume module
 [[./screen-volume.png]]
+[[./screen-volume-2.png]]
 
-#+CAPTION: a screenshot of the wifi module
+#+CAPTION: a screenshot of the volume module configured for a microphone
+[[./screen-mic.png]]
+
+#+CAPTION: screenshots of the wifi module
 [[./screen-wifi.png]]
+[[./screen-wifi-2.png]]
+
+#+CAPTION: a screenshot of the workspaces module (in EXWM with shortened buffer names)
+[[./screen-workspaces.png]]
 
 * Attribution
 This project is heavily inspired by daviwil’s [[https://systemcrafters.cc/][System Crafters]] presentations on
