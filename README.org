@@ -319,30 +319,36 @@ and Font Awesome 5 (the one that comes with all-the-icons) for icons:
 [[./screen-backlight-2.png]]
 
 
+#+CAPTION: 
 [[./screen-battery.png]]
 
 #+CAPTION: battery module
 [[./screen-battery-2.png]]
 
 
+#+CAPTION: 
 [[./screen-date.png]]
 
 #+CAPTION: date module (fall and summer)
 [[./screen-date-2.png]]
 
 
+#+CAPTION: 
 [[./screen-volume.png]]
 
+#+CAPTION: 
 [[./screen-volume-2.png]]
 
 #+CAPTION: volume module
 [[./screen-mic.png]]
 
 
+#+CAPTION: 
 [[./screen-wifi.png]]
 
 #+CAPTION: wifi module
 [[./screen-wifi-2.png]]
+
 
 #+CAPTION: workspaces module in EXWM with shortened buffer names
 [[./screen-workspaces.png]]
