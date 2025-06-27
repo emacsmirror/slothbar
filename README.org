@@ -311,37 +311,36 @@ procedures and customization options may change prior to a 1.0 release.*
 These are using Bookerly-Regular for variable text, IBMPlexMono for monospace,
 and Font Awesome 5 (the one that comes with all-the-icons) for icons:
 
-#+CAPTION: backlight module example 1
+
 [[./screen-backlight.png]]
 
-#+CAPTION: backlight module example 2
+#+CAPTION: backlight module
 [[./screen-backlight-2.png]]
 
-#+CAPTION: battery module example 1
+
 [[./screen-battery.png]]
 
-#+CAPTION: battery module example 2 (charging)
+#+CAPTION: battery module
 [[./screen-battery-2.png]]
 
-#+CAPTION: date module example 1 (fall)
+
 [[./screen-date.png]]
 
-#+CAPTION: date module example 2 (summer)
+#+CAPTION: date module (fall and summer)
 [[./screen-date-2.png]]
 
-#+CAPTION: volume module example 1
+
 [[./screen-volume.png]]
 
-#+CAPTION: volume module example 2
 [[./screen-volume-2.png]]
 
-#+CAPTION: volume module example 3 microphone
+#+CAPTION: volume module
 [[./screen-mic.png]]
 
-#+CAPTION: wifi module example 1
+
 [[./screen-wifi.png]]
 
-#+CAPTION: wifi module example 2
+#+CAPTION: wifi module
 [[./screen-wifi-2.png]]
 
 #+CAPTION: workspaces module in EXWM with shortened buffer names
