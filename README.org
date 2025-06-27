@@ -312,6 +312,7 @@ These are using Bookerly-Regular for variable text, IBMPlexMono for monospace,
 and Font Awesome 5 (the one that comes with all-the-icons) for icons:
 
 
+#+CAPTION: 
 [[./screen-backlight.png]]
 
 #+CAPTION: backlight module
