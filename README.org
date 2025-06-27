@@ -350,8 +350,11 @@ and Font Awesome 5 (the one that comes with all-the-icons) for icons:
 [[./screen-wifi-2.png]]
 
 
-#+CAPTION: workspaces module in EXWM with shortened buffer names
+#+CAPTION: 
 [[./screen-workspaces.png]]
+
+#+CAPTION: workspaces module above with shortened buffer names, below with EWMH names
+[[./screen-workspaces-2.png]]
 
 * Attribution
 This project is heavily inspired by daviwil’s [[https://systemcrafters.cc/][System Crafters]] presentations on
