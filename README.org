@@ -353,7 +353,10 @@ and Font Awesome 5 (the one that comes with all-the-icons) for icons:
 #+CAPTION: 
 [[./screen-workspaces.png]]
 
-#+CAPTION: workspaces module above with shortened buffer names, below with EWMH names
+#+CAPTION: 
+[[./screen-workspaces-3.png]]
+
+#+CAPTION: workspaces module first with shortened buffer names, second two with EWMH names
 [[./screen-workspaces-2.png]]
 
 * Attribution
