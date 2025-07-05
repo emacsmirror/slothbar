@@ -203,7 +203,9 @@ This will refresh any instances of the module when a relevant variable changes."
 (defun slothbar-workspaces--setup-defaults-ewmh ()
   "Configure slothbar-workspaces to display workspaces using ewmh data."
   (when (and slothbar-workspaces-ensure-ewmh (not slothbar-ewmh-mode))
-    (slothbar-ewmh-mode)))
+    (slothbar-ewmh-mode))
+  (when slothbar-ewmh-mode
+    (slothbar-workspaces--ewmh-toggle)))
 
 ;;; EXWM
 
