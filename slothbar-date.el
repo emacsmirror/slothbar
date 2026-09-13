@@ -110,6 +110,8 @@ See `slothbar-color-zone'"
   "Decide the seasonal zone color using solar equinox/solstice calculations."
   (let* ((winter-solstice (slothbar-date--equinox-solstice-day 3))
          (day (string-to-number (format-time-string "%j")))
+         (hour (string-to-number (format-time-string "%H")))
+         (day (+ day (/ hour 24.0)))
          (day (if (< winter-solstice day) (- winter-solstice day) day)))
     (let ((slothbar-color-zone-med slothbar-date-color-spring)
           (slothbar-color-zone-hi slothbar-date-color-summer)
